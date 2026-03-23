@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/profile.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="page__inner">
+
+      <!-- ログインしていない場合 -->
+      <div id="not-logged-in" style="display:none;">
+        <div class="profile__login-required">
+          <div style="font-size:60px;margin-bottom:16px;">🔐</div>
+          <h2>ログインが必要です</h2>
+          <p>プロフィールを見るにはログインしてください</p>
+          <a href="/student-japan/login.html" class="contact__submit" style="display:inline-block;margin-top:24px;">ログイン</a>
+        </div>
+      </div>
+
+      <!-- ログインしている場合 -->
+      <div id="logged-in" style="display:none;">
+
+        <!-- プロフィールヘッダー -->
+        <div class="profile__header">
+          <div class="profile__avatar" id="profileAvatar">？</div>
+          <div class="profile__info">
+            <h1 class="profile__name" id="profileName">ユーザー</h1>
+            <p class="profile__email" id="profileEmail"></p>
+          </div>
+          <div class="profile__actions">
+            <button class="profile__edit-btn" id="editBtn">✏️ 編集</button>
+            <button class="profile__logout-btn" id="logoutBtn">ログアウト</button>
+          </div>
+        </div>
+
+        <!-- 編集フォーム -->
+        <div class="profile__edit-form" id="editForm" style="display:none;">
+          <div class="form-group">
+            <label>ユーザーネーム</label>
+            <input type="text" id="editUsername" placeholder="ユーザーネームを入力" />
+          </div>
+          <div class="profile__edit-btns">
+            <button class="contact__submit" id="saveBtn">保存する</button>
+            <button class="profile__cancel-btn" id="cancelBtn">キャンセル</button>
+          </div>
+        </div>
+
+        <!-- お気に入り大学 -->
+        <div class="profile__section">
+          <div class="profile__section-header">
+            <h2 class="section__title">⭐ お気に入り大学</h2>
+            <span class="profile__fav-count" id="favCount">0校 / 30校</span>
+          </div>
+          <p class="profile__fav-sub">マーカーをクリックして★を押すと登録できます。★を押すと解除できます。</p>
+          <div class="fav-search-bar">
+            <input type="text" id="favSearch" placeholder="大学名で絞り込み..." oninput="renderFavTable()">
+          </div>
+          <div id="favContainer">
+            <div class="profile__fav-empty">
+              <div style="font-size:48px;margin-bottom:12px;">⭐</div>
+              <p>お気に入りに登録された大学はありません。</p>
+              <a href="/student-japan/scholarship.html" class="thread__back" style="margin-top:16px;display:inline-block;">大学奨学金マップへ →</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="undo-toast" id="undoToast">
+    <span id="undoMsg">削除しました</span>
+    <button class="undo-btn" onclick="undoRemove()">元に戻す</button>
+  </div>
+</body>
+</html>

@@ -1,0 +1,43 @@
+/* =====================
+   footer.css
+   パス: /public/styles/footer.css
+   使用: 全ページ共通
+   ===================== */
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  padding: clamp(24px, 4vw, 40px) clamp(16px, 5vw, 40px);
+}
+
+.site-footer__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.site-footer__copyright {
+  font-size: clamp(10px, 1.5vw, 12px);
+  color: var(--color-text-faint);
+}
+
+.site-footer__social-link {
+  display: flex;
+  align-items: center;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+.site-footer__social-link:hover {
+  opacity: 1;
+}
+
+.site-footer__social-icon {
+  width: 30px;
+  height: 30px;
+  object-fit: contain;
+  border-radius: 4px;
+}

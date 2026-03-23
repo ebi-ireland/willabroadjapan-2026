@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <main class="page">
+    <div class="page__inner">
+      <h1 class="page__title">大学合格診断</h1>
+      <p class="diag-sub">あなたのプロフィールを入力して、志望大学の合格可能性を診断しましょう。</p>
+
+      <div class="steps" id="stepIndicator"></div>
+
+      <!-- STEP 1 -->
+      <div id="step1">
+        <div class="diag-card">
+          <h2 class="diag-card__title">📝 Step 1 — 学力・スコアを入力</h2>
+          <div class="field-grid">
+            <div class="field">
+              <label>GPA <span class="required">*</span></label>
+              <input type="number" id="in_gpa" min="0" max="4.0" step="0.1" placeholder="例: 3.8" />
+              <span class="hint">0.0〜4.0 スケール</span>
+            </div>
+            <div class="field">
+              <label>クラスランク</label>
+              <select id="in_classrank">
+                <option value="">選択してください</option>
+                <option value="cr_5">上位 5% 以内</option>
+                <option value="cr_10">上位 6〜10%</option>
+                <option value="cr_20">上位 11〜20%</option>
+                <option value="cr_30">上位 21〜30%</option>
+                <option value="cr_50">上位 31〜50%</option>
+                <option value="cr_lo">50% 以下</option>
+                <option value="cr_na">クラスランクなし</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-grid" style="margin-top:20px;">
+            <div class="field">
+              <label>SAT 総合スコア</label>
+              <input type="number" id="in_sat" min="400" max="1600" step="10" placeholder="例: 1350" />
+              <span class="hint">400〜1600</span>
+            </div>
+            <div class="field">
+              <label>ACT 総合スコア</label>
+              <input type="number" id="in_act" min="1" max="36" step="1" placeholder="例: 28" />
+              <span class="hint">1〜36</span>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <p class="field-label">英語資格（いずれか1つ）</p>
+            <div class="radio-group" id="langTypeGroup">
+              <div class="radio-chip"><input type="radio" name="langType" id="lt_toefl"    value="toefl"    onchange="updateLangInput()"><label for="lt_toefl">TOEFL iBT</label></div>
+              <div class="radio-chip"><input type="radio" name="langType" id="lt_ielts"    value="ielts"    onchange="updateLangInput()"><label for="lt_ielts">IELTS</label></div>
+              <div class="radio-chip"><input type="radio" name="langType" id="lt_duolingo" value="duolingo" onchange="updateLangInput()"><label for="lt_duolingo">Duolingo</label></div>
+              <div class="radio-chip"><input type="radio" name="langType" id="lt_none"     value="none"     onchange="updateLangInput()" checked><label for="lt_none">なし</label></div>
+            </div>
+            <div id="langScoreWrap" style="display:none; margin-top:12px;">
+              <div class="field" style="max-width:200px;">
+                <label id="langScoreLabel">スコア</label>
+                <input type="number" id="in_lang" placeholder="スコアを入力" />
+                <span class="hint" id="langScoreHint"></span>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:20px;">
+            <div class="field">
+              <label>Need-based Scholarships（経済的支援）を希望しますか？</label>
+              <div class="need-toggle">
+                <div class="need-opt"><input type="radio" name="needBased" id="need_yes" value="yes"><label for="need_yes">希望する</label></div>
+                <div class="need-opt"><input type="radio" name="needBased" id="need_no"  value="no" checked><label for="need_no">希望しない</label></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="diag-card" style="margin-top:16px;">
+          <h2 class="diag-card__title">🏆 課外活動（最大3つ）</h2>
+          <div class="activity-list">
+            <div class="activity-row"><span class="num">1</span><input type="text" id="act1" placeholder="例: テニス部主将として練習メニューを科学的に改善..." /></div>
+            <div class="activity-row"><span class="num">2</span><input type="text" id="act2" placeholder="例: 生徒会長として学内アンケートを実施..." /></div>
+            <div class="activity-row"><span class="num">3</span><input type="text" id="act3" placeholder="例: 地元の学習支援ボランティアで経済的困難にある児童を指導..." /></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button class="btn-primary" onclick="goToStep2()">次へ：大学を選ぶ →</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div id="step2" style="display:none;">
+        <div class="diag-card">
+          <h2 class="diag-card__title">🎓 Step 2 — 診断する大学を選ぶ（最大5校）</h2>
+          <div class="univ-search-bar">
+            <input type="text" id="univSearchUser" placeholder="大学名で絞り込み..." oninput="renderUnivSelector()" />
+          </div>
+          <p class="selected-count">選択中: <span id="selCount">0</span> / 5 校</p>
+          <div class="univ-grid" id="univGrid"></div>
+        </div>
+        <div class="btn-row">
+          <button class="btn-outline" onclick="goToStep1()">← 戻る</button>
+          <button class="btn-primary" id="btnDiagnose" onclick="runDiagnosis()" disabled>診断する →</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div id="step3" style="display:none;">
+        <div id="resultList"></div>
+        <div class="btn-row">
+          <button class="btn-outline" onclick="goToStep2()">← 大学を選び直す</button>
+          <button class="btn-primary" onclick="resetAll()">最初からやり直す</button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+</body>
+</html>

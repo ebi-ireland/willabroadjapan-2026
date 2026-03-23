@@ -1,0 +1,91 @@
+/* =====================
+   support.css
+   パス: /public/styles/comp/support.css
+   使用: /public/student-japan/support.html
+   ===================== */
+
+.support__lead {
+  font-size: clamp(13px, 1.8vw, 15px);
+  color: var(--color-text-muted);
+  line-height: 1.8;
+  margin-bottom: clamp(32px, 5vw, 56px);
+  max-width: 600px;
+}
+
+.support__group {
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+
+.support__category {
+  font-size: clamp(14px, 2vw, 17px);
+  font-weight: 700;
+  color: var(--color-orange);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: clamp(16px, 2vw, 24px);
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255,128,64,0.2);
+}
+
+.support__grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.support__card {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2.5vw, 24px);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: clamp(12px, 2vw, 16px);
+  padding: clamp(20px, 3vw, 28px);
+  color: var(--color-white);
+  transition: all 0.2s ease;
+}
+
+.support__card:hover {
+  border-color: var(--color-orange);
+  transform: translateX(4px);
+  background: rgba(255,128,64,0.05);
+}
+
+.support__icon {
+  font-size: clamp(28px, 4vw, 40px);
+  flex-shrink: 0;
+}
+
+.support__content {
+  flex: 1;
+}
+
+.support__title {
+  font-size: clamp(15px, 2vw, 18px);
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: 6px;
+  transition: color 0.2s ease;
+}
+
+.support__card:hover .support__title {
+  color: var(--color-orange);
+}
+
+.support__desc {
+  font-size: clamp(12px, 1.5vw, 14px);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.support__arrow {
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--color-text-faint);
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.support__card:hover .support__arrow {
+  color: var(--color-orange);
+  transform: translateX(4px);
+}

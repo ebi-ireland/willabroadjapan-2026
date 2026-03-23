@@ -1,0 +1,434 @@
+PythonでAutomationコードを書いてもらいます。
+
+
+1. ファイル名はdataset_YYYY_MM_DDで拡張子は.csv
+2. もし存在していた場合は(1), (2), (3)と増殖していく
+3. 1行目がカラムになり、1行目とA列（大学名）がフリーズされた状態になる。
+4-a. もし新しく作る場合は100個以上ありますが、大学名・国（カタカナ）・都市名（アルファベット）を記入していく。国名はウェブサイトではなく、このプロンプトの各URLの左側に書いてあるカタカナのでOK。
+unirank.orgのHTMLの構成
+<tr>
+<td><b>2</b></td>
+<td><a href="/us/uni/harvard-university/">Harvard University</a></td>
+<td>Cambridge</td>
+</tr>
+<tr>
+<td><b>306</b></td>
+<td><a href="/us/uni/harvey-mudd-college/">Harvey Mudd College</a></td>
+<td>Claremont</td>
+</tr>
+<tr>
+<td><b>1345</b></td>
+<td><a href="/us/uni/hastings-college/">Hastings College</a></td>
+<td>Hastings</td>
+</tr>
+<tr>
+<td><b>362</b></td>
+<td><a href="/us/uni/haverford-college/">Haverford College</a></td>
+<td>Haverford</td>
+</tr>
+
+5. その後このウェブサイト(https://latitudelongitudefinder.com/)を使って緯度経度を埋めていく。
+大学名を入力して、検索ボタンを押すと緯度経度が表示されるのでそれらの数値を貼り付ける。
+latitudelongitudefinderのHTMLの構成
+<div class="p-6">
+<form class="space-y-4">
+<div class="flex gap-2">
+<input class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" placeholder="Enter location (e.g., Eiffel Tower, Paris)" value="">
+<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2" type="submit">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-map-pin h-4 w-4 mr-2">
+<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path>
+<circle cx="12" cy="10" r="3"></circle>
+</svg>
+Search</button>
+</div>
+<button class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2 w-full" type="button">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-compass h-4 w-4 mr-2">
+<path d="m16.24 7.76-1.804 5.411a2 2 0 0 1-1.265 1.265L7.76 16.24l1.804-5.411a2 2 0 0 1 1.265-1.265z">
+</path>
+<circle cx="12" cy="12" r="10"></circle>
+</svg>Use My Location
+</button>
+</form>
+<div class="mt-6 p-4 bg-muted rounded-lg space-y-2">
+<h3 class="font-semibold mb-2">Current Coordinates:</h3>
+<div class="flex items-center justify-between">
+<p>Latitude: <!-- -->51.505000<!-- -->°</p>
+<button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy h-4 w-4">
+<rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+</svg>
+</button>
+</div>
+<div class="flex items-center justify-between">
+<p>Longitude: <!-- -->-0.090000<!-- -->°</p>
+<button class="inline-flex items-center justify-center whitespace-nowrap text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground h-9 rounded-md px-3">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-copy h-4 w-4">
+<rect width="14" height="14" x="8" y="8" rx="2" ry="2"></rect>
+<path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"></path>
+</svg>
+</button>
+</div>
+<div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+<p class="text-sm text-blue-800">💡 
+<strong>Tip:</strong> 
+Click anywhere on the map to get coordinates for that location!</p>
+</div>
+</div>
+</div>
+
+6. 通貨定義のカラムを埋める
+
+7. 指定されたカラムではチェックボックスを作成する
+
+8. すべてやると100か国以上で1万くらいの大学があって大変なことになるので、最初は
+アイスランド: https://www.unirank.org/is/a-z/
+アイルランド: https://www.unirank.org/ie/a-z/
+この2か国だけでやって、問題なければ制限なしでやる。
+
+
+注意事項 & 追加してほしいこと（後で消す）
+・その国の通貨定義の追加
+以下の国・地域の通貨以外は米ドルとする
+米ドル、オーストリアドル、カナダドル、韓国ウォン、シンガポールドル、中国元、ニュージーランドドル、ポンド、ユーロ、リンギット、UAEディルハム
+// 各種費用（First Year）※州立大学の場合はTuition: Nonresident 大学によってはOut-of-Stateの場合もあれば、全学生In-Stateの場合もあれば、全学生In-stateのばあいもある。
+// 理系平均は医学部を除く & 文系理系平均は英語課程のみ
+// 現地語は各国の現地語で受講した場合
+通貨定義 //追加されたカラム
+Tuition
+文系平均
+理系平均
+現地語平均
+Required Fees
+Food and housing total
+Housing Only
+Food Only
+Books and supplies
+・通貨定義のカラムを埋めるコード
+・指定されたカラムではチェックボックスを作成するコード
+・拡張子は.csv
+・このファイルと同じ場所にcsvファイルを出力。予定では以下のパスにファイルおよびcsvを配置・出力する予定
+C:\Users\user\OneDrive\Desktop\willabroadjapan\GetData\CreateTable
+
+
+
+＝＝＝カラム＝＝＝
+大学名
+国
+都市
+緯度
+経度
+URL
+気候
+
+// Common Data Set より情報取得
+学生数
+全体合格率
+男性受験者数
+女性受験者数
+男性合格者数
+女性合格者数
+男性入学者数
+女性入学者数
+全体出願者数
+全体合区者数
+全体入学者数
+留学生出願者数
+留学生合格者数
+留学生入学者数
+SAT提出割合
+ACT提出割合
+
+// 25 Percentileのみ記入
+SATComposite
+SAT EBRW
+SAT Math
+ACT Composite
+ACT Math
+ACT Science
+ACT Reading
+
+// 一番右の All enrolled students から取得 & 下位20%程度のGPAであること。
+// 参考の計算方法 https://gemini.google.com/share/79f4ae9f380d
+GPA
+区間の下限
+下限までの累計
+区間のパーセンテージ
+
+Priority Date
+
+// 入学延長の期間
+Deferred Admission
+
+ED出願者数
+ED合格者数
+EA出願者数
+EA合格者数
+
+// 各種費用（First Year）※州立大学の場合はTuition: Nonresident 大学によってはOut-of-Stateの場合もあれば、全学生In-Stateの場合もあれば、全学生In-stateのばあいもある。
+// 理系平均は医学部を除く & 文系理系平均は英語課程のみ
+// 現地語は各国の現地語で受講した場合
+通貨定義
+Tuition
+文系平均
+理系平均
+現地語平均
+Required Fees
+Food and housing total
+Housing Only
+Food Only
+Books and supplies
+
+// Scholarships
+// H, I, J
+Need総数
+Need-Met
+Need全体平均額
+
+// N, O
+Merit全体数
+Merit平均額
+
+// チェックリストで構成する
+// both not available の場合、この大学では留学生に奨学金を支給していない
+Need available
+non need available
+both not available
+Need留学生総数
+Need留学生平均額
+
+// クラスサイズ 
+// 一度データ入力をしたら使いまわしにする
+// 数値の求め方：https://gemini.google.com/share/7e6f0097fff4
+2-9
+10-19
+20-29
+30-39
+40-49
+50-99
+100+
+Total
+
+// 学問
+// 8%超えの学問を強い分野認定にする（数値が大きい順）
+// チェックリストで構成する
+// 一度データ入力をしたら使いまわしにする
+Agriculture
+Natural resources and conservation
+Architecture
+Area, ethnic, and gender studies
+Communication/journalism
+Communication technologies
+Computer and information sciences
+Personal and culinary services
+Education
+Engineering
+Engineering technologies
+Foreign languages, literatures, and linguistics
+Family and consumer sciences
+Law/legal studies
+English
+Liberal arts/general studies
+Library science
+Biological/life sciences
+Mathematics and statistics
+Military science and military technologies
+Interdisciplinary studies
+Parks and recreation
+Philosophy and religious studies
+Theology and religious vocations
+Physical sciences
+Science technologies
+Psychology
+Homeland Security, law enforcement, firefighting, and protective services
+Public administration and social services
+Social sciences
+Construction trades
+Mechanic and repair technologies
+Precision production
+Transportation and materials moving
+Visual and performing arts
+Health professions and related programs
+Business/marketing
+History
+
+// 語学条件
+// 一度データ入力をしたら使いまわしにする
+TOEFL 総合
+TOEFL Reading
+TOEFL Listening
+TOEFL Writing
+TOEFL Speaking
+IELTS 総合
+IELTS Reading
+IELTS Listening
+IELTS Writing
+IELTS Speaking
+Duolingo 総合
+Duolingo Literacy
+Duolingo Comprehension
+Duolingo Conversation
+Duolingo Production
+// チェックリストで構成する
+スコア提出はあるがスコア条件はなし
+
+// チェックリストで構成する
+// 一度データ入力をしたら使いまわしにする
+全額免除奨学金
+授業料免除奨学金
+Need-based Scholarship
+Need-Met 100%
+柳井正財団
+笹川平和財団
+グルーバンクロフト基金
+東進海外進学支援制度
+江副リクルート記念財団
+YouAreWelcomeHere Scholarship
+Stamps Scholar Program
+Laidlaw Scholars
+日本の全財団奨学生の進学した大学
+
+奨学金が反映される出願締め切り月
+大学入試最終出願締め切り月
+
+// チェックリストで構成する
+// 一度データ入力をしたら使いまわしにする
+学部生のみ
+大学院生もいるがかなり少ない
+大学院生の割合が多い
+PhD課程あり
+研究型大学
+大学群・ラベリングのある大学
+日本人学生が10人以下の大学
+日本からの直行便がある
+空港から公共交通で90分圏内
+公共交通2時間圏内に大都市あり
+学生福祉（バス無料など）
+ウーバーや配車サービスあり
+24時間図書館あり
+
+
+＝＝＝データ抽出（大学・国・都市）＝＝＝
+大学名と国名と都市名を抽出するサイト
+サイト自体は同じだがリンクが多少違うので注意：unirank.org
+アイスランド: https://www.unirank.org/is/a-z/
+アイルランド: https://www.unirank.org/ie/a-z/
+アゼルバイジャン: https://www.unirank.org/az/a-z/
+アメリカ: https://www.unirank.org/us/a-z/
+アメリカンバージンアイランド: https://www.unirank.org/vi/ranking/
+アラブ首長国連邦: https://www.unirank.org/ae/a-z/#google_vignette
+アルゼンチン:  https://www.unirank.org/ar/a-z/
+アルバニア: https://www.unirank.org/al/a-z/
+アルメニア: https://www.unirank.org/am/a-z/
+アンドラ: https://www.unirank.org/ad/ranking/
+イギリス: https://www.unirank.org/gb/a-z/
+イスラエル: https://www.unirank.org/il/a-z/
+イタリア: https://www.unirank.org/it/a-z/
+インド: https://www.unirank.org/in/a-z/
+インドネシア: https://www.unirank.org/id/a-z/
+ウズベキスタン: https://www.unirank.org/uz/a-z/
+ウルグアイ: https://www.unirank.org/uy/a-z/
+エクアドル: https://www.unirank.org/ec/a-z/
+エジプト: https://www.unirank.org/eg/a-z/
+エストニア: https://www.unirank.org/ee/a-z/
+オーストラリア: https://www.unirank.org/au/a-z/
+オーストラリア: https://www.unirank.org/at/a-z/
+オマーン: https://www.unirank.org/om/a-z/
+オランダ: https://www.unirank.org/nl/a-z/
+カザフスタン: https://www.unirank.org/kz/a-z/
+カタール: https://www.unirank.org/qa/a-z/
+カナダ: https://www.unirank.org/ca/a-z/
+韓国: https://www.unirank.org/kr/a-z/
+北マケドニア: https://www.unirank.org/mk/a-z/
+キプロス: https://www.unirank.org/cy/a-z/
+キュラソー: https://www.unirank.org/cw/a-z/
+キューバ: https://www.unirank.org/cu/a-z/
+ギリシャ: https://www.unirank.org/gr/a-z/
+キルギス: https://www.unirank.org/kg/a-z/
+グアテマラ: https://www.unirank.org/gt/a-z/
+グアドループ: https://www.unirank.org/gp/ranking/
+グアム: https://www.unirank.org/gu/a-z/
+クウェート: https://www.unirank.org/kw/a-z/
+グリーンランド: https://www.unirank.org/gl/a-z/
+グレナダ: https://www.unirank.org/gd/a-z/
+クロアチア: https://www.unirank.org/hr/a-z/
+コスタリカ: https://www.unirank.org/cr/a-z/
+コソボ: https://www.unirank.org/bo/a-z/
+コロンビア: https://www.unirank.org/co/a-z/
+サウジアラビア: https://www.unirank.org/sa/a-z/
+サモア: https://www.unirank.org/ws/a-z/
+サンマリノ: https://www.unirank.org/sm/ranking/
+ジョージア: https://www.unirank.org/ge/a-z/
+シンガポール: https://www.unirank.org/sg/a-z/
+スイス: https://www.unirank.org/ch/a-z/
+スウェーデン: https://www.unirank.org/se/a-z/
+スペイン: https://www.unirank.org/es/a-z/
+スリランカ: https://www.unirank.org/lk/a-z/
+スロバキア: https://www.unirank.org/sk/a-z/
+スロベニア: https://www.unirank.org/si/a-z/
+セルビア: https://www.unirank.org/rs/
+台湾: https://www.unirank.org/tw/a-z/
+タイ: https://www.unirank.org/th/a-z/
+チェコ: https://www.unirank.org/cz/a-z/
+中国: https://www.unirank.org/cn/a-z/
+デンマーク: https://www.unirank.org/dk/a-z/
+ドイツ: https://www.unirank.org/de/a-z/
+ドミニカ共和国: https://www.unirank.org/do/a-z/
+トルコ: https://www.unirank.org/tr/a-z/
+ニューカレドニア: https://www.unirank.org/nc/ranking/
+ニュージーランド: https://www.unirank.org/nz/a-z/
+ネパール: https://www.unirank.org/np/a-z/
+ノルウェー: https://www.unirank.org/no/a-z/
+バーレーン: https://www.unirank.org/bh/a-z/
+パナマ: https://www.unirank.org/pa/a-z/
+パプアニューギニア: https://www.unirank.org/pg/a-z/
+パラグアイ: https://www.unirank.org/py/a-z/
+ハンガリー: https://www.unirank.org/hu/a-z/
+バングラデシュ: https://www.unirank.org/bd/a-z/
+フィジー: https://www.unirank.org/fj/a-z/
+フィリピン: https://www.unirank.org/ph/a-z/
+フィンランド: https://www.unirank.org/ph/a-z/ 
+プエルトリコ: https://www.unirank.org/pr/a-z/
+ブータン: https://www.unirank.org/bt/a-z/
+ブラジル: https://www.unirank.org/br/a-z/
+フランス: https://www.unirank.org/fr/a-z/
+ブルガリア: https://www.unirank.org/bg/a-z/
+ブルネイ: https://www.unirank.org/bn/a-z/
+フレンチポリネシア: https://www.unirank.org/pf/ranking/
+ベトナム: https://www.unirank.org/vn/a-z/
+ペルー: https://www.unirank.org/pe/a-z/
+ベルギー: https://www.unirank.org/be/a-z/
+ポーランド: https://www.unirank.org/pl/a-z/
+ボスニアヘルツェゴビナ: https://www.unirank.org/ba/a-z/
+ボリビア: https://www.unirank.org/bo/a-z/
+ポルトガル: https://www.unirank.org/pt/a-z/
+香港: https://www.unirank.org/hk/a-z/
+マカオ: https://www.unirank.org/mo/a-z/
+マルタ: https://www.unirank.org/mt/a-z/
+マレーシア: https://www.unirank.org/my/a-z/
+南アフリカ: https://www.unirank.org/za/a-z/
+メキシコ: https://www.unirank.org/mx/a-z/
+モーリシャス: https://www.unirank.org/mu/a-z/
+モナコ: https://www.unirank.org/mc/ranking/
+モルディブ: https://www.unirank.org/mv/ranking/
+モルドバ: https://www.unirank.org/md/a-z/
+モロッコ: https://www.unirank.org/ma/a-z/
+モンゴル: https://www.unirank.org/mn/a-z/
+モンテネグロ: https://www.unirank.org/me/ranking/
+ラオス: https://www.unirank.org/la/ranking/
+ラトビア: https://www.unirank.org/lv/a-z/
+リトアニア: https://www.unirank.org/lt/a-z/
+ルーマニア: https://www.unirank.org/ro/a-z/
+ルクセンブルク: https://www.unirank.org/lu/a-z/
+レユニオン: https://www.unirank.org/re/a-z/
+ヨルダン: https://www.unirank.org/jo/a-z/
+
+
+
+
+
+
+
+
+
+

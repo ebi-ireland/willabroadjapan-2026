@@ -1,0 +1,104 @@
+/* =====================
+   contact.css
+   パス: /public/styles/comp/contact.css
+   使用: /public/student-japan/contact.html
+   ===================== */
+
+.contact__success {
+  background: rgba(22, 163, 74, 0.15);
+  border: 1px solid rgba(22, 163, 74, 0.4);
+  color: #4ade80;
+  padding: clamp(14px, 2vw, 20px);
+  border-radius: 12px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+  font-size: clamp(13px, 1.8vw, 15px);
+}
+
+.contact__form {
+  max-width: 700px;
+}
+
+.contact__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 2vw, 24px);
+  margin-bottom: clamp(16px, 2vw, 24px);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-group label {
+  font-size: clamp(12px, 1.5vw, 14px);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.required {
+  color: #ef4444;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  padding: clamp(10px, 1.5vw, 14px) clamp(14px, 2vw, 18px);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  color: var(--color-white);
+  font-size: clamp(13px, 1.8vw, 15px);
+  outline: none;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: var(--color-orange);
+}
+
+.form-group select option {
+  background: var(--color-navy);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 160px;
+}
+
+.contact__note {
+  font-size: clamp(12px, 1.5vw, 13px);
+  color: var(--color-text-faint);
+  margin: clamp(16px, 2vw, 24px) 0;
+}
+
+.contact__submit {
+  padding: clamp(12px, 2vw, 16px) clamp(32px, 5vw, 56px);
+  background: var(--color-orange);
+  color: var(--color-white);
+  border: none;
+  border-radius: 100px;
+  font-size: clamp(14px, 2vw, 16px);
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.contact__submit:hover {
+  opacity: 0.85;
+}
+
+.contact__submit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 600px) {
+  .contact__grid {
+    grid-template-columns: 1fr;
+  }
+}

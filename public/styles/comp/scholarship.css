@@ -1,0 +1,595 @@
+/* =====================
+   scholarship.css
+   パス: /public/styles/comp/scholarship.css
+   使用: /public/student-japan/scholarship.html
+         /public/student-japan/foundation.html
+         /public/student-japan/program.html
+   ===================== */
+
+/* 大学奨学金ページ（地図全画面） */
+.scholarship__page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-top: clamp(60px, 8vw, 80px);
+  overflow: hidden;
+}
+
+.scholarship__header {
+  padding: clamp(8px, 1.5vw, 12px) clamp(16px, 4vw, 40px);
+  flex-shrink: 0;
+  background: var(--color-navy);
+}
+
+.scholarship__header .page__title {
+  margin-bottom: 0;
+}
+
+.scholarship__map-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+#wrapper {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+#map {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+  transition: flex 0.3s ease;
+}
+
+#detail-panel {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--color-navy);
+  color: var(--color-white);
+  transition: width 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow-y: auto;
+  flex-shrink: 0;
+}
+
+#detail-panel.open {
+  width: 380px;
+  padding: 24px;
+}
+
+.close-btn {
+  align-self: flex-end;
+  background: none;
+  border: none;
+  color: var(--color-white);
+  font-size: 1.5rem;
+  cursor: pointer;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.panel-name-link {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  color: var(--color-orange);
+  text-decoration: none;
+  display: block;
+  line-height: 1.4;
+}
+
+.panel-name-link:hover { text-decoration: underline; }
+
+.panel-name-text {
+  font-size: 1.2rem;
+  margin-bottom: 16px;
+  color: var(--color-orange);
+  display: block;
+  line-height: 1.4;
+}
+
+.detail-row {
+  margin-bottom: 10px;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 8px;
+  color: var(--color-white);
+}
+
+.detail-row span {
+  color: var(--color-text-faint);
+  display: block;
+  font-size: 0.75rem;
+  margin-bottom: 2px;
+}
+
+.mapboxgl-ctrl-logo { display: none !important; }
+.mapboxgl-ctrl-attrib { display: none !important; }
+
+/* 地域ジャンプボタン */
+.map-jump-btns {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 10;
+}
+
+.map-jump-btn {
+  padding: 8px 18px;
+  background: var(--color-navy);
+  border: 1px solid var(--color-border);
+  color: var(--color-white);
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  white-space: nowrap;
+}
+
+.map-jump-btn:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+}
+
+/* フィルターボタン */
+.filter-toggle-btn {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  z-index: 10;
+  padding: 10px 20px;
+  background: var(--color-navy);
+  border: 1px solid var(--color-orange);
+  color: var(--color-orange);
+  font-size: 14px;
+  font-weight: 700;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+.filter-toggle-btn:hover {
+  background: var(--color-orange);
+  color: var(--color-white);
+}
+
+/* フィルターサイドバー */
+.filter-sidebar {
+  position: absolute;
+  bottom: 70px;
+  left: 24px;
+  width: 300px;
+  max-height: calc(100% - 100px);
+  overflow-y: auto;
+  background: var(--color-navy);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 16px 0 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  z-index: 150;
+  transform: translateY(calc(100% + 32px));
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.filter-sidebar.open {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.filter-inner { padding: 0 16px; }
+
+.filter-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filter-title {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--color-white);
+  flex: 1;
+}
+
+.filter-clear-btn {
+  background: rgba(255,255,255,0.08);
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.filter-clear-btn:hover { background: rgba(255,255,255,0.15); }
+
+.filter-close-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 2px 4px;
+}
+
+.filter-section {
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.filter-section:last-child { border-bottom: none; }
+
+.filter-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: 10px;
+}
+
+.filter-sublabel {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  margin: 12px 0 6px;
+}
+
+.filter-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  outline: none;
+  box-sizing: border-box;
+  background: rgba(255,255,255,0.05);
+  color: var(--color-white);
+}
+
+.filter-input:focus { border-color: var(--color-orange); }
+
+.filter-range-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.filter-range-row label {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.range-hint { color: var(--color-text-faint); font-size: 0.7rem; }
+
+.filter-range-row input[type=range] {
+  flex: 1;
+  accent-color: var(--color-orange);
+  min-width: 0;
+}
+
+.range-val {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-orange);
+  white-space: nowrap;
+  min-width: 40px;
+  text-align: right;
+}
+
+.filter-hint {
+  font-size: 0.68rem;
+  color: var(--color-text-faint);
+  margin: 0 0 6px;
+}
+
+.country-select-wrap { position: relative; }
+
+.country-dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  color: var(--color-white);
+  transition: border-color 0.15s;
+  user-select: none;
+}
+
+.country-dropdown-trigger:hover { border-color: var(--color-orange); }
+
+.country-arrow {
+  font-size: 0.6rem;
+  color: var(--color-text-faint);
+  transition: transform 0.2s;
+}
+
+.country-dropdown-trigger.open .country-arrow { transform: rotate(180deg); }
+
+.country-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--color-navy);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.country-dropdown.open { display: block; }
+.country-option { margin-bottom: 4px; }
+
+.filter-checks { display: flex; flex-direction: column; gap: 5px; }
+
+.month-checks {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 5px;
+}
+
+.filter-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.filter-check input[type=checkbox] {
+  accent-color: var(--color-orange);
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* 財団・プログラム奨学金ページ共通 */
+.scholarship__filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+}
+
+.scholarship__target-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scholarship__target-btn {
+  padding: 6px 16px;
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: clamp(11px, 1.5vw, 13px);
+  font-weight: 600;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.scholarship__target-btn:hover {
+  border-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+.scholarship__target-btn--active {
+  background: rgba(255,128,64,0.15);
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+}
+
+.scholarship__status-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 5vw, 56px);
+}
+
+.scholarship__status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.scholarship__status-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid;
+}
+
+.scholarship__status-header--active   { border-color: #16a34a; }
+.scholarship__status-header--upcoming { border-color: #f59e0b; }
+.scholarship__status-header--closed   { border-color: rgba(255,255,255,0.15); }
+
+.scholarship__status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.scholarship__status-dot--active   { background: #16a34a; box-shadow: 0 0 8px #16a34a; }
+.scholarship__status-dot--upcoming { background: #f59e0b; }
+.scholarship__status-dot--closed   { background: rgba(255,255,255,0.3); }
+
+.scholarship__status-title {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: var(--color-white);
+  flex: 1;
+}
+
+.scholarship__status-count {
+  font-size: clamp(12px, 1.5vw, 14px);
+  color: var(--color-text-faint);
+  font-weight: 600;
+}
+
+.scholarship__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  gap: clamp(12px, 2vw, 20px);
+}
+
+.scholarship__card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: clamp(12px, 2vw, 16px);
+  padding: clamp(16px, 2.5vw, 24px);
+  color: var(--color-white);
+  transition: all 0.2s ease;
+  display: block;
+}
+
+.scholarship__card:hover {
+  border-color: var(--color-orange);
+  transform: translateY(-2px);
+}
+
+.scholarship__card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.scholarship__card-name {
+  font-size: clamp(14px, 2vw, 17px);
+  font-weight: 700;
+  color: var(--color-white);
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.scholarship__card:hover .scholarship__card-name { color: var(--color-orange); }
+
+.scholarship__card-status {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.scholarship__card-status--active   { background: rgba(22,163,74,0.2);  color: #4ade80; }
+.scholarship__card-status--upcoming { background: rgba(245,158,11,0.2); color: #fcd34d; }
+.scholarship__card-status--closed   { background: rgba(255,255,255,0.1); color: #94a3b8; }
+
+.scholarship__card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.scholarship__card-row {
+  display: flex;
+  gap: 8px;
+  font-size: clamp(12px, 1.5vw, 13px);
+  align-items: flex-start;
+}
+
+.scholarship__card-label {
+  color: var(--color-text-faint);
+  white-space: nowrap;
+  min-width: 90px;
+  flex-shrink: 0;
+}
+
+.scholarship__card-value {
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+.scholarship__card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.scholarship__card-tag {
+  font-size: 11px;
+  padding: 3px 10px;
+  background: rgba(255,128,64,0.1);
+  border: 1px solid rgba(255,128,64,0.3);
+  color: var(--color-orange);
+  border-radius: 100px;
+}
+
+.scholarship__empty {
+  color: var(--color-text-faint);
+  font-size: clamp(13px, 1.8vw, 14px);
+  padding: 24px 0;
+}
+
+/* TOPに戻るボタン */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  width: 48px;
+  height: 48px;
+  background: var(--color-orange);
+  border: none;
+  border-radius: 50%;
+  color: var(--color-white);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(255,128,64,0.4);
+  transition: all 0.2s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.scroll-top-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255,128,64,0.5);
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <!-- ヒーローセクション -->
+  <section class="hero">
+    <div class="hero__content">
+      <p class="hero__label">Will Abroad Scholarship Portal</p>
+      <h1 class="hero__title">奨学金で、<br>世界へ飛び出そう。</h1>
+      <p class="hero__desc">海外留学を目指す日本人学生のための奨学金・大学情報ポータル</p>
+      <a href="/student-japan/scholarship.html" class="hero__btn">奨学金を探す</a>
+    </div>
+  </section>
+
+  <!-- お知らせセクション -->
+  <section class="section notices">
+    <div class="section__inner">
+      <div class="notices__header">
+        <h2 class="section__title">お知らせ</h2>
+        <a href="/student-japan/notices.html" class="notices__more">すべて見る →</a>
+      </div>
+      <ul class="notices__list" id="notices-list">
+        <li class="notices__item notices__item--loading">読み込み中...</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ランキングセクション -->
+  <section class="section rankings">
+    <div class="section__inner">
+      <div class="rankings__header">
+        <h2 class="section__title">ランキング</h2>
+        <div class="ranking__tabs">
+          <button class="ranking__tab ranking__tab--active" data-period="week">週</button>
+          <button class="ranking__tab" data-period="month">月</button>
+          <button class="ranking__tab" data-period="year">年</button>
+          <button class="ranking__tab ranking__tab--trending" data-period="trending">🔥 急上昇</button>
+        </div>
+      </div>
+      <div class="rankings__grid">
+        <div class="ranking__card">
+          <h3 class="ranking__card-title">⭐ 人気大学</h3>
+          <ul class="ranking__list" id="ranking-univ-fav">
+            <li class="ranking__item ranking__item--loading">読み込み中...</li>
+          </ul>
+        </div>
+        <div class="ranking__card">
+          <h3 class="ranking__card-title">👁 閲覧数の多い大学</h3>
+          <ul class="ranking__list" id="ranking-univ-view">
+            <li class="ranking__item ranking__item--loading">読み込み中...</li>
+          </ul>
+        </div>
+        <div class="ranking__card">
+          <h3 class="ranking__card-title">👁 閲覧数の多い財団奨学金</h3>
+          <ul class="ranking__list" id="ranking-schol-view">
+            <li class="ranking__item ranking__item--loading">読み込み中...</li>
+          </ul>
+        </div>
+        <div class="ranking__card">
+          <h3 class="ranking__card-title">👁 閲覧数の多いプログラム</h3>
+          <ul class="ranking__list" id="ranking-prog-view">
+            <li class="ranking__item ranking__item--loading">読み込み中...</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+ <!-- Will Abroadについて -->
+  <section class="section about">
+    <div class="section__inner">
+      <h2 class="section__title">Will Abroadについて</h2>
+      <p class="about__lead">「地方からでも、経済的に厳しくても、海外大学への道を開く」</p>
+      <p class="about__text">Will Abroadは、情報の格差によって夢を諦める人をなくすことを目指した海外進学支援プロジェクトです。一般的な留学エージェントが手数料をビジネスモデルにするのに対し、私たちは教育格差の是正に重きを置いています。</p>
+
+      <div class="about__grid">
+        <div class="about__card">
+          <div class="about__card-icon">💰</div>
+          <h3 class="about__card-title">奨学金情報の提供</h3>
+          <p class="about__card-text">返済不要の給付型奨学金や、各大学が独自に出している奨学金情報を整理して発信。「知っているか知らないか」で変わる選択肢の格差を埋めます。</p>
+        </div>
+        <div class="about__card">
+          <div class="about__card-icon">🎓</div>
+          <h3 class="about__card-title">海外留学促進プログラム</h3>
+          <p class="about__card-text">提携大学と協力し、授業料が大幅に免除される独自プログラムを展開。年間数百万円かかる留学費用を、日本の私立大学と同等以下に抑える選択肢を提示します。</p>
+        </div>
+        <div class="about__card">
+          <div class="about__card-icon">📄</div>
+          <h3 class="about__card-title">高校向けテンプレート公開</h3>
+          <p class="about__card-text">エッセイや推薦状の書き方、課外活動のまとめ方などのテンプレートを無料公開。都市部の進学校でなくても、書類の質で不利にならない仕組みを作ります。</p>
+        </div>
+        <div class="about__card">
+          <div class="about__card-icon">🔍</div>
+          <h3 class="about__card-title">合格診断</h3>
+          <p class="about__card-text">現在の成績や活動実績から、どのレベルの大学が狙えるか、何を補うべきかを可視化。受験生と大学のギャップを埋め、効率的な準備をサポートします。</p>
+        </div>
+        <div class="about__card">
+          <div class="about__card-icon">📊</div>
+          <h3 class="about__card-title">徹底したデータ分析と公開</h3>
+          <p class="about__card-text">アメリカ100校以上の給付型奨学金や編入制度を独自に分析。一部のエリートだけでなく、誰もが納得して大学を選べるよう、膨大な調査に基づいた正確な情報を公開しています。</p>
+        </div>
+        <div class="about__card">
+          <div class="about__card-icon">🌍</div>
+          <h3 class="about__card-title">留学の偏見・先入観の払拭</h3>
+          <p class="about__card-text">「留学＝高額・金持ち」「海外進学＝現実逃避」といった先入観を覆します。病気や障害との両立、コンテスト活用など、多様な背景を持つ受験生の可能性を広げる発信を続けています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,343 @@
+/* =====================
+   student-japan-home.css
+   パス: /public/styles/student-japan-home.css
+   使用: /public/student-japan.html
+   ===================== */
+
+.section {
+  padding: clamp(48px, 8vw, 96px) clamp(16px, 5vw, 40px);
+}
+
+.section__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.section__title {
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 800;
+  margin-bottom: clamp(24px, 4vw, 48px);
+  color: var(--color-white);
+  border-left: 4px solid var(--color-orange);
+  padding-left: 16px;
+}
+
+/* お知らせ */
+/* お知らせヘッダー */
+.notices__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: clamp(24px, 4vw, 48px);
+}
+
+.notices__header .section__title {
+  margin-bottom: 0;
+}
+
+.notices__more {
+  font-size: clamp(12px, 1.5vw, 14px);
+  color: var(--color-orange);
+  font-weight: 600;
+  transition: opacity 0.2s ease;
+}
+
+.notices__more:hover {
+  opacity: 0.7;
+}
+
+.notices__text {
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+
+.notices__text:hover {
+  color: var(--color-orange);
+}
+
+.notices__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.notices__item {
+  display: flex;
+  gap: clamp(12px, 3vw, 24px);
+  align-items: baseline;
+  padding: clamp(12px, 2vw, 16px);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  flex-wrap: wrap;
+}
+
+.notices__date {
+  font-size: clamp(11px, 1.5vw, 13px);
+  color: var(--color-orange);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.notices__text {
+  font-size: clamp(13px, 2vw, 15px);
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+/* ランキングヘッダー */
+.rankings__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: clamp(24px, 4vw, 48px);
+}
+
+.rankings__header .section__title {
+  margin-bottom: 0;
+}
+
+/* タブ */
+.ranking__tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ranking__tab {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: clamp(12px, 1.5vw, 14px);
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.ranking__tab:hover {
+  border-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+.ranking__tab--active {
+  background: var(--color-orange);
+  border-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+.ranking__tab--trending {
+  border-color: rgba(255, 100, 0, 0.4);
+  color: var(--color-orange);
+}
+
+.ranking__tab--trending.ranking__tab--active {
+  background: linear-gradient(135deg, #ff6400, var(--color-orange));
+  border-color: var(--color-orange);
+  color: var(--color-white);
+}
+
+/* ランキンググリッド - 1列 */
+.rankings__grid {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(24px, 4vw, 40px);
+}
+
+.ranking__card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: clamp(12px, 2vw, 20px);
+  padding: clamp(20px, 3vw, 32px);
+}
+
+.ranking__card-title {
+  font-size: clamp(15px, 2vw, 18px);
+  font-weight: 700;
+  margin-bottom: clamp(16px, 2vw, 24px);
+  color: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+  padding-bottom: 12px;
+}
+
+.ranking__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ranking__item {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 2vw, 20px);
+  padding: clamp(10px, 1.5vw, 14px) 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: clamp(13px, 1.8vw, 15px);
+}
+
+.ranking__item:last-child {
+  border-bottom: none;
+}
+
+.ranking__item--loading {
+  color: var(--color-text-faint);
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.ranking__num {
+  font-size: clamp(16px, 2vw, 22px);
+  font-weight: 800;
+  color: var(--color-orange);
+  min-width: 28px;
+  text-align: center;
+}
+
+.ranking__num--top3 {
+  color: var(--color-white);
+}
+
+.ranking__name {
+  flex: 1;
+  color: var(--color-text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ranking__country,
+.ranking__provider {
+  font-size: clamp(10px, 1.5vw, 12px);
+  color: var(--color-text-faint);
+  white-space: nowrap;
+}
+
+.ranking__count {
+  font-size: clamp(11px, 1.5vw, 13px);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+/* Will Abroadについて */
+.about__text {
+  font-size: clamp(14px, 2vw, 16px);
+  color: var(--color-text-muted);
+  line-height: 1.9;
+  max-width: 700px;
+}
+
+/* ページ共通レイアウト */
+.page {
+  padding: clamp(80px, 10vw, 120px) clamp(16px, 5vw, 40px) clamp(48px, 8vw, 96px);
+  min-height: 100vh;
+}
+
+.page__inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+}
+
+.page__title {
+  font-size: clamp(24px, 4vw, 40px);
+  font-weight: 800;
+  color: var(--color-white);
+  border-left: 4px solid var(--color-orange);
+  padding-left: 16px;
+  margin-bottom: clamp(24px, 4vw, 48px);
+}
+
+/* ページネーション */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: clamp(24px, 4vw, 48px);
+}
+
+.pagination__btn {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  color: var(--color-white);
+  font-size: clamp(13px, 1.5vw, 15px);
+  font-weight: 600;
+  padding: 10px 24px;
+  border-radius: 100px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination__btn:hover {
+  border-color: var(--color-orange);
+  color: var(--color-orange);
+}
+
+.pagination__btn--disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.pagination__info {
+  font-size: clamp(13px, 1.5vw, 15px);
+  color: var(--color-text-muted);
+}
+
+/* Will Abroadについて */
+.about__lead {
+  font-size: clamp(16px, 2.5vw, 22px);
+  font-weight: 700;
+  color: var(--color-orange);
+  margin-bottom: clamp(16px, 2vw, 24px);
+  line-height: 1.6;
+}
+
+.about__text {
+  font-size: clamp(14px, 2vw, 16px);
+  color: var(--color-text-muted);
+  line-height: 1.9;
+  max-width: 700px;
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+
+.about__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: clamp(16px, 3vw, 24px);
+}
+
+.about__card {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: clamp(12px, 2vw, 20px);
+  padding: clamp(20px, 3vw, 32px);
+  transition: border-color 0.2s ease;
+}
+
+.about__card:hover {
+  border-color: var(--color-orange);
+}
+
+.about__card-icon {
+  font-size: clamp(28px, 4vw, 36px);
+  margin-bottom: clamp(12px, 2vw, 16px);
+}
+
+.about__card-title {
+  font-size: clamp(15px, 2vw, 18px);
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: clamp(8px, 1.5vw, 12px);
+}
+
+.about__card-text {
+  font-size: clamp(12px, 1.5vw, 14px);
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}

@@ -1,0 +1,9 @@
+powershellを開く
+
+cd D:\willabroadjapan\data\csv\college_scholarship
+
+Import-Csv .\college_scholarship_regular.csv | ConvertTo-Json -Depth 3 | Out-File .\scholarships.json -Encoding utf8
+
+JSONが文字化けする場合はCSVファイルを開いて、再度CSVで保存する。
+エクスプローラー内でXlmをCsvに変更してもうまくいかないことがある。
+

@@ -1,0 +1,282 @@
+/* =====================
+   experiences.css
+   パス: /public/styles/comp/experiences.css
+   使用: /public/student-japan/experiences.html
+   ===================== */
+
+.experiences__filters {
+  display: flex;
+  gap: 12px;
+  margin-bottom: clamp(24px, 4vw, 40px);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.experiences__country-select {
+  padding: clamp(10px, 1.5vw, 14px) clamp(14px, 2vw, 20px);
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 100px;
+  color: var(--color-white);
+  font-size: clamp(13px, 1.8vw, 15px);
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+  min-width: 140px;
+}
+
+.experiences__country-select:focus {
+  border-color: var(--color-orange);
+}
+
+.experiences__country-select option {
+  background: var(--color-navy);
+}
+
+/* 体験記一覧 */
+.experiences__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.experience__item {
+  background: var(--color-card-bg);
+  border: 1px solid var(--color-border);
+  border-radius: clamp(12px, 2vw, 16px);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.experience__item:hover {
+  border-color: var(--color-orange);
+  transform: translateY(-2px);
+}
+
+.experience__link {
+  display: block;
+  padding: clamp(16px, 2.5vw, 24px);
+  color: var(--color-white);
+}
+
+.experience__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.experience__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.experience__tag {
+  font-size: clamp(11px, 1.3vw, 13px);
+  padding: 4px 10px;
+  border-radius: 100px;
+  background: rgba(255,255,255,0.06);
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.experience__tag--country {
+  background: rgba(255,128,64,0.1);
+  color: var(--color-orange);
+  border-color: rgba(255,128,64,0.3);
+}
+
+.experience__tag--univ {
+  background: rgba(14,165,233,0.1);
+  color: #7dd3fc;
+  border-color: rgba(14,165,233,0.3);
+}
+
+.experience__rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.experience__stars {
+  color: var(--color-gold);
+  font-size: clamp(11px, 1.3vw, 13px);
+  letter-spacing: -1px;
+}
+
+.experience__rating-num {
+  font-size: clamp(13px, 1.8vw, 15px);
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+.experience__author {
+  font-size: clamp(12px, 1.5vw, 13px);
+  color: var(--color-text-faint);
+  margin-bottom: 8px;
+}
+
+.experience__summary {
+  font-size: clamp(13px, 1.8vw, 15px);
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+
+.experience__footer {
+  display: flex;
+  gap: 16px;
+}
+
+/* 警告文 */
+.experience__warning {
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: #fcd34d;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: clamp(12px, 1.5vw, 13px);
+  margin-bottom: 20px;
+}
+
+/* フォーム */
+.exp-form__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.exp-form__hint {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  margin-left: 6px;
+  font-weight: 400;
+}
+
+.exp-form__count {
+  font-size: 11px;
+  color: var(--color-text-faint);
+  display: block;
+  text-align: right;
+  margin-top: 4px;
+}
+
+.modal__content--large {
+  width: min(95vw, 720px);
+  max-height: 90vh;
+}
+
+@media (max-width: 600px) {
+  .exp-form__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* =====================
+   体験記詳細ページ
+   ===================== */
+
+.exp-detail__card {
+  max-width: 820px;
+}
+
+.exp-detail__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: clamp(20px, 3vw, 32px);
+}
+
+.exp-detail__rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: clamp(12px, 2vw, 20px);
+}
+
+.exp-detail__stars {
+  color: var(--color-gold);
+  font-size: clamp(18px, 2.5vw, 24px);
+  letter-spacing: -1px;
+}
+
+.exp-detail__rating-num {
+  font-size: clamp(16px, 2.5vw, 20px);
+  font-weight: 700;
+  color: var(--color-orange);
+}
+
+.exp-detail__author {
+  font-size: clamp(12px, 1.5vw, 14px);
+  color: var(--color-text-faint);
+  margin-bottom: clamp(24px, 4vw, 40px);
+  padding-bottom: clamp(20px, 3vw, 32px);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.exp-detail__section {
+  margin-bottom: clamp(32px, 5vw, 56px);
+}
+
+.exp-detail__section--good .exp-detail__section-title { color: #4ade80; border-color: #16a34a; }
+.exp-detail__section--bad  .exp-detail__section-title { color: #f87171; border-color: #dc2626; }
+.exp-detail__section--fun  .exp-detail__section-title { color: #fcd34d; border-color: #f59e0b; }
+
+.exp-detail__section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: clamp(18px, 2.5vw, 22px);
+  font-weight: 700;
+  color: var(--color-white);
+  margin-bottom: clamp(16px, 2vw, 24px);
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--color-border);
+}
+
+.exp-detail__text {
+  font-size: clamp(14px, 2vw, 16px);
+  color: var(--color-text-muted);
+  line-height: 2;
+  white-space: pre-wrap;
+}
+
+.exp-detail__footer {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: clamp(20px, 3vw, 32px);
+  border-top: 1px solid var(--color-border);
+  margin-top: clamp(32px, 5vw, 56px);
+}
+
+.exp-detail__like-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: rgba(255,128,64,0.1);
+  border: 1px solid rgba(255,128,64,0.3);
+  color: var(--color-orange);
+  border-radius: 100px;
+  font-size: clamp(13px, 1.8vw, 15px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exp-detail__like-btn:hover {
+  background: rgba(255,128,64,0.2);
+  border-color: var(--color-orange);
+}
+
+.exp-detail__like-btn--active {
+  background: var(--color-orange);
+  color: var(--color-white);
+}

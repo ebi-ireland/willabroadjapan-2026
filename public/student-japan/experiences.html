@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/experiences.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <main class="page">
+    <div class="page__inner">
+
+      <div class="threads__header">
+        <h1 class="page__title">留学体験記</h1>
+        <button class="threads__post-btn" id="postExpBtn">✏️ 投稿する</button>
+      </div>
+
+      <!-- 検索・フィルター -->
+      <div class="experiences__filters">
+        <div class="articles__search" style="flex:1;">
+          <input type="text" id="experiences-search" placeholder="体験記を検索..." class="articles__search-input">
+          <button id="experiences-search-btn" class="articles__search-btn">検索</button>
+        </div>
+        <select id="country-filter" class="experiences__country-select">
+          <option value="">すべての国</option>
+        </select>
+      </div>
+
+      <!-- 体験記一覧 -->
+      <ul class="experiences__list" id="experiences-list">
+        <li class="thread__empty">読み込み中...</li>
+      </ul>
+
+      <!-- ページネーション -->
+      <div id="experiences-pagination"></div>
+
+    </div>
+  </main>
+
+  <!-- 投稿モーダル -->
+  <div class="modal" id="expModal" style="display:none;">
+    <div class="modal__overlay" id="expModalOverlay"></div>
+    <div class="modal__content modal__content--large">
+      <div class="modal__header">
+        <h2 class="modal__title">留学体験記を投稿する</h2>
+        <button class="modal__close" id="expModalClose">✕</button>
+      </div>
+      <div class="modal__body">
+
+        <p class="experience__warning">⚠️ 本名の記載はお控えください。ペンネームやイニシャルをご使用ください。</p>
+
+        <div class="exp-form__grid">
+          <div class="form-group">
+            <label>国 <span class="required">*</span></label>
+            <input type="text" id="exp-country" placeholder="例: アメリカ" />
+          </div>
+          <div class="form-group">
+            <label>留学先大学（任意・匿名可）</label>
+            <input type="text" id="exp-university" placeholder="空欄の場合は匿名になります" />
+          </div>
+          <div class="form-group">
+            <label>名前 <span class="required">*</span>（ペンネーム・イニシャル推奨）</label>
+            <input type="text" id="exp-author" placeholder="例: T.K、たろう" />
+          </div>
+          <div class="form-group">
+            <label>専攻（任意・匿名可）</label>
+            <input type="text" id="exp-major" placeholder="空欄の場合は匿名になります" />
+          </div>
+          <div class="form-group">
+            <label>総合評価 <span class="required">*</span>（1〜10）</label>
+            <select id="exp-rating">
+              <option value="">選択する</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="10">10</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:16px;">
+          <label>要約 <span class="required">*</span><span class="exp-form__hint">（50〜800文字）</span></label>
+          <textarea id="exp-summary" rows="4" placeholder="留学全体の要約を書いてください（最低50文字）"></textarea>
+          <span class="exp-form__count" id="summary-count">0 / 800</span>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>大学の良かったこと <span class="exp-form__hint">*</span><span class="exp-form__hint">（50〜800文字）</span></label>
+          <textarea id="exp-good" rows="4" placeholder="大学の良かった点を書いてください（最低50文字）"></textarea>
+          <span class="exp-form__count" id="good-count">0 / 800</span>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>大学の悪かったこと <span class="exp-form__hint">*</span><span class="exp-form__hint">（50〜800文字）</span></label>
+          <textarea id="exp-bad" rows="4" placeholder="大学の悪かった点を書いてください（最低50文字）"></textarea>
+          <span class="exp-form__count" id="bad-count">0 / 800</span>
+        </div>
+        <div class="form-group" style="margin-top:16px;">
+          <label>大学生活で楽しかったこと <span class="exp-form__hint">*</span><span class="exp-form__hint">（50〜800文字）</span></label>
+          <textarea id="exp-fun" rows="4" placeholder="大学生活で楽しかったことを書いてください（最低50文字）"></textarea>
+          <span class="exp-form__count" id="fun-count">0 / 800</span>
+        </div>
+
+        <button class="contact__submit" id="expSubmit" style="margin-top:24px;">投稿する</button>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/scholarship.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+  <main class="page">
+    <div class="page__inner">
+      <h1 class="page__title">財団奨学金</h1>
+
+      <div class="scholarship__filters">
+        <div class="articles__search" style="flex:1;">
+          <input type="text" id="foundation-search" placeholder="キーワードで検索..." class="articles__search-input">
+          <button id="foundation-search-btn" class="articles__search-btn">検索</button>
+        </div>
+        <div class="scholarship__target-filter" id="foundation-target-filter">
+          <button class="scholarship__target-btn scholarship__target-btn--active" data-target="">すべて</button>
+          <button class="scholarship__target-btn" data-target="中学生以下">中学生以下</button>
+          <button class="scholarship__target-btn" data-target="高校生">高校生</button>
+          <button class="scholarship__target-btn" data-target="学部">学部</button>
+          <button class="scholarship__target-btn" data-target="修士">修士</button>
+          <button class="scholarship__target-btn" data-target="博士">博士</button>
+          <button class="scholarship__target-btn" data-target="研究者">研究者</button>
+          <button class="scholarship__target-btn" data-target="社会人">社会人</button>
+        </div>
+      </div>
+
+      <div class="scholarship__status-wrap">
+        <div class="scholarship__status-block">
+          <div class="scholarship__status-header scholarship__status-header--active">
+            <span class="scholarship__status-dot scholarship__status-dot--active"></span>
+            <h2 class="scholarship__status-title">現在応募中</h2>
+            <span class="scholarship__status-count" id="foundation-active-count">0件</span>
+          </div>
+          <div class="scholarship__cards" id="foundation-active"><p class="scholarship__empty">読み込み中...</p></div>
+        </div>
+        <div class="scholarship__status-block">
+          <div class="scholarship__status-header scholarship__status-header--upcoming">
+            <span class="scholarship__status-dot scholarship__status-dot--upcoming"></span>
+            <h2 class="scholarship__status-title">これから応募が始まる</h2>
+            <span class="scholarship__status-count" id="foundation-upcoming-count">0件</span>
+          </div>
+          <div class="scholarship__cards" id="foundation-upcoming"><p class="scholarship__empty">読み込み中...</p></div>
+        </div>
+        <div class="scholarship__status-block">
+          <div class="scholarship__status-header scholarship__status-header--closed">
+            <span class="scholarship__status-dot scholarship__status-dot--closed"></span>
+            <h2 class="scholarship__status-title">応募終了</h2>
+            <span class="scholarship__status-count" id="foundation-closed-count">0件</span>
+          </div>
+          <div class="scholarship__cards" id="foundation-closed"><p class="scholarship__empty">読み込み中...</p></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+</body>
+</html>

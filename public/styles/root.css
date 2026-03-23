@@ -1,0 +1,36 @@
+/* =====================
+   root.css
+   パス: /public/styles/root.css
+   ===================== */
+
+:root {
+  /* プライマリカラー
+     使用: 全ページ */
+  --color-white: rgb(255, 255, 255);
+  --color-navy: rgb(8, 16, 64);
+  --color-orange: rgb(255, 128, 64);
+
+  /* 背景・テキスト
+     使用: 全ページ */
+  --color-bg: var(--color-navy);
+  --color-text: var(--color-white);
+  --color-text-muted: #94a3b8;
+  --color-text-faint: #64748b;
+  --color-border: rgba(255,255,255,0.08);
+  --color-card-bg: rgba(255,255,255,0.03);
+
+  /* アクセントカラー
+     使用: /index.html */
+  --color-blue: #0ea5e9;
+  --color-green: #10b981;
+  --color-gold: #f59e0b;
+  --color-purple: #a78bfa;
+
+  /* サイズ
+     使用: /index.html */
+  --max-width: 1000px;
+  --border-radius: 20px;
+  --gap: 16px;
+  --padding-card: 32px 28px;
+  --padding-page: 40px 20px;
+}

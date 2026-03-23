@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/threads.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <main class="page">
+    <div class="page__inner">
+
+      <!-- スレッド本文 -->
+      <div id="thread-detail">
+        <p class="thread__empty">読み込み中...</p>
+      </div>
+
+      <!-- 回答一覧 -->
+      <div id="replies-section" style="display:none;">
+        <h2 class="thread__replies-title">回答</h2>
+        <ul class="replies__list" id="replies-list"></ul>
+      </div>
+
+      <!-- 回答投稿フォーム -->
+      <div class="reply__form-wrap" id="reply-form-wrap" style="display:none;">
+        <h3 class="reply__form-title">回答する</h3>
+        <p class="modal__note">※ログインが必要です</p>
+        <div class="form-group">
+          <textarea id="replyContent" rows="5" placeholder="回答を入力..."></textarea>
+        </div>
+        <button class="contact__submit" id="replySubmit" style="margin-top:12px;">回答を投稿する</button>
+      </div>
+
+      <div style="margin-top:24px;">
+        <a href="/student-japan/threads.html" class="thread__back">← スレッド一覧に戻る</a>
+      </div>
+
+    </div>
+  </main>
+
+</body>
+</html>

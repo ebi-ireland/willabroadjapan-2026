@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/scholarship.css">
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <main class="scholarship__page">
+
+    <div class="scholarship__header">
+      <h1 class="page__title">大学奨学金</h1>
+    </div>
+
+    <div class="scholarship__map-wrap">
+      <div id="wrapper">
+        <div id="map"></div>
+        <div id="detail-panel">
+          <button class="close-btn" onclick="closePanel()">✕</button>
+          <div id="panel-name"></div>
+          <div id="panel-body"></div>
+        </div>
+      </div>
+
+      <!-- 地域ジャンプボタン -->
+      <div class="map-jump-btns">
+        <button class="map-jump-btn" onclick="flyToRegion('japan')">🇯🇵 日本</button>
+        <button class="map-jump-btn" onclick="flyToRegion('uk')">🇬🇧 イギリス</button>
+        <button class="map-jump-btn" onclick="flyToRegion('america')">🇺🇸 アメリカ</button>
+      </div>
+
+      <!-- フィルターボタン -->
+      <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilter()">
+        🔍 フィルター
+      </button>
+
+      <!-- フィルターサイドバー -->
+      <div class="filter-sidebar" id="filterSidebar">
+        <div class="filter-inner">
+          <div class="filter-top">
+            <span class="filter-title">フィルター</span>
+            <button class="filter-clear-btn" onclick="clearAllFilters()">All Clear</button>
+            <button class="filter-close-btn" onclick="toggleFilter()">✕</button>
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">キーワード検索</div>
+            <input type="text" class="filter-input" id="filterKeyword" placeholder="大学名など..." oninput="applyFilters()" />
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">語学条件</div>
+            <div class="filter-range-row">
+              <label>TOEFL <span class="range-hint">（0－120）</span></label>
+              <input type="range" id="filterToefl" min="0" max="120" value="0" oninput="updateRange('filterToefl','filterToeflVal'); applyFilters()" />
+              <span class="range-val" id="filterToeflVal">0</span>
+            </div>
+            <div class="filter-range-row">
+              <label>IELTS <span class="range-hint">（0－9.0）</span></label>
+              <input type="range" id="filterIelts" min="0" max="90" value="0" oninput="updateRange('filterIelts','filterIeltsVal',0.1); applyFilters()" />
+              <span class="range-val" id="filterIeltsVal">0</span>
+            </div>
+            <div class="filter-range-row">
+              <label>Duolingo <span class="range-hint">（0－160）</span></label>
+              <input type="range" id="filterDuolingo" min="0" max="160" value="0" oninput="updateRange('filterDuolingo','filterDuolingoVal'); applyFilters()" />
+              <span class="range-val" id="filterDuolingoVal">0</span>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">奨学金条件</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="full_tuition" onchange="applyFilters()"> 全額免除奨学金</label>
+              <label class="filter-check"><input type="checkbox" value="tuition_waiver" onchange="applyFilters()"> 授業料免除奨学金</label>
+              <label class="filter-check"><input type="checkbox" value="need_based" onchange="applyFilters()"> Need-based Scholarship</label>
+              <label class="filter-check"><input type="checkbox" value="need_met_100" onchange="applyFilters()"> Need-Met 100%</label>
+              <label class="filter-check"><input type="checkbox" value="yanai" onchange="applyFilters()"> 柳井正財団</label>
+              <label class="filter-check"><input type="checkbox" value="sasagawa" onchange="applyFilters()"> 笹川平和財団</label>
+              <label class="filter-check"><input type="checkbox" value="grupe" onchange="applyFilters()"> グルーバンクロフト基金</label>
+              <label class="filter-check"><input type="checkbox" value="toshin" onchange="applyFilters()"> 東進海外進学支援制度</label>
+              <label class="filter-check"><input type="checkbox" value="ezoe" onchange="applyFilters()"> 江副リクルート記念財団</label>
+              <label class="filter-check"><input type="checkbox" value="yawh" onchange="applyFilters()"> YouAreWelcomeHere Scholarship</label>
+              <label class="filter-check"><input type="checkbox" value="stamps" onchange="applyFilters()"> Stamps Scholar Program</label>
+              <label class="filter-check"><input type="checkbox" value="laidlaw" onchange="applyFilters()"> Laidlaw Scholars</label>
+              <label class="filter-check"><input type="checkbox" value="any_foundation" onchange="applyFilters()"> 日本の全財団奨学生の進学した大学</label>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">奨学金締切</div>
+            <div class="filter-checks month-checks">
+              <label class="filter-check"><input type="checkbox" value="month_1"  onchange="applyFilters()"> 1月</label>
+              <label class="filter-check"><input type="checkbox" value="month_2"  onchange="applyFilters()"> 2月</label>
+              <label class="filter-check"><input type="checkbox" value="month_3"  onchange="applyFilters()"> 3月</label>
+              <label class="filter-check"><input type="checkbox" value="month_4"  onchange="applyFilters()"> 4月</label>
+              <label class="filter-check"><input type="checkbox" value="month_5"  onchange="applyFilters()"> 5月</label>
+              <label class="filter-check"><input type="checkbox" value="month_6"  onchange="applyFilters()"> 6月</label>
+              <label class="filter-check"><input type="checkbox" value="month_7"  onchange="applyFilters()"> 7月</label>
+              <label class="filter-check"><input type="checkbox" value="month_8"  onchange="applyFilters()"> 8月</label>
+              <label class="filter-check"><input type="checkbox" value="month_9"  onchange="applyFilters()"> 9月</label>
+              <label class="filter-check"><input type="checkbox" value="month_10" onchange="applyFilters()"> 10月</label>
+              <label class="filter-check"><input type="checkbox" value="month_11" onchange="applyFilters()"> 11月</label>
+              <label class="filter-check"><input type="checkbox" value="month_12" onchange="applyFilters()"> 12月</label>
+              <label class="filter-check"><input type="checkbox" value="rolling"  onchange="applyFilters()"> Rolling</label>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">入試出願締切</div>
+            <div class="filter-checks month-checks">
+              <label class="filter-check"><input type="checkbox" value="app_1"  onchange="applyFilters()"> 1月</label>
+              <label class="filter-check"><input type="checkbox" value="app_2"  onchange="applyFilters()"> 2月</label>
+              <label class="filter-check"><input type="checkbox" value="app_3"  onchange="applyFilters()"> 3月</label>
+              <label class="filter-check"><input type="checkbox" value="app_4"  onchange="applyFilters()"> 4月</label>
+              <label class="filter-check"><input type="checkbox" value="app_5"  onchange="applyFilters()"> 5月</label>
+              <label class="filter-check"><input type="checkbox" value="app_6"  onchange="applyFilters()"> 6月</label>
+              <label class="filter-check"><input type="checkbox" value="app_7"  onchange="applyFilters()"> 7月</label>
+              <label class="filter-check"><input type="checkbox" value="app_8"  onchange="applyFilters()"> 8月</label>
+              <label class="filter-check"><input type="checkbox" value="app_9"  onchange="applyFilters()"> 9月</label>
+              <label class="filter-check"><input type="checkbox" value="app_10" onchange="applyFilters()"> 10月</label>
+              <label class="filter-check"><input type="checkbox" value="app_11" onchange="applyFilters()"> 11月</label>
+              <label class="filter-check"><input type="checkbox" value="app_12" onchange="applyFilters()"> 12月</label>
+              <label class="filter-check"><input type="checkbox" value="app_rolling" onchange="applyFilters()"> Rolling</label>
+            </div>
+          </div>
+          <div class="filter-section">
+            <div class="filter-label">フィットする大学を見つける</div>
+            <div class="filter-sublabel">国</div>
+            <div class="country-select-wrap">
+              <div class="country-dropdown-trigger" id="countryTrigger" onclick="toggleCountryDropdown()">
+                <span id="countryTriggerLabel">選択する</span>
+                <span class="country-arrow">▼</span>
+              </div>
+              <div class="country-dropdown" id="countryDropdown">
+                <label class="filter-check country-option"><input type="checkbox" value="アメリカ" onchange="updateCountryLabel(); applyFilters()"> アメリカ</label>
+                <label class="filter-check country-option"><input type="checkbox" value="イギリス" onchange="updateCountryLabel(); applyFilters()"> イギリス</label>
+                <label class="filter-check country-option"><input type="checkbox" value="カナダ" onchange="updateCountryLabel(); applyFilters()"> カナダ</label>
+                <label class="filter-check country-option"><input type="checkbox" value="オーストラリア" onchange="updateCountryLabel(); applyFilters()"> オーストラリア</label>
+                <label class="filter-check country-option"><input type="checkbox" value="シンガポール" onchange="updateCountryLabel(); applyFilters()"> シンガポール</label>
+                <label class="filter-check country-option"><input type="checkbox" value="韓国" onchange="updateCountryLabel(); applyFilters()"> 韓国</label>
+              </div>
+            </div>
+            <div class="filter-sublabel">予算</div>
+            <div class="filter-range-row">
+              <input type="range" id="filterBudget" min="120" max="800" step="20" value="800" oninput="updateBudget(); applyFilters()" />
+              <span class="range-val" id="filterBudgetVal">800 万円</span>
+            </div>
+            <p class="filter-hint">※20万円刻み、最大800万円</p>
+            <div class="filter-sublabel">学生数</div>
+            <div class="filter-range-row">
+              <input type="range" id="filterStudents" min="1000" max="20000" step="1000" value="20000" oninput="updateStudents(); applyFilters()" />
+              <span class="range-val" id="filterStudentsVal">20,000+ 人</span>
+            </div>
+            <div class="filter-sublabel">学部構成</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="ug_only" onchange="applyFilters()"> 学部生のみ</label>
+              <label class="filter-check"><input type="checkbox" value="few_grad" onchange="applyFilters()"> 大学院生もいるがかなり少ない</label>
+              <label class="filter-check"><input type="checkbox" value="many_grad" onchange="applyFilters()"> 大学院生の割合が多い</label>
+              <label class="filter-check"><input type="checkbox" value="phd" onchange="applyFilters()"> PhD課程あり</label>
+              <label class="filter-check"><input type="checkbox" value="research" onchange="applyFilters()"> 研究型大学</label>
+              <label class="filter-check"><input type="checkbox" value="elite_group" onchange="applyFilters()"> 大学群・ラベリングのある大学</label>
+              <label class="filter-check"><input type="checkbox" value="few_japanese" onchange="applyFilters()"> 日本人学生が10人以下の大学</label>
+            </div>
+            <div class="filter-sublabel">留学生割合</div>
+            <div class="filter-range-row">
+              <input type="range" id="filterIntl" min="0" max="100" step="1" value="100" oninput="updateRange('filterIntl','filterIntlVal','%'); applyFilters()" />
+              <span class="range-val" id="filterIntlVal">100%</span>
+            </div>
+            <div class="filter-sublabel">高校の成績（5段階評価）</div>
+            <div class="filter-range-row">
+              <input type="range" id="filterGpa" min="1" max="50" step="1" value="50" oninput="updateGpa(); applyFilters()" />
+              <span class="range-val" id="filterGpaVal">5.0</span>
+            </div>
+            <div class="filter-sublabel">気候</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="oceanic" onchange="applyFilters()"> 西岸海洋性気候</label>
+              <label class="filter-check"><input type="checkbox" value="mediterranean" onchange="applyFilters()"> 地中海性気候</label>
+              <label class="filter-check"><input type="checkbox" value="humid_sub" onchange="applyFilters()"> 温暖温潤気候</label>
+              <label class="filter-check"><input type="checkbox" value="subarctic" onchange="applyFilters()"> 亜寒帯・冷帯</label>
+              <label class="filter-check"><input type="checkbox" value="steppe" onchange="applyFilters()"> ステップ・砂漠気候</label>
+              <label class="filter-check"><input type="checkbox" value="tropical" onchange="applyFilters()"> 熱帯雨林・サバナ気候</label>
+            </div>
+            <div class="filter-sublabel">移動と生活</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="direct_flight" onchange="applyFilters()"> 日本からの直行便がある</label>
+              <label class="filter-check"><input type="checkbox" value="transit_90" onchange="applyFilters()"> 空港から公共交通で90分圏内</label>
+              <label class="filter-check"><input type="checkbox" value="city_2h" onchange="applyFilters()"> 公共交通2時間圏内に大都市あり</label>
+              <label class="filter-check"><input type="checkbox" value="shuttle" onchange="applyFilters()"> 学生福祉（バス無料など）</label>
+              <label class="filter-check"><input type="checkbox" value="rideshare" onchange="applyFilters()"> ウーバーや配車サービスあり</label>
+              <label class="filter-check"><input type="checkbox" value="library_24h" onchange="applyFilters()"> 24時間図書館あり</label>
+              <label class="filter-check"><input type="checkbox" value="supermarket" onchange="applyFilters()"> 徒歩圏内にスーパーあり</label>
+            </div>
+            <div class="filter-sublabel">学問 - ビジネス・社会・経済系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="startup" onchange="applyFilters()"> 起業・スタートアップに強い</label>
+              <label class="filter-check"><input type="checkbox" value="finance" onchange="applyFilters()"> 金融・コンサルに強い</label>
+              <label class="filter-check"><input type="checkbox" value="mgmt" onchange="applyFilters()"> 経営学が有名</label>
+              <label class="filter-check"><input type="checkbox" value="hospitality" onchange="applyFilters()"> ホスピタリティ・観光に強い</label>
+              <label class="filter-check"><input type="checkbox" value="economics" onchange="applyFilters()"> 経済学・統計学に強い</label>
+            </div>
+            <div class="filter-sublabel">テクノロジー・理系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="ai" onchange="applyFilters()"> AI・データサイエンスに強い</label>
+              <label class="filter-check"><input type="checkbox" value="engineering" onchange="applyFilters()"> エンジニアリングが強い</label>
+              <label class="filter-check"><input type="checkbox" value="bio" onchange="applyFilters()"> バイオ・生命科学が強い</label>
+              <label class="filter-check"><input type="checkbox" value="env" onchange="applyFilters()"> 環境・サステナビリティが強い</label>
+              <label class="filter-check"><input type="checkbox" value="agri" onchange="applyFilters()"> 農業・食品化学が強い</label>
+            </div>
+            <div class="filter-sublabel">クリエイティブ・芸術系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="design" onchange="applyFilters()"> デザイン・ファッションが強い</label>
+              <label class="filter-check"><input type="checkbox" value="media" onchange="applyFilters()"> 映画・メディア・音楽が強い</label>
+              <label class="filter-check"><input type="checkbox" value="arch" onchange="applyFilters()"> 建築・都市設計が強い</label>
+              <label class="filter-check"><input type="checkbox" value="game" onchange="applyFilters()"> ゲーム・インタラクティブが強い</label>
+            </div>
+            <div class="filter-sublabel">人文・教育・社会貢献系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="psych" onchange="applyFilters()"> 心理学・カウンセリングが強い</label>
+              <label class="filter-check"><input type="checkbox" value="ir" onchange="applyFilters()"> 国際関係・政治学が強い</label>
+              <label class="filter-check"><input type="checkbox" value="edu" onchange="applyFilters()"> 教育学・教員養成が強い</label>
+              <label class="filter-check"><input type="checkbox" value="law" onchange="applyFilters()"> 法学が強い</label>
+              <label class="filter-check"><input type="checkbox" value="social" onchange="applyFilters()"> 社会福祉・社会学が強い</label>
+            </div>
+            <div class="filter-sublabel">医療・健康・スポーツ系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="nursing" onchange="applyFilters()"> 看護・公衆衛生が強い</label>
+              <label class="filter-check"><input type="checkbox" value="sports" onchange="applyFilters()"> スポーツ科学が強い</label>
+              <label class="filter-check"><input type="checkbox" value="pharma" onchange="applyFilters()"> 薬学・セラピーが強い</label>
+              <label class="filter-check"><input type="checkbox" value="neuro" onchange="applyFilters()"> 脳科学が強い</label>
+            </div>
+            <div class="filter-sublabel">リベラルアーツ・学際系</div>
+            <div class="filter-checks">
+              <label class="filter-check"><input type="checkbox" value="liberal_arts" onchange="applyFilters()"> 一般教養科目が豊富</label>
+              <label class="filter-check"><input type="checkbox" value="interdisciplinary" onchange="applyFilters()"> 学際研究</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+</body>
+</html>

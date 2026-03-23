@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/styles/index.css">
+  <link rel="stylesheet" href="/styles/comp/contact.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+</head>
+<body>
+
+  <main class="page">
+    <div class="page__inner">
+      <h1 class="page__title">お問い合わせ</h1>
+
+      <div id="formMsg" class="contact__success" style="display:none;">
+        ✅ お問い合わせを受け付けました。スタッフが確認次第メールにて返信いたします。
+      </div>
+
+      <form id="contactForm" class="contact__form">
+        <div class="contact__grid">
+          <div class="form-group">
+            <label for="name">名前 <span class="required">*</span></label>
+            <input type="text" id="name" placeholder="山田 太郎" required />
+          </div>
+          <div class="form-group">
+            <label for="email">メールアドレス <span class="required">*</span></label>
+            <input type="email" id="email" placeholder="example@email.com" required />
+          </div>
+          <div class="form-group">
+            <label for="job">職業 <span class="required">*</span></label>
+            <select id="job" required>
+              <option value="">選択する</option>
+              <option value="学生">学生</option>
+              <option value="教師">教師</option>
+              <option value="教育関係者">教育関係者</option>
+              <option value="保護者">保護者</option>
+              <option value="メディア">メディア</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="title">タイトル <span class="required">*</span></label>
+            <select id="title" required>
+              <option value="">選択する</option>
+              <option value="奨学金検索について">奨学金の検索</option>
+              <option value="サポートについて">サポート</option>
+              <option value="スポンサーについて">スポンサー</option>
+              <option value="WAプログラムについて">WAプログラム</option>
+              <option value="その他">その他</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="message">内容 <span class="required">*</span></label>
+          <textarea id="message" rows="8" placeholder="お問い合わせ内容をご記入ください" required></textarea>
+        </div>
+        <p class="contact__note">スタッフが確認次第メールにて返信させていただきます。</p>
+        <button type="submit" id="contactSubmit" class="contact__submit">送信</button>
+      </form>
+    </div>
+  </main>
+
+</body>
+</html>
