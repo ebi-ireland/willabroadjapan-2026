@@ -34,7 +34,7 @@ router.get('/universities/favorite', (req, res) => {
   const filter = getFavPeriodFilter(period)
   db.query(`
     SELECT u.id, u.name, u.country, COUNT(fl.id) as favorite_count
-    FROM universities u
+    FROM university_scholarships u
     LEFT JOIN favorite_logs fl ON u.id = fl.university_id
     WHERE 1=1 ${filter}
     GROUP BY u.id
@@ -54,7 +54,7 @@ router.get('/universities/view', (req, res) => {
       SELECT u.id, u.name, u.country,
         COUNT(DISTINCT vl.id) as view_count,
         COUNT(DISTINCT vl.id) - COUNT(DISTINCT vl2.id) as trend_diff
-      FROM universities u
+      FROM university_scholarships u
       LEFT JOIN view_logs vl ON u.id = vl.target_id AND vl.type = 'university'
         AND vl.viewed_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
       LEFT JOIN view_logs vl2 ON u.id = vl2.target_id AND vl2.type = 'university'
@@ -71,7 +71,7 @@ router.get('/universities/view', (req, res) => {
     const filter = getPeriodFilter(period)
     db.query(`
       SELECT u.id, u.name, u.country, COUNT(vl.id) as view_count
-      FROM universities u
+      FROM university_scholarships u
       LEFT JOIN view_logs vl ON u.id = vl.target_id AND vl.type = 'university'
       WHERE 1=1 ${filter}
       GROUP BY u.id
@@ -89,10 +89,10 @@ router.get('/scholarships/view', (req, res) => {
   const period = req.query.period || 'week'
   if (period === 'trending') {
     db.query(`
-      SELECT s.id, s.name, s.provider,
+      SELECT s.id, s.name, '' as provider,
         COUNT(DISTINCT vl.id) as view_count,
         COUNT(DISTINCT vl.id) - COUNT(DISTINCT vl2.id) as trend_diff
-      FROM scholarships s
+      FROM foundation_scholarships s
       LEFT JOIN view_logs vl ON s.id = vl.target_id AND vl.type = 'scholarship'
         AND vl.viewed_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
       LEFT JOIN view_logs vl2 ON s.id = vl2.target_id AND vl2.type = 'scholarship'
@@ -108,8 +108,8 @@ router.get('/scholarships/view', (req, res) => {
   } else {
     const filter = getPeriodFilter(period)
     db.query(`
-      SELECT s.id, s.name, s.provider, COUNT(vl.id) as view_count
-      FROM scholarships s
+      SELECT s.id, s.name, '' as provider, COUNT(vl.id) as view_count
+      FROM foundation_scholarships s
       LEFT JOIN view_logs vl ON s.id = vl.target_id AND vl.type = 'scholarship'
       WHERE 1=1 ${filter}
       GROUP BY s.id
@@ -130,7 +130,7 @@ router.get('/programs/view', (req, res) => {
       SELECT p.id, p.name,
         COUNT(DISTINCT vl.id) as view_count,
         COUNT(DISTINCT vl.id) - COUNT(DISTINCT vl2.id) as trend_diff
-      FROM programs p
+      FROM program_scholarships p
       LEFT JOIN view_logs vl ON p.id = vl.target_id AND vl.type = 'program'
         AND vl.viewed_at >= DATE_SUB(NOW(), INTERVAL 1 WEEK)
       LEFT JOIN view_logs vl2 ON p.id = vl2.target_id AND vl2.type = 'program'
@@ -147,7 +147,7 @@ router.get('/programs/view', (req, res) => {
     const filter = getPeriodFilter(period)
     db.query(`
       SELECT p.id, p.name, COUNT(vl.id) as view_count
-      FROM programs p
+      FROM program_scholarships p
       LEFT JOIN view_logs vl ON p.id = vl.target_id AND vl.type = 'program'
       WHERE 1=1 ${filter}
       GROUP BY p.id

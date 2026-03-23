@@ -13,6 +13,21 @@ if (path === '/student-japan/scholarship.html') {
   let mapInstance = null
   let favList = JSON.parse(localStorage.getItem('fav_universities') || '[]')
   let favIds = new Set(favList.map(u => u.id))
+  let currentUser = null
+
+  async function loadCurrentUser() {
+    try {
+      const res = await fetch('/api/auth/me')
+      if (!res.ok) return
+      currentUser = await res.json()
+      const dbRes = await fetch(`/api/scholarships/university/favorites/${currentUser.id}`)
+      if (!dbRes.ok) return
+      const dbFavs = await dbRes.json()
+      favList = dbFavs
+      favIds = new Set(dbFavs.map(u => u.id))
+      localStorage.setItem('fav_universities', JSON.stringify(favList))
+    } catch (_) {}
+  }
 
   // =====================
   // Mapbox
@@ -106,6 +121,7 @@ if (path === '/student-japan/scholarship.html') {
         e.stopPropagation()
         if (marker.getPopup().isOpen()) marker.togglePopup()
         openPanel(c, m)
+        fetch(`/api/scholarships/university/${c.id}/view`, { method: 'POST' }).catch(() => {})
       })
 
       window._markers.push(marker)
@@ -209,12 +225,26 @@ if (path === '/student-japan/scholarship.html') {
       favIds.delete(college.id)
       btn.textContent = '☆ お気に入りに追加'
       btn.style.background = 'rgba(255,128,64,0.08)'
+      if (currentUser) {
+        fetch(`/api/scholarships/university/${college.id}/favorite`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id })
+        }).catch(() => {})
+      }
     } else {
       if (favList.length >= 30) { alert('お気に入りは最大30校までです'); return }
       favList.push(college)
       favIds.add(college.id)
       btn.textContent = '★ お気に入り済み'
       btn.style.background = 'rgba(255,128,64,0.2)'
+      if (currentUser) {
+        fetch(`/api/scholarships/university/${college.id}/favorite`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser.id })
+        }).catch(() => {})
+      }
     }
     localStorage.setItem('fav_universities', JSON.stringify(favList))
   }
@@ -352,5 +382,5 @@ if (path === '/student-japan/scholarship.html') {
     window.updateMarkers(filtered)
   }
 
-  initMap()
+  loadCurrentUser().then(() => initMap())
 }

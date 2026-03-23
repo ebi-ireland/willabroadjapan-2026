@@ -90,7 +90,6 @@ COUNTRIES = {
     "セルビア":                 "https://www.unirank.org/rs/",
     "タイ":                     "https://www.unirank.org/th/a-z/",
     "台湾":                     "https://www.unirank.org/tw/a-z/",
-    "台湾":                     "https://www.unirank.org/tw/a-z/",
     "チェコ":                   "https://www.unirank.org/cz/a-z/",
     "中国":                     "https://www.unirank.org/cn/a-z/",
     "デンマーク":               "https://www.unirank.org/dk/a-z/",
@@ -153,7 +152,8 @@ TEST_MODE = False       # True: サンプルデータで動作確認
 GEOCODE_DELAY     = 3.0   # 通常リクエスト間隔（秒）
 GEOCODE_RETRY_MAX = 5     # レート制限時の最大リトライ回数
 GEOCODE_RETRY_WAIT = 60   # レート制限検知時の待機秒数（429受信 or 連続失敗）
-PROGRESS_FILE = OUTPUT_DIR / "geocode_progress.json"  # 中断再開用
+PROGRESS_FILE        = OUTPUT_DIR / "geocode_progress.json"   # ジオコーディング進捗（中断再開用）
+SCRAPE_PROGRESS_FILE = OUTPUT_DIR / "scrape_progress.json"    # スクレイピング進捗（国ごとに保存）
 
 # ────────────────────────────────────────────────────────────
 # 通貨マッピング（国名 → 通貨記号）
@@ -413,6 +413,31 @@ def get_sample_data() -> list:
     ]
 
 # ────────────────────────────────────────────────────────────
+# 同一国内の重複大学名に (1)(2)... を付加
+# ────────────────────────────────────────────────────────────
+
+def deduplicate_names(universities: list):
+    """同一国内で同名の大学が複数ある場合に (1)(2)... を付加する。"""
+    # (国, 大学名) の出現数をカウント
+    key_count: dict = {}
+    for uni in universities:
+        k = (uni["国"], uni["大学名"])
+        key_count[k] = key_count.get(k, 0) + 1
+
+    # 2件以上ある場合のみ連番付加
+    key_seen: dict = {}
+    for uni in universities:
+        k = (uni["国"], uni["大学名"])
+        if key_count[k] > 1:
+            key_seen[k] = key_seen.get(k, 0) + 1
+            uni["大学名"] = f"{uni['大学名']}({key_seen[k]})"
+
+    dupes = sum(1 for v in key_count.values() if v > 1)
+    if dupes:
+        print(f"  → 重複大学名を {dupes} 件検出し、連番を付加しました")
+
+
+# ────────────────────────────────────────────────────────────
 # 通貨を自動補完
 # ────────────────────────────────────────────────────────────
 
@@ -562,11 +587,27 @@ def main():
     else:
         all_universities = []
 
+        # ── STEP 1: スクレイピング（国ごとに保存して中断再開対応）
         print(f"\n[STEP 1] unirank.org スクレイピング ({len(COUNTRIES)}カ国)")
+        scraped: dict = {}
+        if SCRAPE_PROGRESS_FILE.exists():
+            with open(SCRAPE_PROGRESS_FILE, encoding="utf-8") as f:
+                scraped = json.load(f)
+            print(f"  → スクレイピング進捗を読み込みました ({len(scraped)}カ国済み)")
+
         for country_name, url in COUNTRIES.items():
+            if country_name in scraped:
+                unis = scraped[country_name]
+                all_universities.extend(unis)
+                print(f"  {country_name}: {len(unis)}大学 [スキップ（保存済み）]")
+                continue
             print(f"  {country_name}: {url}")
             unis = scrape_unirank(country_name, url)
             all_universities.extend(unis)
+            # 即座に保存（中断対策）
+            scraped[country_name] = unis
+            with open(SCRAPE_PROGRESS_FILE, "w", encoding="utf-8") as f:
+                json.dump(scraped, f, ensure_ascii=False)
             time.sleep(2)
 
         print(f"\n  合計 {len(all_universities)} 大学を取得")
@@ -575,10 +616,14 @@ def main():
             print("\n[警告] データが取得できませんでした。TEST_MODE = True で動作確認してください。")
             return
 
+        # ── STEP 1.5: 同一国内の重複大学名に連番付加（ジオコーディング前に実施）
+        print(f"\n[STEP 1.5] 重複大学名チェック...")
+        deduplicate_names(all_universities)
+
+        # ── STEP 2: ジオコーディング（大学名+国名をキーにして中断再開対応）
         print(f"\n[STEP 2] ジオコーディング (Nominatim / OpenStreetMap)")
         print(f"  進捗ファイル: {PROGRESS_FILE}")
 
-        # 前回の進捗を読み込んで続きから再開
         progress = {}
         if PROGRESS_FILE.exists():
             with open(PROGRESS_FILE, encoding="utf-8") as f:
@@ -587,7 +632,8 @@ def main():
             print(f"  → 前回の進捗を読み込みました ({len(progress)}件保存済み、うち成功{done}件)")
 
         for i, uni in enumerate(all_universities, start=1):
-            key = uni["大学名"]
+            # キーは「国名||大学名」で一意性を確保（同名別国の混同を防ぐ）
+            key = f"{uni['国']}||{uni['大学名']}"
             if key in progress:
                 uni["緯度"] = progress[key]["lat"]
                 uni["経度"] = progress[key]["lon"]
@@ -608,6 +654,11 @@ def main():
 
         print(f"\n  ジオコーディング完了。進捗ファイルは {PROGRESS_FILE.name} に保存されています。")
         print(f"  全件完了後に不要であれば削除してください。")
+
+    # テストモード時のみ重複チェック（通常モードはSTEP 1.5で実施済み）
+    if TEST_MODE:
+        print("\n[STEP 1.5] 重複大学名チェック...")
+        deduplicate_names(all_universities)
 
     # 通貨自動補完
     print("\n[STEP 3] 通貨定義を自動補完...")
@@ -631,6 +682,7 @@ def main():
     print(f"  ✅ JSON:  {json_path.name}  (バックアップ)")
 
     print(f"\n完了！ 出力先: {OUTPUT_DIR.resolve()}")
+    print(f"  ※ 全件完了したら scrape_progress.json と geocode_progress.json は削除して構いません")
 
 
 if __name__ == "__main__":

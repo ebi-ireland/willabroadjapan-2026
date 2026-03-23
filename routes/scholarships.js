@@ -45,6 +45,18 @@ router.get('/university', (req, res) => {
   })
 })
 
+// 閲覧記録
+router.post('/university/:id/view', (req, res) => {
+  db.query(
+    'INSERT INTO view_logs (type, target_id) VALUES (?, ?)',
+    ['university', req.params.id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json({ ok: true })
+    }
+  )
+})
+
 // お気に入り登録
 router.post('/university/:id/favorite', express.json(), (req, res) => {
   const { user_id } = req.body
@@ -54,6 +66,9 @@ router.post('/university/:id/favorite', express.json(), (req, res) => {
     [user_id, req.params.id],
     (err, result) => {
       if (err) return res.status(500).json({ error: err.message })
+      if (result.affectedRows > 0) {
+        db.query('INSERT INTO favorite_logs (user_id, university_id) VALUES (?, ?)', [user_id, req.params.id], () => {})
+      }
       res.json({ ok: true, added: result.affectedRows > 0 })
     }
   )
