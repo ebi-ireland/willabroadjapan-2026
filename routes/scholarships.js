@@ -132,4 +132,58 @@ router.get('/program', (req, res) => {
   })
 })
 
+// ── 日本在住留学生向け ────────────────────────────────────────
+
+// deadline_monthからステータスを計算（1か月前からopen）
+function calcIntlStatus(deadlineMonth) {
+  if (!deadlineMonth) return 'upcoming'
+  const m = new Date().getMonth() + 1  // 1-12
+  let diff = deadlineMonth - m
+  if (diff < -6) diff += 12  // 年をまたぐ場合の補正（例：12月→1月締切）
+  if (diff < 0)  return 'closed'
+  if (diff <= 1) return 'open'
+  return 'upcoming'
+}
+
+// 共通クエリビルダー
+function buildIntlQuery(type, query) {
+  const search      = query.search      ? `%${query.search}%`      : '%'
+  const nationality = query.nationality ? `%${query.nationality}%` : '%'
+  const language    = query.language    ? `%${query.language}%`    : '%'
+  const amountType  = query.amount_type || ''
+
+  const params = [type, search, search, search, nationality, language]
+  let sql = `
+    SELECT * FROM intl_scholarships
+    WHERE provider_type = ?
+      AND (name LIKE ? OR provider_name LIKE ? OR other_req LIKE ?)
+      AND (nationality_req LIKE ? OR nationality_req IS NULL)
+      AND (language_req    LIKE ? OR language_req    IS NULL)
+  `
+  if (amountType) {
+    sql += ` AND amount_type = ?`
+    params.push(amountType)
+  }
+  sql += ` ORDER BY deadline_month ASC, name ASC`
+  return { sql, params }
+}
+
+// 大学奨学金（日本の大学が留学生に提供）
+router.get('/intl/university', (req, res) => {
+  const { sql, params } = buildIntlQuery('university', req.query)
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(results.map(s => ({ ...s, status: calcIntlStatus(s.deadline_month) })))
+  })
+})
+
+// 財団奨学金（日本の財団が留学生に提供）
+router.get('/intl/foundation', (req, res) => {
+  const { sql, params } = buildIntlQuery('foundation', req.query)
+  db.query(sql, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(results.map(s => ({ ...s, status: calcIntlStatus(s.deadline_month) })))
+  })
+})
+
 module.exports = router

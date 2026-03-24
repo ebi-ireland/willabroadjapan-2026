@@ -1,0 +1,97 @@
+// document.hbs
+<div id="document" class="document">
+	<a href="document/finance/finance-2025.xls"> // one example
+		div class="document-item">
+			<div class="document-title"></div>
+		</div>
+	</a>
+</div>
+
+
+// highschool.hbs
+<div id="highschool" class="highschool">
+	<a href="document/highschool/calculateGPA.xls"> // one example
+		<div class="highschool-item">
+			<div class="document-title"></div>
+			<div class="document-description"></div> // some items do not hve description.
+		</div>
+	</a>
+</div>
+
+
+// column.hbs
+<div id="column" class="column">
+	<a href="japanese/column/how-to-apply-scholarship"> // one example
+		<div class="column-item">
+			<div class="column-title"></div>
+			<div class="column-post-date"></div>
+		</div>
+	</a>
+</div>
+
+// foundation.hbs --research foundation scholarship -- japanese/foundation
+<div id="foundation" class="foundation">
+	<div class="foundation-item">
+		<div class="foundation-title"></div>
+		<div class="foundation-url"></div>
+		<div class="foundation-deadline"></div>
+		<div class="foundation-object"></div>
+		<div class="foundation-country"></div>
+		<div class="foundation-money"></div>
+		<div class="foundation-duration"></div>
+		<div class="foundation-person"></div>
+		<div class="foundation-language"></div>
+		<div class="foundation-conditions"></div>
+	</div>
+</div>
+
+// notification.hbs
+<div id="notification" class="notification">
+	<a href=""> // some contents do not have a tag
+		<div class="notification-title"></div>
+		<div class="notification-summary"></div>
+		<div class="notification-date"></div>
+	</a> 
+</div>
+
+// program.hbs --research programs -- Japanese/program
+<div id="program" class="program">
+	<div class="program-item">
+		<div class="program-title"></div>
+		<div class="program-sponsor"></div>
+		<div class="program-url"></div>
+		<div class="program-deadline"></div>
+		<div class="program-object"></div>
+		<div class="program-country"></div>
+		<div class="program-money"></div>
+		<div class="program-duration"></div>
+		<div class="program-person"></div>
+		<div class="program-language"></div>
+		<div class="program-conditions"></div>
+	</div>
+</div>
+
+// support.hbs
+<div id="support" class="support">
+	<a href="support/highschool"> // one example
+		<div class="support-title"></div>
+	</a>
+</div>
+
+// /intlstu/index.hbs --study in Japan for international students find Japanese scholarships
+<div id="intlstu-index" class="intlstu-index">
+	<div class="intlstu-item">
+		<div class="intlstu-title"></div>
+		<div class="intlstu-url"></div>
+		<div class="intlstu-deadline"></div>
+		<div class="intlstu-object"></div>
+		<div class="intlstu-money"></div>
+		<div class="intlstu-duration"></div>
+		<div class="intlstu-person"></div>
+		<div class="intlstu-conditions"></div>
+	</div>
+</div>
+
+
+
+

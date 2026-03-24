@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact — Will Abroad for International Students</title>
+  <link rel="stylesheet" href="/styles/navy-gold.css">
+</head>
+<body>
+  <script src="/scripts/components/intl-navbar.js" defer></script>
+
+  <!-- HERO -->
+  <section class="ng-hero" style="min-height:42vh; justify-content:flex-end; padding-bottom:60px;">
+    <p class="ng-hero__eyebrow">Contact</p>
+    <h1 class="ng-hero__h1" style="font-size:clamp(2.6rem,5.5vw,5.5rem);">
+      Questions &amp;<br><em>Inquiries</em>
+    </h1>
+    <p class="ng-hero__sub">
+      Have a question about a scholarship, can't find what you're looking for, or want to
+      suggest a funding opportunity we should add? We'd love to hear from you.
+    </p>
+  </section>
+
+  <!-- FORM -->
+  <div class="ng-section">
+    <form class="ng-form" id="contactForm" novalidate>
+
+      <div class="ng-form__row">
+        <div class="ng-form__field">
+          <label class="ng-form__label" for="name">Your Name *</label>
+          <input class="ng-form__input" id="name" name="name" type="text" placeholder="Alex Kim" required>
+        </div>
+        <div class="ng-form__field">
+          <label class="ng-form__label" for="email">Email Address *</label>
+          <input class="ng-form__input" id="email" name="email" type="email" placeholder="alex@university.ac.jp" required>
+        </div>
+      </div>
+
+      <div class="ng-form__field">
+        <label class="ng-form__label" for="job">Your Status *</label>
+        <select class="ng-form__select" id="job" name="job" required>
+          <option value="" disabled selected>Select your status</option>
+          <option>Undergraduate Student</option>
+          <option>Graduate Student (Master's)</option>
+          <option>Graduate Student (Doctoral)</option>
+          <option>Research Student</option>
+          <option>Language School Student</option>
+          <option>Other</option>
+        </select>
+      </div>
+
+      <div class="ng-form__field">
+        <label class="ng-form__label" for="title">Subject *</label>
+        <input class="ng-form__input" id="title" name="title" type="text" placeholder="e.g. Question about JASSO scholarship" required>
+      </div>
+
+      <div class="ng-form__field">
+        <label class="ng-form__label" for="message">Message *</label>
+        <textarea class="ng-form__textarea" id="message" name="message" placeholder="Tell us what you need help with, or suggest a scholarship we should add to our database…" required></textarea>
+      </div>
+
+      <div>
+        <button type="submit" class="ng-btn ng-btn--gold" style="width:100%;">Send Message</button>
+      </div>
+
+      <div class="ng-form__msg" id="formMsg"></div>
+    </form>
+
+    <!-- alternative -->
+    <div style="margin-top:80px; padding-top:60px; border-top:1px solid var(--border); text-align:center;">
+      <p class="ng-eyebrow" style="justify-content:center;">Prefer email?</p>
+      <p style="color:var(--text-light); font-size:0.9rem; margin-bottom:16px;">You can also reach us at</p>
+      <a href="mailto:info@willabroad.jp" style="font-family:'Cormorant Garamond',serif; font-size:1.5rem; color:var(--gold-light); letter-spacing:0.04em;">
+        info@willabroad.jp
+      </a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="ng-footer">
+    <span>© <span id="ngYear"></span> Will Abroad Japan</span>
+    <span style="letter-spacing:0.2em;">SCHOLARSHIP RESOURCE FOR INTERNATIONAL STUDENTS</span>
+  </footer>
+
+  <script>
+    document.getElementById('ngYear').textContent = new Date().getFullYear()
+
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const form = e.target
+      const btn  = form.querySelector('[type="submit"]')
+      const msg  = document.getElementById('formMsg')
+
+      const body = {
+        type:    'student_international',
+        name:    form.name.value.trim(),
+        email:   form.email.value.trim(),
+        job:     form.job.value,
+        title:   form.title.value.trim(),
+        message: form.message.value.trim(),
+      }
+
+      if (!body.name || !body.email || !body.job || !body.title || !body.message) {
+        msg.textContent = 'Please fill in all required fields.'
+        msg.className   = 'ng-form__msg ng-form__msg--err'
+        msg.style.display = 'block'
+        return
+      }
+
+      btn.disabled    = true
+      btn.textContent = 'Sending…'
+      msg.style.display = 'none'
+
+      try {
+        const res = await fetch('/api/contact', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(body),
+        })
+        if (!res.ok) throw new Error()
+        msg.textContent = 'Thank you — we\'ll be in touch soon.'
+        msg.className   = 'ng-form__msg ng-form__msg--ok'
+        form.reset()
+        btn.textContent = 'Message Sent'
+      } catch {
+        msg.textContent = 'Something went wrong. Please try again or email us directly.'
+        msg.className   = 'ng-form__msg ng-form__msg--err'
+        btn.disabled    = false
+        btn.textContent = 'Send Message'
+      }
+      msg.style.display = 'block'
+    })
+  </script>
+</body>
+</html>

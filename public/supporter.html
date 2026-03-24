@@ -3,9 +3,395 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/styles/index.css">
-  <script src="/scripts/index.js" type="module" defer></script>
+  <title>Supporter | Will Abroad</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/styles/comp/supporter.css">
 </head>
 <body>
+
+<!-- ━━ NAVBAR ━━ -->
+<nav class="sp-nav">
+  <div class="sp-nav__inner">
+    <a href="/index.html" class="sp-nav__logo">Will <span>Abroad</span></a>
+    <ul class="sp-nav__links">
+      <li><a href="/index.html">ホーム</a></li>
+      <li><a href="#supporters">サポーター</a></li>
+      <li><a href="#reports">活動報告</a></li>
+      <li><a href="#contact">お問い合わせ</a></li>
+    </ul>
+    <a href="#donate" class="sp-nav__cta">支援する</a>
+  </div>
+</nav>
+
+<!-- ━━ HERO ━━ -->
+<section class="sp-hero">
+  <p class="sp-hero__eyebrow">Together for Study Abroad</p>
+  <h1 class="sp-hero__title">Will Abroad を<br><em>支えてくれる方々</em></h1>
+  <p class="sp-hero__sub">
+    Will Abroad は、日本から世界へ羽ばたく学生を支援する非営利活動です。<br>
+    みなさまのご支援が、次の世代の留学を可能にします。
+  </p>
+</section>
+
+<hr class="sp-divider">
+
+<!-- ━━ SUPPORTERS ━━ -->
+<section class="sp-section" id="supporters">
+  <div class="sp-section__header">
+    <span class="sp-section__label">Our Supporters</span>
+    <h2 class="sp-section__title">現在のサポーター</h2>
+  </div>
+
+  <!-- Special Sponsor -->
+  <div class="sp-tier">
+    <div class="sp-tier__head">
+      <span class="sp-tier__badge sp-tier__badge--special">✦ Special Sponsor</span>
+      <span class="sp-tier__count">1名</span>
+    </div>
+    <div class="sp-cards">
+      <div class="sp-card sp-card--special">
+        <p class="sp-card__name">ソレイユひゆみ 様</p>
+        <a href="https://twitter.com/soleillhiyumi" target="_blank" rel="noopener" class="sp-card__link">𝕏 @soleillhiyumi</a>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">✦</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">✦</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Sponsor -->
+  <div class="sp-tier">
+    <div class="sp-tier__head">
+      <span class="sp-tier__badge sp-tier__badge--top">★ Top Sponsor</span>
+      <span class="sp-tier__count">1名</span>
+    </div>
+    <div class="sp-cards">
+      <div class="sp-card sp-card--top">
+        <p class="sp-card__name">Jun Adachi 様</p>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">★</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">★</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">★</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sponsor -->
+  <div class="sp-tier">
+    <div class="sp-tier__head">
+      <span class="sp-tier__badge sp-tier__badge--regular">Sponsor</span>
+      <span class="sp-tier__count">57名（うち匿名53名）</span>
+    </div>
+    <div class="sp-cards" id="sponsorCards">
+      <div class="sp-card">
+        <p class="sp-card__name">H・N 様</p>
+      </div>
+      <div class="sp-card">
+        <p class="sp-card__name">kockout 様</p>
+      </div>
+      <div class="sp-card">
+        <p class="sp-card__name">Anonymous 様</p>
+      </div>
+      <div class="sp-card">
+        <p class="sp-card__name">デイジー犬 様</p>
+      </div>
+      <div class="sp-card">
+        <p class="sp-card__anonymous">匿名 53名 様</p>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">◆</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+      <div class="sp-card--coming">
+        <span class="sp-card__cs-icon">◆</span>
+        <span class="sp-card__cs-text">Coming Soon</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="sp-divider">
+
+<!-- ━━ DONATION ━━ -->
+<section class="sp-section" id="donate">
+  <div class="sp-section__header">
+    <span class="sp-section__label">Support Us</span>
+    <h2 class="sp-section__title">ご支援のお願い</h2>
+  </div>
+
+  <div class="sp-donate">
+    <p class="sp-donate__desc">
+      Will Abroad は学生・ボランティアにより運営されています。<br>
+      いただいたご支援は、奨学金情報の収集・翻訳・システム維持に充てられます。
+    </p>
+
+    <!-- Tier 説明 -->
+    <div class="sp-donate__tiers">
+      <div class="sp-donate__tier-item">
+        <p class="sp-donate__tier-name">✦ Special Sponsor</p>
+        <p class="sp-donate__tier-price">¥10,000 ~</p>
+      </div>
+      <div class="sp-donate__tier-item">
+        <p class="sp-donate__tier-name">★ Top Sponsor</p>
+        <p class="sp-donate__tier-price">¥5,000 ~</p>
+      </div>
+      <div class="sp-donate__tier-item">
+        <p class="sp-donate__tier-name">◆ Sponsor</p>
+        <p class="sp-donate__tier-price">¥500 ~</p>
+      </div>
+    </div>
+
+    <!-- 金額ボタン -->
+    <div class="sp-donate__amounts">
+      <button class="sp-donate__amount-btn" data-amount="500">¥500</button>
+      <button class="sp-donate__amount-btn" data-amount="1000">¥1,000</button>
+      <button class="sp-donate__amount-btn" data-amount="3000">¥3,000</button>
+      <button class="sp-donate__amount-btn active" data-amount="5000">¥5,000</button>
+      <button class="sp-donate__amount-btn" data-amount="10000">¥10,000</button>
+    </div>
+
+    <!-- 金額カスタム -->
+    <div class="sp-donate__custom">
+      <span class="sp-donate__custom-label">その他：¥</span>
+      <input type="number" class="sp-donate__custom-input" id="customAmount" placeholder="金額を入力" min="100">
+    </div>
+
+    <button class="sp-donate__btn" id="donateBtn">💛 Stripe で支援する</button>
+    <p class="sp-donate__note" id="donateNote">
+      安全なStripe決済を使用しています。カード情報はWill Abroadに渡りません。
+    </p>
+  </div>
+</section>
+
+<hr class="sp-divider">
+
+<!-- ━━ REPORTS ━━ -->
+<section class="sp-section" id="reports">
+  <div class="sp-section__header">
+    <span class="sp-section__label">Transparency</span>
+    <h2 class="sp-section__title">活動・収支報告</h2>
+  </div>
+
+  <div class="sp-tabs">
+    <button class="sp-tab-btn active" data-tab="activity">📋 活動報告</button>
+    <button class="sp-tab-btn" data-tab="finance">💰 収支報告</button>
+  </div>
+
+  <div class="sp-tab-panel active" id="tab-activity">
+    <div class="sp-report-list">
+      <a href="/document/activity/2025-plan.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📋</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2025年度 計画書</p>
+          <p class="sp-report-date">2025年公開</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+      <a href="/document/activity/2025-1h.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📄</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2025年 上半期 活動報告</p>
+          <p class="sp-report-date">2025年7月公開予定</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+      <a href="/document/activity/2024-2h.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📄</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2024年 下半期 活動報告</p>
+          <p class="sp-report-date">2025年2月公開</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+      <a href="/document/activity/2024-1h.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📄</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2024年 上半期 活動報告</p>
+          <p class="sp-report-date">2024年8月公開</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="sp-tab-panel" id="tab-finance">
+    <div class="sp-report-list">
+      <a href="/document/finance/2025-1h.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📊</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2025年 上半期 収支報告</p>
+          <p class="sp-report-date">2025年7月公開予定</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+      <a href="/document/finance/2024-annual.pdf" target="_blank" class="sp-report-item">
+        <span class="sp-report-icon">📊</span>
+        <div class="sp-report-meta">
+          <p class="sp-report-title">2024年 年間 財務報告</p>
+          <p class="sp-report-date">2025年3月公開</p>
+        </div>
+        <span class="sp-report-link">PDF を開く</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<hr class="sp-divider">
+
+<!-- ━━ CONTACT ━━ -->
+<section class="sp-section" id="contact">
+  <div class="sp-section__header">
+    <span class="sp-section__label">Contact</span>
+    <h2 class="sp-section__title">サポーター専用 お問い合わせ</h2>
+  </div>
+
+  <div class="sp-contact">
+    <form id="supporterContactForm">
+      <div class="sp-form__row">
+        <div class="sp-form__group">
+          <label class="sp-form__label">お名前 *</label>
+          <input type="text" class="sp-form__input" id="sc-name" placeholder="山田 太郎" required>
+        </div>
+        <div class="sp-form__group">
+          <label class="sp-form__label">メールアドレス *</label>
+          <input type="email" class="sp-form__input" id="sc-email" placeholder="example@mail.com" required>
+        </div>
+      </div>
+      <div class="sp-form__group">
+        <label class="sp-form__label">お問い合わせ種別</label>
+        <select class="sp-form__select" id="sc-subject">
+          <option value="">選択してください</option>
+          <option value="寄付について">寄付について</option>
+          <option value="領収書・寄付証明について">領収書・寄付証明について</option>
+          <option value="活動報告・収支報告について">活動報告・収支報告について</option>
+          <option value="スポンサーシップについて">スポンサーシップについて</option>
+          <option value="その他">その他</option>
+        </select>
+      </div>
+      <div class="sp-form__group">
+        <label class="sp-form__label">メッセージ *</label>
+        <textarea class="sp-form__textarea" id="sc-message" placeholder="ご質問・ご要望をお書きください" required></textarea>
+      </div>
+      <button type="submit" class="sp-form__submit">送信する</button>
+      <p class="sp-form__msg" id="scMsg"></p>
+    </form>
+  </div>
+</section>
+
+<!-- ━━ FOOTER ━━ -->
+<footer class="sp-footer">
+  <p>© 2024 Will Abroad. 非営利学生団体</p>
+</footer>
+
+<script>
+// ── 寄付ボタン
+let selectedAmount = 5000
+
+document.querySelectorAll('.sp-donate__amount-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sp-donate__amount-btn').forEach(b => b.classList.remove('active'))
+    btn.classList.add('active')
+    selectedAmount = parseInt(btn.dataset.amount)
+    document.getElementById('customAmount').value = ''
+  })
+})
+
+document.getElementById('customAmount').addEventListener('input', (e) => {
+  document.querySelectorAll('.sp-donate__amount-btn').forEach(b => b.classList.remove('active'))
+  selectedAmount = parseInt(e.target.value) || 0
+})
+
+document.getElementById('donateBtn').addEventListener('click', async () => {
+  const amount = parseInt(document.getElementById('customAmount').value) || selectedAmount
+  if (!amount || amount < 100) {
+    document.getElementById('donateNote').textContent = '⚠ 最低寄付額は¥100です'
+    return
+  }
+  const btn = document.getElementById('donateBtn')
+  btn.disabled = true
+  btn.textContent = '処理中...'
+  try {
+    const res  = await fetch('/api/supporter/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount })
+    })
+    const data = await res.json()
+    if (data.url) {
+      window.location.href = data.url
+    } else {
+      document.getElementById('donateNote').textContent = data.error || 'エラーが発生しました'
+      btn.disabled = false
+      btn.textContent = '💛 Stripe で支援する'
+    }
+  } catch {
+    document.getElementById('donateNote').textContent = '通信エラーが発生しました'
+    btn.disabled = false
+    btn.textContent = '💛 Stripe で支援する'
+  }
+})
+
+// 決済成功時メッセージ
+if (new URLSearchParams(location.search).get('donated') === 'true') {
+  document.getElementById('donateNote').textContent = '🎉 ご支援ありがとうございました！'
+  document.getElementById('donateNote').style.color = '#6ef0a0'
+  document.getElementById('donateNote').style.fontSize = '1rem'
+}
+
+// ── タブ切り替え
+document.querySelectorAll('.sp-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sp-tab-btn').forEach(b => b.classList.remove('active'))
+    document.querySelectorAll('.sp-tab-panel').forEach(p => p.classList.remove('active'))
+    btn.classList.add('active')
+    document.getElementById(`tab-${btn.dataset.tab}`).classList.add('active')
+  })
+})
+
+// ── お問い合わせフォーム
+document.getElementById('supporterContactForm').addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const msg = document.getElementById('scMsg')
+  const payload = {
+    name:    document.getElementById('sc-name').value.trim(),
+    email:   document.getElementById('sc-email').value.trim(),
+    subject: document.getElementById('sc-subject').value,
+    message: document.getElementById('sc-message').value.trim(),
+  }
+  try {
+    const res  = await fetch('/api/supporter/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+    const data = await res.json()
+    if (data.ok) {
+      msg.textContent = '✅ 送信しました。ありがとうございます。'
+      msg.className   = 'sp-form__msg sp-form__msg--ok'
+      e.target.reset()
+    } else {
+      throw new Error(data.error)
+    }
+  } catch (err) {
+    msg.textContent = `❌ 送信失敗：${err.message}`
+    msg.className   = 'sp-form__msg sp-form__msg--err'
+  }
+})
+</script>
+
 </body>
 </html>

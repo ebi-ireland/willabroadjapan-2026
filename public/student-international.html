@@ -3,9 +3,131 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="/styles/index.css">
-  <script src="/scripts/index.js" type="module" defer></script>
+  <title>Will Abroad — For International Students in Japan</title>
+  <link rel="stylesheet" href="/styles/navy-gold.css">
 </head>
 <body>
+  <script src="/scripts/components/intl-navbar.js" defer></script>
+
+  <!-- HERO -->
+  <section class="ng-hero">
+    <p class="ng-hero__eyebrow">For International Students Studying in Japan</p>
+    <h1 class="ng-hero__h1">
+      Fund your future<br>with the right<br><em>scholarship</em>
+    </h1>
+    <p class="ng-hero__sub">
+      Will Abroad helps international students based in Japan navigate the scholarship
+      landscape — from university-specific financial aid to Japanese foundation grants.
+      Discover funding that makes your academic journey sustainable.
+    </p>
+    <div class="ng-hero__cta">
+      <a href="/student-international/scholarships.html" class="ng-btn ng-btn--gold">Search Scholarships</a>
+      <a href="/student-international/about.html" class="ng-btn ng-btn--ghost">About Will Abroad</a>
+    </div>
+    <span class="ng-hero__scroll">Scroll to explore</span>
+  </section>
+
+  <!-- METRICS -->
+  <div class="ng-metrics">
+    <div class="ng-metrics__inner">
+      <div class="ng-metric">
+        <div class="ng-metric__num">2<span class="ng-metric__unit">types</span></div>
+        <div class="ng-metric__label">Scholarship categories<br>university &amp; foundation</div>
+      </div>
+      <div class="ng-metric">
+        <div class="ng-metric__num">100<span class="ng-metric__unit">%</span></div>
+        <div class="ng-metric__label">Free to use<br>no registration required to search</div>
+      </div>
+      <div class="ng-metric">
+        <div class="ng-metric__num">0</div>
+        <div class="ng-metric__label">Commission or fees<br>charged to students</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHAT WE OFFER -->
+  <div class="ng-section">
+    <p class="ng-eyebrow">What We Offer</p>
+    <h2 class="ng-h2">Two pathways to<br>scholarship funding</h2>
+    <div class="ng-grid-2">
+      <div class="ng-card">
+        <div class="ng-card__tag">University Scholarships</div>
+        <h3>Aid issued directly by your institution</h3>
+        <p>
+          Many Japanese universities offer merit-based and need-based scholarships specifically
+          for international students. These awards are issued under the university's name and
+          can often be combined with external grants. Search by university, field of study,
+          or award amount.
+        </p>
+        <div style="margin-top:28px;">
+          <a href="/student-international/scholarships.html#university" class="ng-btn ng-btn--gold" style="padding:12px 28px; font-size:0.76rem;">
+            Browse University Aid →
+          </a>
+        </div>
+      </div>
+      <div class="ng-card">
+        <div class="ng-card__tag">Japanese Foundation Scholarships</div>
+        <h3>Grants from Japan's leading foundations</h3>
+        <p>
+          Japan has a rich ecosystem of private foundations — JASSO, Rotary, Okazaki Kaheita,
+          and dozens of others — that award scholarships to international students studying in
+          the country. We aggregate these opportunities and surface the ones relevant to you.
+        </p>
+        <div style="margin-top:28px;">
+          <a href="/student-international/scholarships.html#foundation" class="ng-btn ng-btn--gold" style="padding:12px 28px; font-size:0.76rem;">
+            Browse Foundation Grants →
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW TO USE -->
+  <section class="ng-section--wide">
+    <div style="max-width:1100px; margin:0 auto; padding:0 60px;">
+      <p class="ng-eyebrow">How to Use This Resource</p>
+      <h2 class="ng-h2">Three steps to<br>finding your scholarship</h2>
+      <div class="ng-grid-3">
+        <div class="ng-card">
+          <div class="ng-step-num">01 — Search</div>
+          <h3>Filter by your situation</h3>
+          <p>Use the scholarship search to filter by type, university, field of study, nationality eligibility, and language requirements. No account required.</p>
+        </div>
+        <div class="ng-card">
+          <div class="ng-step-num">02 — Review</div>
+          <h3>Check eligibility &amp; deadlines</h3>
+          <p>Each listing includes award amount, application deadline, eligibility criteria, and a direct link to the official application page.</p>
+        </div>
+        <div class="ng-card">
+          <div class="ng-step-num">03 — Apply</div>
+          <h3>Apply directly</h3>
+          <p>We link you directly to the official scholarship provider. All applications are submitted through the foundation or university — Will Abroad is a discovery tool, not an intermediary.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ng-section ng-section--center">
+    <p class="ng-eyebrow">Get Started</p>
+    <h2 class="ng-h2">Ready to find your scholarship?</h2>
+    <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap; margin-top:-16px;">
+      <a href="/student-international/scholarships.html" class="ng-btn ng-btn--gold">Search Scholarships</a>
+      <a href="/student-international/contact.html" class="ng-btn ng-btn--ghost">Contact Us</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="ng-footer">
+    <span>© <span id="ngYear"></span> Will Abroad Japan</span>
+    <span style="letter-spacing:0.2em;">SCHOLARSHIP RESOURCE FOR INTERNATIONAL STUDENTS</span>
+  </footer>
+
+  <style>
+    @media (max-width:860px) {
+      .ng-section--wide > div { padding-left: 0; padding-right: 0; }
+    }
+  </style>
+  <script>document.getElementById('ngYear').textContent = new Date().getFullYear()</script>
 </body>
 </html>

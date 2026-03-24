@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scholarship Search — Will Abroad for International Students</title>
+  <link rel="stylesheet" href="/styles/navy-gold.css">
+  <style>
+    /* ── TABS ─────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(200,147,42,0.2);
+      margin-bottom: 36px;
+    }
+    .tab {
+      padding: 14px 36px;
+      font-size: 0.78rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.4);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.25s;
+      user-select: none;
+    }
+    .tab--active { color: var(--gold-light); border-bottom-color: var(--gold); }
+    .tab:hover:not(.tab--active) { color: var(--cream); }
+
+    /* ── FILTER BAR ───────────────────────────── */
+    .filter-bar {
+      display: grid;
+      grid-template-columns: 1fr auto auto auto;
+      gap: 10px;
+      margin-bottom: 40px;
+      align-items: end;
+    }
+    .filter-bar__input,
+    .filter-bar__select {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(200,147,42,0.22);
+      color: var(--cream);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.875rem;
+      padding: 12px 16px;
+      outline: none;
+      transition: border-color 0.3s;
+      width: 100%;
+    }
+    .filter-bar__input:focus,
+    .filter-bar__select:focus { border-color: var(--gold); }
+    .filter-bar__input::placeholder { color: rgba(245,240,232,0.28); }
+    .filter-bar__select option { background: var(--navy-mid); }
+    .filter-bar__reset {
+      padding: 12px 20px;
+      background: transparent;
+      border: 1px solid rgba(200,147,42,0.22);
+      color: rgba(245,240,232,0.4);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .filter-bar__reset:hover { border-color: var(--gold); color: var(--gold-light); }
+
+    /* ── SECTION GROUPS ───────────────────────── */
+    .schol-group { margin-bottom: 64px; }
+    .schol-group:last-child { margin-bottom: 0; }
+
+    .schol-group__header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .schol-group__title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+    .schol-group__dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .schol-group__dot--open     { background: #4ade80; box-shadow: 0 0 8px rgba(74,222,128,0.5); }
+    .schol-group__dot--upcoming { background: #fbbf24; box-shadow: 0 0 8px rgba(251,191,36,0.4); }
+    .schol-group__dot--closed   { background: rgba(245,240,232,0.2); }
+
+    .schol-group__count {
+      font-size: 0.68rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.3);
+      margin-left: auto;
+    }
+    .schol-group__divider {
+      height: 1px;
+      background: rgba(200,147,42,0.12);
+      margin-bottom: 16px;
+    }
+    .schol-group--closed .schol-group__title { color: rgba(245,240,232,0.4); }
+    .schol-group--closed .schol-list { opacity: 0.55; }
+
+    .schol-list { display: flex; flex-direction: column; gap: 2px; }
+
+    /* ── CARDS ────────────────────────────────── */
+    .schol-card {
+      background: var(--navy-mid);
+      border: 1px solid rgba(200,147,42,0.07);
+      padding: 24px 28px;
+      cursor: pointer;
+      transition: border-color 0.25s;
+      position: relative;
+    }
+    .schol-card:hover { border-color: rgba(200,147,42,0.28); }
+    .schol-card--expanded { border-color: rgba(200,147,42,0.18); }
+    .schol-group--closed .schol-card { background: rgba(11,20,38,0.6); }
+
+    .schol-card__top {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px 24px;
+      align-items: start;
+      padding-right: 20px;
+    }
+    .schol-card__provider {
+      font-size: 0.64rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 5px;
+    }
+    .schol-card__name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--cream);
+      line-height: 1.25;
+    }
+    .schol-card__tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 8px;
+    }
+    .tag {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border: 1px solid rgba(200,147,42,0.18);
+      background: rgba(200,147,42,0.06);
+      color: rgba(200,147,42,0.8);
+      white-space: nowrap;
+    }
+
+    .schol-card__amount {
+      text-align: right;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .schol-card__amount-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: var(--gold-light);
+      line-height: 1;
+    }
+    .schol-group--closed .schol-card__amount-num { color: rgba(245,240,232,0.35); }
+    .schol-card__amount-unit {
+      font-size: 0.62rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(245,240,232,0.28);
+      margin-top: 2px;
+    }
+    .schol-card__deadline {
+      font-size: 0.7rem;
+      color: rgba(245,240,232,0.3);
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    /* chevron */
+    .schol-card__chevron {
+      position: absolute;
+      top: 24px; right: 28px;
+      font-size: 0.65rem;
+      color: rgba(200,147,42,0.35);
+      transition: transform 0.3s;
+      pointer-events: none;
+    }
+    .schol-card--expanded .schol-card__chevron { transform: rotate(180deg); }
+
+    /* expanded detail */
+    .schol-card__detail {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(200,147,42,0.08);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .schol-card:not(.schol-card--expanded) .schol-card__detail { display: none; }
+    .schol-card--expanded .schol-card__detail { display: grid; }
+
+    .detail-item__label {
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 3px;
+    }
+    .detail-item__value {
+      font-size: 0.84rem;
+      line-height: 1.75;
+      color: var(--text-light);
+    }
+    .detail-item--full { grid-column: 1 / -1; }
+
+    .schol-card__link {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 9px 22px;
+      border: 1px solid rgba(200,147,42,0.3);
+      font-size: 0.72rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: var(--gold-light);
+      transition: all 0.2s;
+    }
+    .schol-card__link:hover { background: rgba(200,147,42,0.08); border-color: var(--gold-light); }
+
+    /* ── EMPTY / SKELETON ─────────────────────── */
+    .empty-group {
+      padding: 28px 32px;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed rgba(200,147,42,0.1);
+      font-size: 0.8rem;
+      color: rgba(245,240,232,0.25);
+      letter-spacing: 0.06em;
+    }
+    .skeleton {
+      background: linear-gradient(90deg,
+        rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.07) 50%, rgba(255,255,255,0.03) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 2px;
+    }
+    @keyframes shimmer { to { background-position: -200% 0; } }
+
+    @media (max-width: 700px) {
+      .filter-bar { grid-template-columns: 1fr 1fr; }
+      .filter-bar__input { grid-column: 1 / -1; }
+      .schol-card__top { grid-template-columns: 1fr; }
+      .schol-card__amount { text-align: left; }
+      .schol-card__detail { grid-template-columns: 1fr; }
+      .detail-item--full { grid-column: 1; }
+    }
+  </style>
+</head>
+<body>
+  <script src="/scripts/components/intl-navbar.js" defer></script>
+
+  <!-- PAGE HEADER -->
+  <section class="ng-hero" style="min-height:36vh; justify-content:flex-end; padding-bottom:48px;">
+    <p class="ng-hero__eyebrow">Scholarship Search</p>
+    <h1 class="ng-hero__h1" style="font-size:clamp(2.2rem,5vw,5rem);">
+      Find funding for your<br>studies in <em>Japan</em>
+    </h1>
+    <p class="ng-hero__sub" style="margin-top:18px; max-width:520px;">
+      University-specific financial aid and Japanese foundation scholarships
+      available to international students enrolled in Japan.
+    </p>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <div class="ng-section" style="padding-top:52px;" id="university">
+
+    <!-- TABS -->
+    <div class="tabs">
+      <div class="tab tab--active" data-tab="university">University Scholarships</div>
+      <div class="tab" data-tab="foundation">Japanese Foundations</div>
+    </div>
+
+    <!-- FILTERS -->
+    <div class="filter-bar">
+      <input  class="filter-bar__input"  id="searchInput"  type="text"  placeholder="Search by name, provider, or keyword…">
+      <select class="filter-bar__select" id="amountFilter">
+        <option value="">Monthly / Yearly</option>
+        <option value="monthly">Monthly</option>
+        <option value="yearly">Yearly</option>
+      </select>
+      <select class="filter-bar__select" id="langFilter">
+        <option value="">All Languages</option>
+        <option value="日本語">Japanese</option>
+        <option value="英語">English</option>
+      </select>
+      <button class="filter-bar__reset" id="resetBtn">✕ Reset</button>
+    </div>
+
+    <!-- 3 SECTIONS -->
+    <div id="scholContainer"></div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="ng-footer" style="margin-top:80px;">
+    <span>© <span id="ngYear"></span> Will Abroad Japan</span>
+    <span style="letter-spacing:0.2em;">SCHOLARSHIP RESOURCE FOR INTERNATIONAL STUDENTS</span>
+  </footer>
+
+  <script>
+    document.getElementById('ngYear').textContent = new Date().getFullYear()
+
+    const SECTIONS = [
+      { key: 'open',     dotClass: 'schol-group__dot--open',     title: 'Now Accepting Applications' },
+      { key: 'upcoming', dotClass: 'schol-group__dot--upcoming',  title: 'Opening Soon' },
+      { key: 'closed',   dotClass: 'schol-group__dot--closed',    title: 'Past Scholarships' },
+    ]
+    const MONTHS = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+
+    let currentTab = window.location.hash === '#foundation' ? 'foundation' : 'university'
+    let allData    = []
+
+    const searchInput  = document.getElementById('searchInput')
+    const amountFilter = document.getElementById('amountFilter')
+    const langFilter   = document.getElementById('langFilter')
+    const resetBtn     = document.getElementById('resetBtn')
+    const container    = document.getElementById('scholContainer')
+
+    // ── Tabs ────────────────────────────────────
+    document.querySelectorAll('.tab').forEach(tab => {
+      if (tab.dataset.tab === currentTab) tab.classList.add('tab--active')
+      else tab.classList.remove('tab--active')
+      tab.addEventListener('click', () => {
+        currentTab = tab.dataset.tab
+        window.location.hash = currentTab
+        document.querySelectorAll('.tab').forEach(t =>
+          t.classList.toggle('tab--active', t.dataset.tab === currentTab))
+        clearFilters()
+        loadData()
+      })
+    })
+
+    // ── Fetch ───────────────────────────────────
+    async function loadData() {
+      container.innerHTML = skeletons(6)
+      try {
+        const params = new URLSearchParams({
+          search:      searchInput.value.trim(),
+          amount_type: amountFilter.value,
+          language:    langFilter.value,
+        })
+        const res = await fetch(`/api/scholarships/intl/${currentTab}?${params}`)
+        allData   = res.ok ? await res.json() : []
+      } catch { allData = [] }
+      render()
+    }
+
+    // ── Render ──────────────────────────────────
+    function render() {
+      // グループ分け
+      const groups = { open: [], upcoming: [], closed: [] }
+      for (const s of allData) {
+        const key = groups[s.status] ? s.status : 'upcoming'
+        groups[key].push(s)
+      }
+
+      container.innerHTML = SECTIONS.map(sec => {
+        const list = groups[sec.key]
+        const countLabel = `${list.length} scholarship${list.length !== 1 ? 's' : ''}`
+
+        const cardsHTML = list.length
+          ? `<div class="schol-list">${list.map(cardHTML).join('')}</div>`
+          : `<div class="empty-group">No scholarships in this category at the moment.</div>`
+
+        return `
+          <div class="schol-group schol-group--${sec.key}">
+            <div class="schol-group__header">
+              <span class="schol-group__dot ${sec.dotClass}"></span>
+              <span class="schol-group__title">${sec.title}</span>
+              <span class="schol-group__count">${countLabel}</span>
+            </div>
+            <div class="schol-group__divider"></div>
+            ${cardsHTML}
+          </div>`
+      }).join('')
+
+      // expand toggle
+      container.querySelectorAll('.schol-card').forEach(card => {
+        card.addEventListener('click', e => {
+          if (e.target.classList.contains('schol-card__link')) return
+          card.classList.toggle('schol-card--expanded')
+        })
+      })
+    }
+
+    // ── Card HTML ───────────────────────────────
+    function cardHTML(s) {
+      const amountStr  = s.amount ? `¥${Number(s.amount).toLocaleString()}` : '—'
+      const amountUnit = s.amount
+        ? (s.amount_type === 'monthly' ? 'per month' : 'per year')
+        : 'Amount TBD'
+      const deadlineStr = s.deadline_month ? `Deadline: ${MONTHS[s.deadline_month]}` : ''
+
+      const tags = [
+        s.language_req    ? `<span class="tag">${esc(s.language_req)}</span>`    : '',
+        s.num_recipients  ? `<span class="tag">${s.num_recipients} recipients</span>` : '',
+      ].filter(Boolean).join('')
+
+      const details = [
+        s.nationality_req ? `
+          <div class="detail-item">
+            <div class="detail-item__label">Nationality</div>
+            <div class="detail-item__value">${esc(s.nationality_req)}</div>
+          </div>` : '',
+        s.language_req ? `
+          <div class="detail-item">
+            <div class="detail-item__label">Language Requirement</div>
+            <div class="detail-item__value">${esc(s.language_req)}</div>
+          </div>` : '',
+        s.other_req ? `
+          <div class="detail-item detail-item--full">
+            <div class="detail-item__label">Other Requirements</div>
+            <div class="detail-item__value">${esc(s.other_req)}</div>
+          </div>` : '',
+        s.url ? `
+          <div class="detail-item detail-item--full">
+            <a href="${esc(s.url)}" target="_blank" rel="noopener"
+               class="schol-card__link" onclick="event.stopPropagation()">
+              Official Site →
+            </a>
+          </div>` : '',
+      ].filter(Boolean).join('')
+
+      return `
+        <div class="schol-card">
+          <span class="schol-card__chevron">▾</span>
+          <div class="schol-card__top">
+            <div>
+              <div class="schol-card__provider">${esc(s.provider_name)}</div>
+              <div class="schol-card__name">${esc(s.name)}</div>
+              ${tags ? `<div class="schol-card__tags">${tags}</div>` : ''}
+            </div>
+            <div class="schol-card__amount">
+              <div class="schol-card__amount-num">${amountStr}</div>
+              <div class="schol-card__amount-unit">${amountUnit}</div>
+              ${deadlineStr ? `<div class="schol-card__deadline">${deadlineStr}</div>` : ''}
+            </div>
+          </div>
+          ${details ? `<div class="schol-card__detail">${details}</div>` : ''}
+        </div>`
+    }
+
+    // ── Helpers ─────────────────────────────────
+    function esc(str) {
+      if (!str) return ''
+      return String(str)
+        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
+    }
+
+    function skeletons(n) {
+      return Array.from({ length: n }, (_, i) => `
+        <div class="schol-card" style="pointer-events:none; cursor:default; margin-bottom:2px;">
+          <div class="schol-card__top">
+            <div>
+              <div class="skeleton" style="height:10px;width:30%;margin-bottom:8px;"></div>
+              <div class="skeleton" style="height:20px;width:60%;margin-bottom:8px;"></div>
+              <div class="skeleton" style="height:16px;width:40%;"></div>
+            </div>
+            <div><div class="skeleton" style="height:26px;width:80px;margin-left:auto;"></div></div>
+          </div>
+        </div>`).join('')
+    }
+
+    function clearFilters() {
+      searchInput.value  = ''
+      amountFilter.value = ''
+      langFilter.value   = ''
+    }
+
+    // ── Events ──────────────────────────────────
+    let debounceTimer
+    searchInput.addEventListener('input', () => {
+      clearTimeout(debounceTimer)
+      debounceTimer = setTimeout(loadData, 350)
+    })
+    amountFilter.addEventListener('change', loadData)
+    langFilter.addEventListener('change', loadData)
+    resetBtn.addEventListener('click', () => { clearFilters(); loadData() })
+
+    // ── Init ────────────────────────────────────
+    loadData()
+  </script>
+</body>
+</html>

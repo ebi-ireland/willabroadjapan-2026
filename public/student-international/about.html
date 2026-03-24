@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About — Will Abroad for International Students</title>
+  <link rel="stylesheet" href="/styles/navy-gold.css">
+</head>
+<body>
+  <script src="/scripts/components/intl-navbar.js" defer></script>
+
+  <!-- HERO -->
+  <section class="ng-hero" style="min-height:50vh;">
+    <p class="ng-hero__eyebrow">About Will Abroad</p>
+    <h1 class="ng-hero__h1" style="font-size:clamp(2.8rem,6vw,6rem);">
+      Making education<br><em>financially possible</em>
+    </h1>
+    <p class="ng-hero__sub">
+      Will Abroad is a Japanese study-abroad organization originally founded to help Japanese
+      students access international universities through negotiated scholarships. Today we also
+      serve international students in Japan — helping them discover funding that makes their
+      studies here sustainable.
+    </p>
+  </section>
+
+  <!-- MISSION -->
+  <div class="ng-section">
+    <p class="ng-eyebrow">Our Mission</p>
+    <h2 class="ng-h2">Education should not be<br>limited by financial means</h2>
+    <div class="ng-grid-2">
+      <div class="ng-card">
+        <div class="ng-card__tag">What We Believe</div>
+        <h3>Talent is universal. Opportunity is not.</h3>
+        <p>
+          We believe that financial constraints should not determine who gets access to quality
+          education. Will Abroad exists to close the gap between academic ambition and financial
+          reality — whether that means a Japanese student studying abroad, or an international
+          student making the most of their time in Japan.
+        </p>
+      </div>
+      <div class="ng-card">
+        <div class="ng-card__tag">For International Students</div>
+        <h3>A free, transparent scholarship resource</h3>
+        <p>
+          We aggregate university-specific financial aid and Japanese foundation scholarships
+          into a single, searchable database. There are no fees to use this resource, no
+          commissions, and no intermediary steps — we connect you directly to the official
+          scholarship source.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHO WE SERVE -->
+  <section class="ng-section--wide">
+    <div style="max-width:1100px; margin:0 auto; padding:0 60px;">
+      <p class="ng-eyebrow">Who We Serve</p>
+      <h2 class="ng-h2">International students<br>at every stage</h2>
+      <div class="ng-grid-3">
+        <div class="ng-card">
+          <div class="ng-card__tag">Undergraduate Students</div>
+          <h3>Bachelor's degree programs</h3>
+          <p>Whether you're in your first year or approaching graduation, there are scholarship opportunities available at each stage of your undergraduate journey in Japan.</p>
+        </div>
+        <div class="ng-card">
+          <div class="ng-card__tag">Graduate Students</div>
+          <h3>Master's &amp; Doctoral programs</h3>
+          <p>Graduate-level scholarships in Japan often carry higher award amounts and longer duration. Japanese foundations are particularly active in supporting advanced research.</p>
+        </div>
+        <div class="ng-card">
+          <div class="ng-card__tag">Any Nationality</div>
+          <h3>Open to all international students</h3>
+          <p>While some scholarships are region-specific, many Japanese foundation and university awards are open to students of all nationalities currently enrolled in a Japanese institution.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT WILL ABROAD (WIDER CONTEXT) -->
+  <div class="ng-section">
+    <p class="ng-eyebrow">Our History</p>
+    <h2 class="ng-h2">Founded in Japan.<br>Built for global students.</h2>
+    <div class="ng-grid-2">
+      <div class="ng-card">
+        <div class="ng-step-num">2023 — Founded</div>
+        <p style="margin-top:8px;">
+          Will Abroad was established in Japan to help Japanese students access international
+          universities through negotiated scholarship frameworks. In 2024, our inaugural cohort
+          saw 26 students enroll across 26 U.S. partner universities.
+        </p>
+      </div>
+      <div class="ng-card">
+        <div class="ng-step-num">2025 — Expanded</div>
+        <p style="margin-top:8px;">
+          Recognizing the parallel challenge faced by international students in Japan — navigating
+          a fragmented landscape of scholarship opportunities — we launched this resource to serve
+          the inbound student community as well.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <section class="ng-section ng-section--center" style="padding-top:40px;">
+    <h2 class="ng-h2" style="margin-bottom:36px;">Start searching for scholarships</h2>
+    <div style="display:flex; gap:20px; justify-content:center; flex-wrap:wrap;">
+      <a href="/student-international/scholarships.html" class="ng-btn ng-btn--gold">Search Scholarships</a>
+      <a href="/student-international/contact.html" class="ng-btn ng-btn--ghost">Get in Touch</a>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="ng-footer">
+    <span>© <span id="ngYear"></span> Will Abroad Japan</span>
+    <span style="letter-spacing:0.2em;">SCHOLARSHIP RESOURCE FOR INTERNATIONAL STUDENTS</span>
+  </footer>
+
+  <style>
+    @media (max-width:860px) {
+      .ng-section--wide > div { padding-left: 0; padding-right: 0; }
+    }
+  </style>
+  <script>document.getElementById('ngYear').textContent = new Date().getFullYear()</script>
+</body>
+</html>

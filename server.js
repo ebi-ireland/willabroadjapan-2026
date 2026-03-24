@@ -34,6 +34,7 @@ app.use('/api/threads',     require('./routes/threads'))
 app.use('/api/experiences', require('./routes/experiences'))
 app.use('/api/templates',   require('./routes/templates'))
 app.use('/api/scholarships',require('./routes/scholarships'))
+app.use('/api/supporter',  require('./routes/supporter'))
 
 app.get('/api/mapbox-token', (req, res) => {
   res.json({ token: process.env.MAPBOX_TOKEN })
@@ -41,6 +42,5 @@ app.get('/api/mapbox-token', (req, res) => {
 
 app.use(express.static('public'))
 
-app.listen(3000, () => {
-  console.log('サーバー起動中 → http://localhost:3000')
-})
+app.listen(3000, () => console.log('👤 User  → http://localhost:3000'))
+app.listen(4000, () => console.log('🔧 Admin → http://localhost:4000'))
