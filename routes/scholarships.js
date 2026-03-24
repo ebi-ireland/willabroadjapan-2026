@@ -186,4 +186,21 @@ router.get('/intl/foundation', (req, res) => {
   })
 })
 
+// ── 日本人学生向け 大学独自奨学金 ──────────────────────────
+router.get('/university-own', (req, res) => {
+  const search = req.query.search ? `%${req.query.search}%` : '%'
+  const university = req.query.university || ''
+  const univFilter = university ? 'AND university_name LIKE ?' : ''
+  const params = university ? [search, search, `%${university}%`] : [search, search]
+  db.query(`
+    SELECT * FROM university_own_scholarships
+    WHERE status = 'active'
+      AND (name LIKE ? OR conditions LIKE ?) ${univFilter}
+    ORDER BY university_name ASC, name ASC
+  `, params, (err, results) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(results)
+  })
+})
+
 module.exports = router

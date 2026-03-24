@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Will Abroad — Admin</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #0f1117; --surface: #1a1d27; --surface2: #21253a;
+      --border: #2a2d3e; --accent: #ff8040; --gold: #c8932a;
+      --text: #e8e8f0; --muted: #7a7d8e; --ok: #3dba6e; --err: #e04444; --warn: #e09a20;
+    }
+    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; font-size: 14px; }
+
+    /* Login */
+    #loginScreen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 52px 48px; width: 380px; text-align: center; }
+    .login-box h1 { font-size: 1.5rem; margin-bottom: 6px; }
+    .login-box p { color: var(--muted); font-size: 0.83rem; margin-bottom: 36px; }
+    .login-box input { width: 100%; padding: 13px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; margin-bottom: 14px; }
+    .login-box input:focus { outline: none; border-color: var(--accent); }
+
+    /* Layout */
+    #adminApp { display: none; }
+    .layout { display: grid; grid-template-columns: 230px 1fr; min-height: 100vh; }
+
+    /* Sidebar */
+    .sidebar { background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+    .sidebar__logo { padding: 22px 20px; font-weight: 700; font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .sidebar__logo span { color: var(--muted); font-weight: 400; font-size: 0.72rem; display: block; margin-top: 2px; letter-spacing: 0.06em; }
+    .nav-group { padding: 12px 12px 4px; font-size: 0.68rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+    .nav-item { padding: 9px 20px; cursor: pointer; color: var(--muted); font-size: 0.85rem; display: flex; align-items: center; gap: 10px; transition: all 0.15s; border-left: 3px solid transparent; margin: 1px 0; border-radius: 0 6px 6px 0; }
+    .nav-item:hover { color: var(--text); background: rgba(255,255,255,0.04); }
+    .nav-item.active { color: var(--accent); border-left-color: var(--accent); background: rgba(255,128,64,0.1); }
+    .sidebar__spacer { flex: 1; }
+    .sidebar__logout { padding: 14px 20px; cursor: pointer; color: var(--err); font-size: 0.83rem; border-top: 1px solid var(--border); }
+
+    /* Main */
+    .main { padding: 36px 40px; overflow-y: auto; }
+    .page { display: none; }
+    .page.active { display: block; }
+    .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
+    .page-title { font-size: 1.4rem; font-weight: 700; }
+    .page-sub { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
+
+    /* Stats */
+    .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 36px; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+    .stat__num { font-size: 1.9rem; font-weight: 700; color: var(--accent); line-height: 1; }
+    .stat__label { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+
+    /* Table */
+    .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.83rem; min-width: 600px; }
+    th { background: var(--bg); padding: 11px 14px; text-align: left; color: var(--muted); font-weight: 600; font-size: 0.73rem; letter-spacing: 0.07em; white-space: nowrap; }
+    td { padding: 11px 14px; border-top: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: rgba(255,255,255,0.015); }
+    .empty-row td { color: var(--muted); text-align: center; padding: 32px; }
+
+    /* Form */
+    .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; margin-bottom: 24px; }
+    .form-card h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 18px; color: var(--text); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+    .form-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .form-field label { font-size: 0.74rem; color: var(--muted); letter-spacing: 0.05em; }
+    .form-field input, .form-field select, .form-field textarea {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 7px;
+      padding: 9px 13px; color: var(--text); font-size: 0.85rem; width: 100%;
+    }
+    .form-field input:focus, .form-field select:focus, .form-field textarea:focus { outline: none; border-color: var(--accent); }
+    .form-field textarea { min-height: 80px; resize: vertical; font-family: inherit; }
+
+    /* Buttons */
+    .btn { padding: 9px 20px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.83rem; font-weight: 600; transition: opacity 0.15s; white-space: nowrap; }
+    .btn:hover { opacity: 0.82; }
+    .btn--accent { background: var(--accent); color: #fff; }
+    .btn--ok     { background: var(--ok);     color: #fff; padding: 5px 13px; font-size: 0.75rem; }
+    .btn--warn   { background: var(--warn);   color: #fff; padding: 5px 13px; font-size: 0.75rem; }
+    .btn--danger { background: var(--err);    color: #fff; padding: 5px 13px; font-size: 0.75rem; }
+    .btn--ghost  { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 5px 13px; font-size: 0.75rem; }
+    .btn-row { display: flex; gap: 6px; }
+
+    /* Badge */
+    .badge { display: inline-block; padding: 2px 9px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+    .badge--published { background: rgba(61,186,110,0.18); color: var(--ok); }
+    .badge--draft     { background: rgba(122,125,142,0.2); color: var(--muted); }
+    .badge--pending   { background: rgba(224,154,32,0.2);  color: var(--warn); }
+    .badge--rejected  { background: rgba(224,68,68,0.18);  color: var(--err); }
+    .badge--univ      { background: rgba(200,147,42,0.18); color: var(--gold); }
+    .badge--found     { background: rgba(61,186,110,0.18); color: var(--ok); }
+    .badge--active    { background: rgba(61,186,110,0.18); color: var(--ok); }
+    .badge--inactive  { background: rgba(122,125,142,0.2); color: var(--muted); }
+
+    /* Tabs */
+    .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+    .tab { padding: 8px 18px; cursor: pointer; color: var(--muted); font-size: 0.83rem; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+    .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    /* Msg */
+    .msg { padding: 11px 15px; border-radius: 7px; font-size: 0.83rem; margin-top: 10px; display: none; }
+    .msg--ok  { background: rgba(61,186,110,0.14); color: var(--ok); }
+    .msg--err { background: rgba(224,68,68,0.14);  color: var(--err); }
+
+    .text-muted { color: var(--muted); }
+    .text-sm    { font-size: 0.78rem; }
+    .truncate   { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Detail Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 32px 36px; width: 660px; max-width: 95vw; max-height: 85vh; overflow-y: auto; position: relative; }
+    .modal h2 { font-size: 1.1rem; margin-bottom: 6px; }
+    .modal__close { position: absolute; top: 16px; right: 20px; cursor: pointer; font-size: 1.2rem; color: var(--muted); background: none; border: none; }
+    .modal__close:hover { color: var(--text); }
+    .modal__meta { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; }
+    .modal__meta span { font-size: 0.78rem; color: var(--muted); }
+    .modal__meta strong { color: var(--text); }
+    .modal-section { margin-bottom: 18px; }
+    .modal-section h4 { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--accent); text-transform: uppercase; margin-bottom: 7px; }
+    .modal-section p { font-size: 0.87rem; line-height: 1.7; white-space: pre-wrap; color: var(--text); }
+    .modal-divider { border: none; border-top: 1px solid var(--border); margin: 18px 0; }
+    .modal__actions { display: flex; gap: 8px; margin-top: 24px; justify-content: flex-end; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <h1>🔧 Will Abroad</h1>
+    <p>Admin Panel — パスワードを入力してください</p>
+    <input type="password" id="loginPw" placeholder="パスワード" autocomplete="current-password">
+    <button class="btn btn--accent" style="width:100%" onclick="login()">ログイン</button>
+    <div class="msg" id="loginMsg"></div>
+  </div>
+</div>
+
+<!-- 体験談 詳細モーダル -->
+<div class="modal-overlay" id="expModal">
+  <div class="modal">
+    <button class="modal__close" onclick="closeExpModal()">✕</button>
+    <h2 id="expModal-title">—</h2>
+    <div class="modal__meta">
+      <span>🌏 <strong id="expModal-country">—</strong></span>
+      <span>🏫 <strong id="expModal-univ">—</strong></span>
+      <span>👤 <strong id="expModal-author">—</strong></span>
+      <span>⭐ <strong id="expModal-rating">—</strong>/10</span>
+    </div>
+    <div class="modal-section">
+      <h4>📝 概要</h4>
+      <p id="expModal-summary">—</p>
+    </div>
+    <hr class="modal-divider">
+    <div class="modal-section">
+      <h4>✅ 良かったこと</h4>
+      <p id="expModal-good">—</p>
+    </div>
+    <div class="modal-section">
+      <h4>⚠️ 大変だったこと</h4>
+      <p id="expModal-bad">—</p>
+    </div>
+    <div class="modal-section">
+      <h4>🎉 楽しかったこと</h4>
+      <p id="expModal-fun">—</p>
+    </div>
+    <div class="modal__actions" id="expModal-actions"></div>
+  </div>
+</div>
+
+<!-- ADMIN APP -->
+<div id="adminApp">
+<div class="layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">Will Abroad<span>ADMIN PANEL</span></div>
+
+    <div class="nav-group">概要</div>
+    <div class="nav-item active" data-page="dashboard">📊 ダッシュボード</div>
+
+    <div class="nav-group">日本人学生向け</div>
+    <div class="nav-item" data-page="notices">📢 お知らせ</div>
+    <div class="nav-item" data-page="university-own-scholarships">🏫 大学独自奨学金</div>
+    <div class="nav-item" data-page="diagnosis-settings">🎯 診断設定</div>
+    <div class="nav-item" data-page="articles">📝 記事</div>
+    <div class="nav-item" data-page="experiences">✈️ 体験談承認</div>
+    <div class="nav-item" data-page="threads">💬 スレッド</div>
+    <div class="nav-item" data-page="templates">📋 テンプレート</div>
+    <div class="nav-item" data-page="foundation-scholarships">💴 財団奨学金</div>
+    <div class="nav-item" data-page="program-scholarships">🌐 プログラム</div>
+
+    <div class="nav-group">留学生向け</div>
+    <div class="nav-item" data-page="intl-scholarships">🎓 留学生奨学金</div>
+
+    <div class="nav-item" data-page="university-scholarships">🗺️ 大学奨学金</div>
+    <div class="nav-item" data-page="supporter-reports">📋 報告書管理</div>
+
+    <div class="nav-group">ツール</div>
+    <div class="nav-item" data-page="analytics">📊 解析</div>
+    <div class="nav-item" data-page="import-export">📤 インポート / エクスポート</div>
+
+    <div class="nav-group">受信</div>
+    <div class="nav-item" data-page="contacts">📩 お問い合わせ</div>
+    <div class="nav-item" data-page="supporter-contacts">💛 サポーター連絡</div>
+
+    <div class="sidebar__spacer"></div>
+    <div class="sidebar__logout" onclick="logout()">← ログアウト</div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="page-header">
+        <div><div class="page-title">ダッシュボード</div><div class="page-sub">Will Abroad 管理画面</div></div>
+        <a href="http://localhost:3000" target="_blank" class="btn btn--ghost">👤 ユーザーサイトを開く →</a>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="stat__num" id="d-notices">—</div><div class="stat__label">お知らせ</div></div>
+        <div class="stat"><div class="stat__num" id="d-articles">—</div><div class="stat__label">記事</div></div>
+        <div class="stat"><div class="stat__num" id="d-exp-pending">—</div><div class="stat__label">体験談 承認待ち</div></div>
+        <div class="stat"><div class="stat__num" id="d-threads">—</div><div class="stat__label">スレッド</div></div>
+        <div class="stat"><div class="stat__num" id="d-templates">—</div><div class="stat__label">テンプレート</div></div>
+        <div class="stat"><div class="stat__num" id="d-found">—</div><div class="stat__label">財団奨学金</div></div>
+        <div class="stat"><div class="stat__num" id="d-prog">—</div><div class="stat__label">プログラム</div></div>
+        <div class="stat"><div class="stat__num" id="d-intl">—</div><div class="stat__label">留学生奨学金</div></div>
+        <div class="stat"><div class="stat__num" id="d-contacts">—</div><div class="stat__label">お問い合わせ</div></div>
+      </div>
+    </div>
+
+    <!-- お知らせ -->
+    <div class="page" id="page-notices">
+      <div class="page-header"><div><div class="page-title">📢 お知らせ</div><div class="page-sub">投稿するとユーザーサイドに即反映されます</div></div></div>
+      <div class="form-card">
+        <h3>新規投稿</h3>
+        <div class="form-field"><label>タイトル *</label><input id="nTitle" type="text" placeholder="お知らせのタイトル"></div>
+        <div class="form-row">
+          <div class="form-field"><label>カテゴリ</label><select id="nCat"><option value="info">お知らせ</option><option value="important">重要</option><option value="update">アップデート</option></select></div>
+        </div>
+        <div class="form-field"><label>本文 *</label><textarea id="nBody" placeholder="お知らせの内容"></textarea></div>
+        <button class="btn btn--accent" onclick="postNotice()">投稿する</button>
+        <div class="msg" id="noticeMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>タイトル</th><th>カテゴリ</th><th>投稿日時</th><th></th></tr></thead>
+        <tbody id="noticesList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 記事 -->
+    <div class="page" id="page-articles">
+      <div class="page-header"><div><div class="page-title">📝 記事管理</div><div class="page-sub">記事の作成・公開・削除</div></div></div>
+      <div class="form-card">
+        <h3>新規記事を作成</h3>
+        <div class="form-field"><label>タイトル *</label><input id="aTitle" type="text" placeholder="記事タイトル"></div>
+        <div class="form-field"><label>概要 *</label><input id="aSummary" type="text" placeholder="記事の概要（一覧に表示）"></div>
+        <div class="form-field"><label>本文 *</label><textarea id="aBody" style="min-height:140px" placeholder="記事の本文（Markdown可）"></textarea></div>
+        <div class="form-row">
+          <div class="form-field"><label>ステータス</label><select id="aStatus"><option value="draft">下書き</option><option value="published">公開</option></select></div>
+        </div>
+        <button class="btn btn--accent" onclick="postArticle()">保存する</button>
+        <div class="msg" id="articleMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>タイトル</th><th>概要</th><th>ステータス</th><th>更新日</th><th></th></tr></thead>
+        <tbody id="articlesList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 体験談 -->
+    <div class="page" id="page-experiences">
+      <div class="page-header"><div><div class="page-title">✈️ 体験談承認</div><div class="page-sub">投稿された体験談の承認・却下</div></div></div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchExpTab('pending',this)">承認待ち</div>
+        <div class="tab" onclick="switchExpTab('published',this)">公開中</div>
+        <div class="tab" onclick="switchExpTab('rejected',this)">却下済み</div>
+        <div class="tab" onclick="switchExpTab('reports',this)">🚨 通報</div>
+      </div>
+      <div class="table-wrap" id="expTableWrap"><table>
+        <thead id="expThead"><tr><th>ID</th><th>国</th><th>大学</th><th>著者</th><th>評価</th><th>要約</th><th>ステータス</th><th></th></tr></thead>
+        <tbody id="expList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- スレッド -->
+    <div class="page" id="page-threads">
+      <div class="page-header"><div><div class="page-title">💬 スレッド管理</div><div class="page-sub">スレッドの一覧・削除・通報確認</div></div></div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchThreadTab('threads',this)">スレッド一覧</div>
+        <div class="tab" onclick="switchThreadTab('reports',this)">🚨 通報一覧</div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead id="threadsThead"><tr><th>ID</th><th>タイトル</th><th>投稿者</th><th>返信</th><th>閲覧</th><th>投稿日</th><th></th></tr></thead>
+        <tbody id="threadsList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- テンプレート -->
+    <div class="page" id="page-templates">
+      <div class="page-header"><div><div class="page-title">📋 テンプレート管理</div><div class="page-sub">サポートページのテンプレート</div></div></div>
+      <div class="form-card">
+        <h3>新規テンプレートを追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>タイトル *</label><input id="tTitle" type="text" placeholder="テンプレートタイトル"></div>
+          <div class="form-field"><label>表示順</label><input id="tOrder" type="number" placeholder="0" value="0"></div>
+        </div>
+        <div class="form-field"><label>本文 *</label><textarea id="tBody" style="min-height:120px" placeholder="テンプレートの内容"></textarea></div>
+        <button class="btn btn--accent" onclick="postTemplate()">追加する</button>
+        <div class="msg" id="templateMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>タイトル</th><th>本文（抜粋）</th><th>順序</th><th>状態</th><th></th></tr></thead>
+        <tbody id="templatesList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 財団奨学金 -->
+    <div class="page" id="page-foundation-scholarships">
+      <div class="page-header"><div><div class="page-title">💴 財団奨学金</div><div class="page-sub">日本人学生向け財団奨学金データ</div></div></div>
+      <div class="form-card">
+        <h3>新規財団奨学金を追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>奨学金名 *</label><input id="fsName" type="text" placeholder="例: 柳井正財団奨学金"></div>
+          <div class="form-field"><label>公式URL</label><input id="fsUrl" type="url" placeholder="https://..."></div>
+        </div>
+        <div class="form-row3">
+          <div class="form-field"><label>締切日</label><input id="fsDeadline" type="date"></div>
+          <div class="form-field"><label>支給額</label><input id="fsAmount" type="text" placeholder="例: 月額20万円"></div>
+          <div class="form-field"><label>採用人数</label><input id="fsRecipients" type="text" placeholder="例: 30名"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>対象国</label><input id="fsCountries" type="text" placeholder="例: 英語圏全般"></div>
+          <div class="form-field"><label>語学条件</label><input id="fsLanguage" type="text" placeholder="例: TOEFL 100以上"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>対象（target）</label><input id="fsTarget" type="text" placeholder="例: 学部生"></div>
+          <div class="form-field"><label>期間</label><input id="fsDuration" type="text" placeholder="例: 4年間"></div>
+        </div>
+        <div class="form-field"><label>その他条件</label><textarea id="fsOther" placeholder="例: 日本国籍、GPA 3.5以上"></textarea></div>
+        <button class="btn btn--accent" onclick="postFoundation()">追加する</button>
+        <div class="msg" id="foundationMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>奨学金名</th><th>締切</th><th>支給額</th><th>対象</th><th></th></tr></thead>
+        <tbody id="foundationList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- プログラム奨学金 -->
+    <div class="page" id="page-program-scholarships">
+      <div class="page-header"><div><div class="page-title">🌐 プログラム奨学金</div><div class="page-sub">留学プログラム・奨学金一体型データ</div></div></div>
+      <div class="form-card">
+        <h3>新規プログラムを追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>プログラム名 *</label><input id="psName" type="text" placeholder="例: Laidlaw Scholars Program"></div>
+          <div class="form-field"><label>主催 / スポンサー</label><input id="psSponsor" type="text" placeholder="例: Laidlaw Foundation"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>公式URL</label><input id="psUrl" type="url" placeholder="https://..."></div>
+          <div class="form-field"><label>国</label><input id="psCountry" type="text" placeholder="例: イギリス"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>応募締切</label><input id="psDeadline" type="date"></div>
+          <div class="form-field"><label>対象</label><input id="psTarget" type="text" placeholder="例: 学部2〜3年生"></div>
+        </div>
+        <div class="form-field"><label>内容・条件</label><textarea id="psContent" placeholder="プログラムの詳細・応募条件"></textarea></div>
+        <button class="btn btn--accent" onclick="postProgram()">追加する</button>
+        <div class="msg" id="programMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>プログラム名</th><th>主催</th><th>国</th><th>締切</th><th></th></tr></thead>
+        <tbody id="programList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 留学生奨学金 -->
+    <div class="page" id="page-intl-scholarships">
+      <div class="page-header"><div><div class="page-title">🎓 留学生向け奨学金</div><div class="page-sub">日本の大学・財団が留学生に提供する奨学金</div></div></div>
+      <div class="form-card">
+        <h3>新規追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>種別 *</label><select id="isType"><option value="university">大学奨学金</option><option value="foundation">財団奨学金</option></select></div>
+          <div class="form-field"><label>大学名 / 財団名 *</label><input id="isProvider" type="text" placeholder="例: 東京大学 / JASSO"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>奨学金名 *</label><input id="isName" type="text" placeholder="例: 外国人留学生授業料免除"></div>
+          <div class="form-field"><label>公式URL</label><input id="isUrl" type="url" placeholder="https://..."></div>
+        </div>
+        <div class="form-row3">
+          <div class="form-field"><label>締切月（1〜12）</label><input id="isDeadline" type="number" min="1" max="12" placeholder="4"></div>
+          <div class="form-field"><label>支給額</label><input id="isAmount" type="number" placeholder="80000"></div>
+          <div class="form-field"><label>支給単位</label><select id="isAmountType"><option value="">未設定</option><option value="monthly">月額</option><option value="yearly">年額</option></select></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>国籍条件</label><input id="isNationality" type="text" placeholder="例: アジア諸国出身者"></div>
+          <div class="form-field"><label>言語条件</label><input id="isLanguage" type="text" placeholder="例: 日本語N2以上"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>採用人数</label><input id="isRecipients" type="text" placeholder="例: 若干名"></div>
+        </div>
+        <div class="form-field"><label>その他条件</label><textarea id="isOther" placeholder="例: GPA 3.0以上"></textarea></div>
+        <button class="btn btn--accent" onclick="postIntl()">追加する</button>
+        <div class="msg" id="intlMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>種別</th><th>提供者</th><th>奨学金名</th><th>締切月</th><th>支給額</th><th></th></tr></thead>
+        <tbody id="intlList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 大学奨学金 -->
+    <div class="page" id="page-university-scholarships">
+      <div class="page-header"><div><div class="page-title">🗺️ 大学奨学金</div><div class="page-sub">university_scholarships テーブル</div></div></div>
+      <div class="form-card">
+        <h3>手動で1件追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>大学名 *</label><input id="usName" type="text" placeholder="例: University of Tokyo"></div>
+          <div class="form-field"><label>国 *</label><input id="usCountry" type="text" placeholder="例: 日本"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>都市</label><input id="usCity" type="text" placeholder="例: Tokyo"></div>
+          <div class="form-field"><label>URL</label><input id="usUrl" type="url" placeholder="https://..."></div>
+        </div>
+        <div class="form-row3">
+          <div class="form-field"><label>緯度</label><input id="usLat" type="number" step="any" placeholder="35.6895"></div>
+          <div class="form-field"><label>経度</label><input id="usLng" type="number" step="any" placeholder="139.6917"></div>
+          <div class="form-field"><label>通貨</label><input id="usCurrency" type="text" placeholder="JPY"></div>
+        </div>
+        <button class="btn btn--accent" onclick="postUniversity()">追加する</button>
+        <div class="msg" id="universityMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>大学名</th><th>国</th><th>都市</th><th>URL</th><th></th></tr></thead>
+        <tbody id="universityList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 報告書管理 -->
+    <div class="page" id="page-supporter-reports">
+      <div class="page-header"><div><div class="page-title">📋 報告書管理</div><div class="page-sub">supporter.html の活動報告・収支報告に反映</div></div></div>
+      <div class="form-card">
+        <h3>新規登録</h3>
+        <div class="form-row">
+          <div class="form-field"><label>種別 *</label><select id="rpType"><option value="activity">📋 活動報告</option><option value="finance">💰 収支報告</option></select></div>
+          <div class="form-field"><label>タイトル *</label><input id="rpTitle" type="text" placeholder="例: 2025年 上半期 活動報告"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>公開日ラベル</label><input id="rpDate" type="text" placeholder="例: 2025年7月公開"></div>
+          <div class="form-field"><label>表示順（大きいほど上）</label><input id="rpOrder" type="number" value="0"></div>
+        </div>
+        <div class="form-field"><label>PDFファイルパス / URL *</label><input id="rpUrl" type="text" placeholder="例: /document/activity/2025-1h.pdf または https://..."></div>
+        <button class="btn btn--accent" onclick="postReport()">登録する</button>
+        <div class="msg" id="reportMsg"></div>
+      </div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchReportTab('all',this)">すべて</div>
+        <div class="tab" onclick="switchReportTab('activity',this)">活動報告</div>
+        <div class="tab" onclick="switchReportTab('finance',this)">収支報告</div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>種別</th><th>タイトル</th><th>公開日</th><th>URL</th><th>順序</th><th></th></tr></thead>
+        <tbody id="reportList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- インポート / エクスポート -->
+    <div class="page" id="page-import-export">
+      <div class="page-header"><div><div class="page-title">📤 インポート / エクスポート</div><div class="page-sub">JSON貼り付けでの一括登録 / CSVダウンロード</div></div></div>
+
+      <!-- Import -->
+      <div class="form-card">
+        <h3>📥 インポート</h3>
+        <div class="form-row">
+          <div class="form-field">
+            <label>対象テーブル</label>
+            <select id="importTarget">
+              <option value="university-scholarships">大学奨学金（大学名・国・都市・URL・緯度・経度・通貨）</option>
+              <option value="foundation-scholarships">財団奨学金</option>
+              <option value="program-scholarships">プログラム奨学金</option>
+              <option value="intl-scholarships">留学生奨学金</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-field">
+          <label>JSON データ（配列形式で貼り付け）</label>
+          <textarea id="importJson" style="min-height:160px;font-family:monospace;font-size:0.78rem" placeholder='[{"大学名":"University of Iceland","国":"アイスランド","都市":"Reykjavík","URL":"https://...","緯度":64.1,"経度":-21.9,"通貨定義":"EUR"}]'></textarea>
+        </div>
+        <button class="btn btn--accent" onclick="doImport()">インポート実行</button>
+        <div class="msg" id="importMsg"></div>
+      </div>
+
+      <!-- Export -->
+      <div class="form-card">
+        <h3>📤 エクスポート（CSV）</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn--ghost" onclick="doExport('university-scholarships','大学奨学金')">🗺️ 大学奨学金</button>
+          <button class="btn btn--ghost" onclick="doExport('foundation-scholarships','財団奨学金')">💴 財団奨学金</button>
+          <button class="btn btn--ghost" onclick="doExport('program-scholarships','プログラム奨学金')">🌐 プログラム奨学金</button>
+          <button class="btn btn--ghost" onclick="doExport('intl-scholarships','留学生奨学金')">🎓 留学生奨学金</button>
+        </div>
+        <p class="text-muted text-sm" style="margin-top:10px">※ ブラウザでCSVファイルのダウンロードが始まります</p>
+      </div>
+    </div>
+
+    <!-- 大学独自奨学金 -->
+    <div class="page" id="page-university-own-scholarships">
+      <div class="page-header"><div><div class="page-title">🏫 大学独自奨学金</div><div class="page-sub">日本の大学が自校学生に提供する海外留学支援奨学金</div></div></div>
+      <div class="form-card">
+        <h3>新規追加</h3>
+        <div class="form-row">
+          <div class="form-field"><label>提供大学名 *</label><input id="uosUniv" type="text" placeholder="例: 早稲田大学"></div>
+          <div class="form-field"><label>奨学金名 *</label><input id="uosName" type="text" placeholder="例: グローバル教育センター奨学金"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>公式URL</label><input id="uosUrl" type="url" placeholder="https://..."></div>
+          <div class="form-field"><label>締切</label><input id="uosDeadline" type="text" placeholder="例: 毎年4月上旬"></div>
+        </div>
+        <div class="form-row3">
+          <div class="form-field"><label>支給額</label><input id="uosAmount" type="text" placeholder="例: 月額10万円"></div>
+          <div class="form-field"><label>採用人数</label><input id="uosRecipients" type="text" placeholder="例: 若干名"></div>
+          <div class="form-field"><label>期間</label><input id="uosDuration" type="text" placeholder="例: 1年以内"></div>
+        </div>
+        <div class="form-row">
+          <div class="form-field"><label>対象国・地域</label><input id="uosCountry" type="text" placeholder="例: 英語圏全般"></div>
+          <div class="form-field"><label>対象（学年等）</label><input id="uosTarget" type="text" placeholder="例: 学部2〜4年生"></div>
+        </div>
+        <div class="form-field"><label>応募条件・備考</label><textarea id="uosConditions" placeholder="例: GPA3.0以上、語学スコア要件あり"></textarea></div>
+        <button class="btn btn--accent" onclick="postUos()">追加する</button>
+        <div class="msg" id="uosMsg"></div>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>提供大学</th><th>奨学金名</th><th>締切</th><th>支給額</th><th>対象</th><th>状態</th><th></th></tr></thead>
+        <tbody id="uosList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- 診断設定 -->
+    <div class="page" id="page-diagnosis-settings">
+      <div class="page-header"><div><div class="page-title">🎯 合格診断設定</div><div class="page-sub">大学スコア・キーワード・採点基準・全体設定を管理</div></div></div>
+      <div class="tabs">
+        <div class="tab active" onclick="switchDiagTab('colleges',this)">🏫 大学スコア</div>
+        <div class="tab" onclick="switchDiagTab('keywords',this)">🔑 キーワード</div>
+        <div class="tab" onclick="switchDiagTab('scoring',this)">📊 採点テーブル</div>
+        <div class="tab" onclick="switchDiagTab('config',this)">⚙️ 全体設定</div>
+      </div>
+
+      <!-- 大学スコア -->
+      <div id="diagTab-colleges">
+        <div class="form-card">
+          <h3>大学を追加</h3>
+          <div class="form-row">
+            <div class="form-field"><label>大学名 *</label><input id="dcName" type="text" placeholder="例: Harvard University"></div>
+            <div class="form-field"><label>国</label><input id="dcCountry" type="text" placeholder="例: アメリカ"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field"><label>ターゲットスコア *</label><input id="dcScore" type="number" placeholder="例: 16000" min="0"></div>
+            <div class="form-field" style="align-self:flex-end;padding-bottom:14px">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+                <input type="checkbox" id="dcNeedBased"> Need-based 対応
+              </label>
+            </div>
+          </div>
+          <button class="btn btn--accent" onclick="postDiagCollege()">追加する</button>
+          <div class="msg" id="diagCollegeMsg"></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>大学名</th><th>国</th><th>ターゲットスコア</th><th>Need-based</th><th></th></tr></thead>
+          <tbody id="diagCollegeList"></tbody>
+        </table></div>
+      </div>
+
+      <!-- キーワード -->
+      <div id="diagTab-keywords" style="display:none">
+        <div class="form-card">
+          <h3>キーワード加点を追加</h3>
+          <div class="form-row3">
+            <div class="form-field"><label>キーワード *</label><input id="dkKeyword" type="text" placeholder="例: リーダー"></div>
+            <div class="form-field"><label>加点（pts）</label><input id="dkPoints" type="number" placeholder="200" value="200"></div>
+            <div class="form-field"><label>カテゴリ</label><input id="dkCategory" type="text" placeholder="例: リーダーシップ"></div>
+          </div>
+          <button class="btn btn--accent" onclick="postDiagKeyword()">追加する</button>
+          <div class="msg" id="diagKeywordMsg"></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>キーワード</th><th>加点</th><th>カテゴリ</th><th></th></tr></thead>
+          <tbody id="diagKeywordList"></tbody>
+        </table></div>
+      </div>
+
+      <!-- 採点テーブル -->
+      <div id="diagTab-scoring" style="display:none">
+        <div class="form-card">
+          <h3>採点ブラケットを追加</h3>
+          <div class="form-row">
+            <div class="form-field"><label>項目</label>
+              <select id="dsType">
+                <option value="gpa">GPA</option><option value="sat">SAT</option>
+                <option value="act">ACT</option><option value="toefl">TOEFL</option>
+                <option value="ielts">IELTS</option><option value="duolingo">Duolingo</option>
+                <option value="classrank">クラスランク</option>
+              </select>
+            </div>
+            <div class="form-field"><label>pts（得点）</label><input id="dsPts" type="number" placeholder="1000"></div>
+          </div>
+          <div id="dsScopeRange">
+            <div class="form-row3">
+              <div class="form-field"><label>最小値（min）</label><input id="dsMin" type="number" step="any" placeholder="0"></div>
+              <div class="form-field"><label>最大値（max）</label><input id="dsMax" type="number" step="any" placeholder="100"></div>
+              <div class="form-field"><label>表示順</label><input id="dsOrder" type="number" value="0"></div>
+            </div>
+          </div>
+          <div id="dsScopeKey" style="display:none">
+            <div class="form-row">
+              <div class="form-field"><label>キー値</label>
+                <select id="dsKeyVal">
+                  <option value="cr_5">上位5%以内</option><option value="cr_10">上位6〜10%</option>
+                  <option value="cr_20">上位11〜20%</option><option value="cr_30">上位21〜30%</option>
+                  <option value="cr_50">上位31〜50%</option><option value="cr_lo">50%以下</option>
+                  <option value="cr_na">クラスランクなし</option>
+                </select>
+              </div>
+              <div class="form-field"><label>表示順</label><input id="dsOrder2" type="number" value="0"></div>
+            </div>
+          </div>
+          <button class="btn btn--accent" onclick="postDiagScoring()">追加する</button>
+          <div class="msg" id="diagScoringMsg"></div>
+        </div>
+        <div class="table-wrap"><table>
+          <thead><tr><th>ID</th><th>項目</th><th>範囲 / キー</th><th>得点</th><th></th></tr></thead>
+          <tbody id="diagScoringList"></tbody>
+        </table></div>
+      </div>
+
+      <!-- 全体設定 -->
+      <div id="diagTab-config" style="display:none">
+        <div class="form-card">
+          <h3>診断しきい値の設定</h3>
+          <div id="diagConfigList"></div>
+          <div class="msg" id="diagConfigMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 解析 -->
+    <div class="page" id="page-analytics">
+      <div class="page-header"><div><div class="page-title">📊 解析</div><div class="page-sub">ユーザー行動・コンテンツ統計</div></div></div>
+      <div class="stats" id="analyticsStats"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+        <div class="form-card" style="margin-bottom:0">
+          <h3 style="margin-bottom:16px">📈 日別閲覧数（直近30日）</h3>
+          <canvas id="chartViews" height="180"></canvas>
+        </div>
+        <div class="form-card" style="margin-bottom:0">
+          <h3 style="margin-bottom:16px">📩 日別お問い合わせ（直近30日）</h3>
+          <canvas id="chartContacts" height="180"></canvas>
+        </div>
+      </div>
+      <div class="form-card">
+        <h3 style="margin-bottom:16px">🏫 大学別 閲覧数 / お気に入り Top 20</h3>
+        <div class="table-wrap" style="margin:0"><table>
+          <thead><tr><th>大学名</th><th>国</th><th>閲覧数</th><th>お気に入り</th></tr></thead>
+          <tbody id="analyticsUnivTable"></tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <!-- お問い合わせ -->
+    <div class="page" id="page-contacts">
+      <div class="page-header"><div><div class="page-title">📩 お問い合わせ一覧</div><div class="page-sub">読み取り専用</div></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>日時</th><th>名前</th><th>メール</th><th>役職</th><th>件名</th><th>内容</th></tr></thead>
+        <tbody id="contactsList"></tbody>
+      </table></div>
+    </div>
+
+    <!-- サポーター連絡 -->
+    <div class="page" id="page-supporter-contacts">
+      <div class="page-header"><div><div class="page-title">💛 サポーター連絡一覧</div><div class="page-sub">読み取り専用</div></div></div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>日時</th><th>名前</th><th>メール</th><th>件名</th><th>内容</th></tr></thead>
+        <tbody id="spContactsList"></tbody>
+      </table></div>
+    </div>
+
+  </main>
+</div>
+</div>
+
+<script>
+// ── Auth ──────────────────────────────────────────────────
+async function login() {
+  const pw = document.getElementById('loginPw').value
+  const msg = document.getElementById('loginMsg')
+  const res = await fetch('/admin/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) })
+  if (res.ok) {
+    document.getElementById('loginScreen').style.display = 'none'
+    document.getElementById('adminApp').style.display = 'block'
+    loadDashboard()
+  } else { showMsg(msg, 'パスワードが違います', false) }
+}
+document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') login() })
+async function logout() { await fetch('/admin/api/logout', { method: 'POST' }); location.reload() }
+
+// ── Navigation ────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-page]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+    el.classList.add('active')
+    const id = el.dataset.page
+    document.getElementById('page-' + id).classList.add('active')
+    pageLoaders[id] && pageLoaders[id]()
+  })
+})
+const pageLoaders = {
+  dashboard: loadDashboard,
+  notices: loadNotices,
+  articles: loadArticles,
+  experiences: () => loadExperiences('pending'),
+  threads: () => loadThreads(),
+  templates: loadTemplates,
+  'foundation-scholarships': loadFoundation,
+  'program-scholarships': loadPrograms,
+  'intl-scholarships': loadIntl,
+  contacts: loadContacts,
+  'supporter-contacts': loadSpContacts,
+  'university-scholarships': loadUniversities,
+  'supporter-reports': () => loadReports('all'),
+  'import-export': () => {},
+  'university-own-scholarships': loadUos,
+  'diagnosis-settings': () => loadDiagColleges(),
+  analytics: loadAnalytics,
+}
+
+// ── Dashboard ─────────────────────────────────────────────
+async function loadDashboard() {
+  const [n, a, ep, th, tm, fs, ps, is, c] = await Promise.all([
+    api('/admin/api/notices'), api('/admin/api/articles'), api('/admin/api/experiences?status=pending'),
+    api('/admin/api/threads'), api('/admin/api/templates'), api('/admin/api/foundation-scholarships'),
+    api('/admin/api/program-scholarships'), api('/admin/api/intl-scholarships'), api('/admin/api/contacts')
+  ])
+  document.getElementById('d-notices').textContent    = n.length
+  document.getElementById('d-articles').textContent   = a.length
+  document.getElementById('d-exp-pending').textContent = ep.length
+  document.getElementById('d-threads').textContent    = th.length
+  document.getElementById('d-templates').textContent  = tm.length
+  document.getElementById('d-found').textContent      = fs.length
+  document.getElementById('d-prog').textContent       = ps.length
+  document.getElementById('d-intl').textContent       = is.length
+  document.getElementById('d-contacts').textContent   = c.length
+}
+
+// ── Notices ───────────────────────────────────────────────
+async function loadNotices() {
+  const data = await api('/admin/api/notices')
+  document.getElementById('noticesList').innerHTML = data.length
+    ? data.map(n => `<tr><td>${n.id}</td><td class="truncate">${esc(n.title)}</td><td>${esc(n.category||'')}</td><td class="text-muted text-sm">${fmtDate(n.published_at||n.created_at)}</td><td><button class="btn btn--danger" onclick="del('/admin/api/notices/${n.id}',loadNotices)">削除</button></td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+async function postNotice() {
+  const msg = document.getElementById('noticeMsg')
+  const title = v('nTitle'), body = v('nBody'), category = v('nCat')
+  if (!title || !body) return showMsg(msg, 'タイトルと本文は必須です', false)
+  const res = await post('/admin/api/notices', { title, body, category })
+  if (res.ok) { showMsg(msg, '投稿しました ✓', true); clear('nTitle','nBody'); loadNotices() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Articles ──────────────────────────────────────────────
+async function loadArticles() {
+  const data = await api('/admin/api/articles')
+  document.getElementById('articlesList').innerHTML = data.length
+    ? data.map(a => `<tr>
+        <td>${a.id}</td>
+        <td class="truncate">${esc(a.title)}</td>
+        <td class="truncate text-muted text-sm">${esc(a.summary||'')}</td>
+        <td><span class="badge badge--${a.status}">${a.status === 'published' ? '公開' : '下書き'}</span></td>
+        <td class="text-muted text-sm">${fmtDate(a.updated_at)}</td>
+        <td><div class="btn-row">
+          <button class="btn ${a.status==='published'?'btn--warn':'btn--ok'}" onclick="togglePublish(${a.id},'${a.status}')">
+            ${a.status==='published'?'下書きに戻す':'公開する'}
+          </button>
+          <button class="btn btn--danger" onclick="del('/admin/api/articles/${a.id}',loadArticles)">削除</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postArticle() {
+  const msg = document.getElementById('articleMsg')
+  const title = v('aTitle'), summary = v('aSummary'), body = v('aBody'), status = v('aStatus')
+  if (!title || !summary || !body) return showMsg(msg, 'タイトル・概要・本文は必須です', false)
+  const res = await post('/admin/api/articles', { title, summary, body, status })
+  if (res.ok) { showMsg(msg, '保存しました ✓', true); clear('aTitle','aSummary','aBody'); loadArticles() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+async function togglePublish(id, current) {
+  const newStatus = current === 'published' ? 'draft' : 'published'
+  await fetch(`/admin/api/articles/${id}/publish`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
+  loadArticles()
+}
+
+// ── Experiences ───────────────────────────────────────────
+let expTab = 'pending'
+async function switchExpTab(status, el) {
+  expTab = status
+  document.querySelectorAll('#page-experiences .tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  if (status === 'reports') loadExpReports()
+  else loadExperiences(status)
+}
+async function loadExperiences(status) {
+  const data = await api('/admin/api/experiences?status=' + (status || expTab))
+  document.getElementById('expThead').innerHTML = '<tr><th>ID</th><th>国</th><th>大学</th><th>著者</th><th>評価</th><th>要約</th><th>ステータス</th><th></th></tr>'
+  document.getElementById('expList').innerHTML = data.length
+    ? data.map(e => `<tr>
+        <td>${e.id}</td>
+        <td>${esc(e.country)}</td>
+        <td class="truncate">${esc(e.university||'')}</td>
+        <td>${esc(e.author_name)}</td>
+        <td>${e.rating}/10</td>
+        <td class="truncate text-muted text-sm">${esc(e.summary)}</td>
+        <td><span class="badge badge--${e.status}">${statusLabel(e.status)}</span></td>
+        <td><div class="btn-row">
+          <button class="btn btn--ghost" onclick="openExpModal(${e.id})">詳細</button>
+          ${e.status!=='published' ? `<button class="btn btn--ok" onclick="approveExp(${e.id})">承認</button>` : ''}
+          ${e.status!=='rejected'  ? `<button class="btn btn--warn" onclick="rejectExp(${e.id})">却下</button>` : ''}
+          <button class="btn btn--danger" onclick="del('/admin/api/experiences/${e.id}',() => loadExperiences(expTab))">削除</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="8">データなし</td></tr>'
+}
+async function approveExp(id) {
+  await fetch(`/admin/api/experiences/${id}/approve`, { method: 'PATCH' })
+  loadExperiences(expTab)
+}
+async function rejectExp(id) {
+  await fetch(`/admin/api/experiences/${id}/reject`, { method: 'PATCH' })
+  loadExperiences(expTab)
+}
+// 体験談 詳細モーダル
+async function openExpModal(id) {
+  const e = await fetch(`/admin/api/experiences/${id}`).then(r => r.json())
+  if (!e) return
+  document.getElementById('expModal-title').textContent = e.university || '—'
+  document.getElementById('expModal-country').textContent = e.country || '—'
+  document.getElementById('expModal-univ').textContent = e.university || '—'
+  document.getElementById('expModal-author').textContent = e.author_name || '—'
+  document.getElementById('expModal-rating').textContent = e.rating || '—'
+  document.getElementById('expModal-summary').textContent = e.summary || '—'
+  document.getElementById('expModal-good').textContent = e.good || '（未記入）'
+  document.getElementById('expModal-bad').textContent = e.bad || '（未記入）'
+  document.getElementById('expModal-fun').textContent = e.fun || '（未記入）'
+  const actions = document.getElementById('expModal-actions')
+  actions.innerHTML = `
+    ${e.status !== 'published' ? `<button class="btn btn--ok" onclick="approveExp(${e.id});closeExpModal()">承認して公開</button>` : ''}
+    ${e.status !== 'rejected'  ? `<button class="btn btn--warn" onclick="rejectExp(${e.id});closeExpModal()">却下する</button>` : ''}
+    <button class="btn btn--danger" onclick="del('/admin/api/experiences/${e.id}',() => { loadExperiences(expTab); closeExpModal() })">削除</button>
+    <button class="btn btn--ghost" onclick="closeExpModal()">閉じる</button>`
+  document.getElementById('expModal').classList.add('open')
+}
+function closeExpModal() { document.getElementById('expModal').classList.remove('open') }
+document.getElementById('expModal').addEventListener('click', function(e) { if (e.target === this) closeExpModal() })
+// 体験談 通報一覧
+async function loadExpReports() {
+  const data = await api('/admin/api/experience-reports')
+  document.getElementById('expThead').innerHTML = '<tr><th>通報ID</th><th>体験談ID</th><th>国</th><th>大学</th><th>著者</th><th>ステータス</th><th>通報理由</th><th>日時</th><th></th></tr>'
+  document.getElementById('expList').innerHTML = data.length
+    ? data.map(r => `<tr>
+        <td>${r.id}</td>
+        <td>${r.experience_id}</td>
+        <td class="text-sm">${esc(r.country||'—')}</td>
+        <td class="truncate text-sm">${esc(r.university||'—')}</td>
+        <td class="text-sm">${esc(r.author_name||'—')}</td>
+        <td><span class="badge badge--${r.exp_status||'pending'}">${statusLabel(r.exp_status||'')}</span></td>
+        <td class="truncate text-muted text-sm">${esc(r.reason||'（理由なし）')}</td>
+        <td class="text-muted text-sm">${fmtDate(r.created_at)}</td>
+        <td><div class="btn-row">
+          <button class="btn btn--ghost" onclick="openExpModal(${r.experience_id})">体験談を見る</button>
+          <button class="btn btn--warn" onclick="rejectExp(${r.experience_id}).then(()=>loadExpReports())">体験談を却下</button>
+          <button class="btn btn--danger" onclick="delExpReport(${r.id})">通報を却下</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="9">通報なし</td></tr>'
+}
+async function delExpReport(id) {
+  await fetch(`/admin/api/experience-reports/${id}`, { method: 'DELETE' })
+  loadExpReports()
+}
+
+// ── Threads ───────────────────────────────────────────────
+let threadTab = 'threads'
+async function switchThreadTab(tab, el) {
+  threadTab = tab
+  document.querySelectorAll('#page-threads .tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  loadThreads()
+}
+async function loadThreads() {
+  const url = threadTab === 'reports' ? '/admin/api/threads/reports' : '/admin/api/threads'
+  const data = await api(url)
+  if (threadTab === 'reports') {
+    document.getElementById('threadsThead').innerHTML =
+      '<tr><th>通報ID</th><th>種類</th><th>対象ID</th><th>通報者ID</th><th>通報理由</th><th>日時</th><th>対応</th></tr>'
+    document.getElementById('threadsList').innerHTML = data.length
+      ? data.map(r => `<tr>
+          <td>${r.id}</td>
+          <td><span class="badge badge--${r.type==='thread'?'univ':'found'}">${r.type==='thread'?'スレッド':'返信'}</span></td>
+          <td>${r.target_id}</td>
+          <td class="text-muted text-sm">${r.user_id||'—'}</td>
+          <td class="truncate text-muted text-sm">${esc(r.reason||'（理由なし）')}</td>
+          <td class="text-muted text-sm">${fmtDate(r.created_at)}</td>
+          <td><div class="btn-row">
+            ${r.type==='thread'
+              ? `<button class="btn btn--danger" onclick="delThreadFromReport(${r.target_id},${r.id})">スレッド削除</button>`
+              : `<button class="btn btn--danger" onclick="delReplyFromReport(${r.target_id},${r.id})">返信削除</button>`
+            }
+            <button class="btn btn--ghost" onclick="dismissThreadReport(${r.id})">通報を却下</button>
+          </div></td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="7">通報なし</td></tr>'
+  } else {
+    document.getElementById('threadsThead').innerHTML =
+      '<tr><th>ID</th><th>タイトル</th><th>投稿者</th><th>返信</th><th>閲覧</th><th>投稿日</th><th></th></tr>'
+    document.getElementById('threadsList').innerHTML = data.length
+      ? data.map(t => `<tr>
+          <td>${t.id}</td>
+          <td class="truncate">${esc(t.title)}</td>
+          <td class="text-sm">${esc(t.username||'匿名')}</td>
+          <td>${t.reply_count||0}</td>
+          <td>${t.view_count||0}</td>
+          <td class="text-muted text-sm">${fmtDate(t.created_at)}</td>
+          <td><button class="btn btn--danger" onclick="del('/admin/api/threads/${t.id}',loadThreads)">削除</button></td>
+        </tr>`).join('')
+      : '<tr class="empty-row"><td colspan="7">データなし</td></tr>'
+  }
+}
+async function dismissThreadReport(reportId) {
+  await fetch(`/admin/api/thread-reports/${reportId}`, { method: 'DELETE' })
+  loadThreads()
+}
+async function delThreadFromReport(threadId, reportId) {
+  if (!confirm(`スレッドID:${threadId} を削除しますか？`)) return
+  await fetch(`/admin/api/threads/${threadId}`, { method: 'DELETE' })
+  await fetch(`/admin/api/thread-reports/${reportId}`, { method: 'DELETE' })
+  loadThreads()
+}
+async function delReplyFromReport(replyId, reportId) {
+  if (!confirm(`返信ID:${replyId} を削除しますか？`)) return
+  await fetch(`/admin/api/thread-replies/${replyId}`, { method: 'DELETE' })
+  await fetch(`/admin/api/thread-reports/${reportId}`, { method: 'DELETE' })
+  loadThreads()
+}
+
+// ── Templates ─────────────────────────────────────────────
+async function loadTemplates() {
+  const data = await api('/admin/api/templates')
+  document.getElementById('templatesList').innerHTML = data.length
+    ? data.map(t => `<tr>
+        <td>${t.id}</td>
+        <td>${esc(t.title)}</td>
+        <td class="truncate text-muted text-sm">${esc(t.body||'').substring(0,60)}...</td>
+        <td>${t.sort_order}</td>
+        <td><span class="badge badge--${t.is_active?'active':'inactive'}">${t.is_active?'有効':'無効'}</span></td>
+        <td><div class="btn-row">
+          <button class="btn btn--ghost" onclick="toggleTemplate(${t.id})">${t.is_active?'無効化':'有効化'}</button>
+          <button class="btn btn--danger" onclick="del('/admin/api/templates/${t.id}',loadTemplates)">削除</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postTemplate() {
+  const msg = document.getElementById('templateMsg')
+  const title = v('tTitle'), body = v('tBody'), sort_order = v('tOrder')
+  if (!title || !body) return showMsg(msg, 'タイトルと本文は必須です', false)
+  const res = await post('/admin/api/templates', { title, body, sort_order })
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('tTitle','tBody'); document.getElementById('tOrder').value='0'; loadTemplates() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+async function toggleTemplate(id) {
+  await fetch(`/admin/api/templates/${id}/toggle`, { method: 'PATCH' })
+  loadTemplates()
+}
+
+// ── Foundation Scholarships ───────────────────────────────
+async function loadFoundation() {
+  const data = await api('/admin/api/foundation-scholarships')
+  document.getElementById('foundationList').innerHTML = data.length
+    ? data.map(s => `<tr>
+        <td>${s.id}</td>
+        <td class="truncate">${esc(s.name)}</td>
+        <td class="text-muted text-sm">${s.deadline ? fmtDateOnly(s.deadline) : '—'}</td>
+        <td class="text-sm">${esc(s.amount||'—')}</td>
+        <td class="text-sm">${esc(s.target||'—')}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/foundation-scholarships/${s.id}',loadFoundation)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postFoundation() {
+  const msg = document.getElementById('foundationMsg')
+  const name = v('fsName')
+  if (!name) return showMsg(msg, '奨学金名は必須です', false)
+  const payload = { name, url: v('fsUrl'), deadline: v('fsDeadline')||null, amount: v('fsAmount'), num_recipients: v('fsRecipients'), duration: v('fsDuration'), target_countries: v('fsCountries'), language_requirement: v('fsLanguage'), other_requirements: v('fsOther'), target: v('fsTarget') }
+  const res = await post('/admin/api/foundation-scholarships', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clearFields('fsName','fsUrl','fsDeadline','fsAmount','fsRecipients','fsDuration','fsCountries','fsLanguage','fsOther','fsTarget'); loadFoundation() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Program Scholarships ──────────────────────────────────
+async function loadPrograms() {
+  const data = await api('/admin/api/program-scholarships')
+  document.getElementById('programList').innerHTML = data.length
+    ? data.map(p => `<tr>
+        <td>${p.id}</td>
+        <td class="truncate">${esc(p.name)}</td>
+        <td class="text-sm">${esc(p.sponsor||'—')}</td>
+        <td class="text-sm">${esc(p.country||'—')}</td>
+        <td class="text-muted text-sm">${p.application_deadline ? fmtDateOnly(p.application_deadline) : '—'}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/program-scholarships/${p.id}',loadPrograms)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postProgram() {
+  const msg = document.getElementById('programMsg')
+  const name = v('psName')
+  if (!name) return showMsg(msg, 'プログラム名は必須です', false)
+  const payload = { name, sponsor: v('psSponsor'), url: v('psUrl'), country: v('psCountry'), application_deadline: v('psDeadline')||null, content: v('psContent'), target: v('psTarget') }
+  const res = await post('/admin/api/program-scholarships', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clearFields('psName','psSponsor','psUrl','psCountry','psDeadline','psContent','psTarget'); loadPrograms() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Intl Scholarships ─────────────────────────────────────
+async function loadIntl() {
+  const data = await api('/admin/api/intl-scholarships')
+  document.getElementById('intlList').innerHTML = data.length
+    ? data.map(s => `<tr>
+        <td><span class="badge badge--${s.provider_type==='university'?'univ':'found'}">${s.provider_type==='university'?'大学':'財団'}</span></td>
+        <td>${esc(s.provider_name)}</td>
+        <td class="truncate">${esc(s.name)}</td>
+        <td>${s.deadline_month?s.deadline_month+'月':'—'}</td>
+        <td class="text-sm">${s.amount?Number(s.amount).toLocaleString()+(s.amount_type==='monthly'?'円/月':'円/年'):'—'}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/intl-scholarships/${s.id}',loadIntl)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postIntl() {
+  const msg = document.getElementById('intlMsg')
+  const provider_name = v('isProvider'), name = v('isName')
+  if (!provider_name || !name) return showMsg(msg, '提供者名と奨学金名は必須です', false)
+  const payload = { provider_type: v('isType'), provider_name, name, url: v('isUrl'), deadline_month: v('isDeadline')||null, amount: v('isAmount')||null, amount_type: v('isAmountType')||null, num_recipients: v('isRecipients'), nationality_req: v('isNationality'), language_req: v('isLanguage'), other_req: v('isOther') }
+  const res = await post('/admin/api/intl-scholarships', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clearFields('isProvider','isName','isUrl','isDeadline','isAmount','isNationality','isLanguage','isRecipients','isOther'); document.getElementById('isAmountType').value=''; loadIntl() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Contacts ──────────────────────────────────────────────
+async function loadContacts() {
+  const data = await api('/admin/api/contacts')
+  document.getElementById('contactsList').innerHTML = data.length
+    ? data.map(c => `<tr><td class="text-muted text-sm">${fmtDate(c.created_at)}</td><td>${esc(c.name)}</td><td class="text-sm">${esc(c.email)}</td><td class="text-sm">${esc(c.job||'')}</td><td>${esc(c.title||'')}</td><td class="truncate text-muted text-sm">${esc(c.message)}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function loadSpContacts() {
+  const data = await api('/admin/api/supporter-contacts')
+  document.getElementById('spContactsList').innerHTML = data.length
+    ? data.map(c => `<tr><td class="text-muted text-sm">${fmtDate(c.created_at)}</td><td>${esc(c.name)}</td><td class="text-sm">${esc(c.email)}</td><td>${esc(c.subject||'')}</td><td class="truncate text-muted text-sm">${esc(c.message)}</td></tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+
+// ── University Scholarships ────────────────────────────────
+async function loadUniversities() {
+  const data = await api('/admin/api/university-scholarships')
+  document.getElementById('universityList').innerHTML = data.length
+    ? data.map(u => `<tr>
+        <td>${u.id}</td>
+        <td>${esc(u.name)}</td>
+        <td class="text-sm">${esc(u.country)}</td>
+        <td class="text-sm text-muted">${esc(u.city||'—')}</td>
+        <td class="text-sm"><a href="${esc(u.url||'')}" target="_blank" style="color:var(--accent)">${u.url ? 'Link' : '—'}</a></td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/university-scholarships/${u.id}',loadUniversities)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postUniversity() {
+  const msg = document.getElementById('universityMsg')
+  const name = v('usName'), country = v('usCountry')
+  if (!name || !country) return showMsg(msg, '大学名と国は必須です', false)
+  const payload = { name, country, city: v('usCity'), url: v('usUrl'), lat: v('usLat')||null, lng: v('usLng')||null, currency: v('usCurrency') }
+  const res = await post('/admin/api/university-scholarships', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('usName','usCity','usUrl','usLat','usLng','usCurrency'); loadUniversities() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Supporter Reports ──────────────────────────────────────
+let reportTab = 'all'
+let allReports = []
+function switchReportTab(tab, el) {
+  reportTab = tab
+  document.querySelectorAll('#page-supporter-reports .tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  renderReports()
+}
+async function loadReports(tab) {
+  allReports = await api('/admin/api/supporter-reports')
+  renderReports()
+}
+function renderReports() {
+  const data = reportTab === 'all' ? allReports : allReports.filter(r => r.type === reportTab)
+  document.getElementById('reportList').innerHTML = data.length
+    ? data.map(r => `<tr>
+        <td>${r.id}</td>
+        <td><span class="badge badge--${r.type === 'activity' ? 'univ' : 'found'}">${r.type === 'activity' ? '活動' : '収支'}</span></td>
+        <td>${esc(r.title)}</td>
+        <td class="text-muted text-sm">${esc(r.date_label||'—')}</td>
+        <td class="text-sm truncate"><a href="${esc(r.file_url)}" target="_blank" style="color:var(--accent)">${esc(r.file_url)}</a></td>
+        <td>${r.sort_order}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/supporter-reports/${r.id}',() => loadReports(reportTab))">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="7">データなし</td></tr>'
+}
+async function postReport() {
+  const msg = document.getElementById('reportMsg')
+  const type = v('rpType'), title = v('rpTitle'), file_url = v('rpUrl')
+  if (!type || !title || !file_url) return showMsg(msg, '種別・タイトル・URLは必須です', false)
+  const payload = { type, title, date_label: v('rpDate'), file_url, sort_order: v('rpOrder')||0 }
+  const res = await post('/admin/api/supporter-reports', payload)
+  if (res.ok) { showMsg(msg, '登録しました ✓', true); clear('rpTitle','rpDate','rpUrl'); document.getElementById('rpOrder').value='0'; loadReports(reportTab) }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// ── Import / Export ────────────────────────────────────────
+async function doImport() {
+  const msg = document.getElementById('importMsg')
+  const target = document.getElementById('importTarget').value
+  const raw = document.getElementById('importJson').value.trim()
+  if (!raw) return showMsg(msg, 'JSONを貼り付けてください', false)
+  let data
+  try { data = JSON.parse(raw) } catch (e) { return showMsg(msg, 'JSON形式が正しくありません: ' + e.message, false) }
+  if (!Array.isArray(data)) return showMsg(msg, '配列形式（[{...},{...}]）で入力してください', false)
+  showMsg(msg, `${data.length}件を送信中...`, true)
+  const res = await post(`/admin/api/import/${target}`, { data })
+  const body = await res.json()
+  if (res.ok) {
+    showMsg(msg, `✓ ${body.inserted}件インポート完了`, true)
+    document.getElementById('importJson').value = ''
+  } else {
+    showMsg(msg, 'エラー: ' + body.error, false)
+  }
+}
+async function doExport(table, label) {
+  const data = await api(`/admin/api/export/${table}`)
+  if (!data || data.length === 0) { alert('データがありません'); return }
+  const keys = Object.keys(data[0])
+  const csv = [
+    keys.join(','),
+    ...data.map(row => keys.map(k => {
+      const val = row[k] == null ? '' : String(row[k])
+      return val.includes(',') || val.includes('"') || val.includes('\n')
+        ? '"' + val.replace(/"/g, '""') + '"'
+        : val
+    }).join(','))
+  ].join('\n')
+  const bom = '\uFEFF'
+  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `${label}_${new Date().toISOString().slice(0,10)}.csv`
+  a.click()
+  URL.revokeObjectURL(url)
+}
+
+// ── Utils ─────────────────────────────────────────────────
+async function api(url) { try { const r = await fetch(url); return r.ok ? r.json() : [] } catch { return [] } }
+async function post(url, body) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) }
+async function del(url, reload) { if (!confirm('削除しますか？')) return; await fetch(url, { method: 'DELETE' }); reload && reload() }
+function v(id) { return document.getElementById(id)?.value?.trim() || '' }
+function clear(...ids) { ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = '' }) }
+function clearFields(...ids) { clear(...ids) }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') }
+function fmtDate(d) { return d ? new Date(d).toLocaleString('ja-JP',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—' }
+function fmtDateOnly(d) { return d ? new Date(d).toLocaleDateString('ja-JP') : '—' }
+function statusLabel(s) { return {published:'公開中',pending:'承認待ち',rejected:'却下',draft:'下書き'}[s] || s }
+function showMsg(el, text, ok) { el.textContent = text; el.className = 'msg '+(ok?'msg--ok':'msg--err'); el.style.display = 'block'; setTimeout(() => el.style.display = 'none', 4000) }
+
+// ── University Own Scholarships ───────────────────────────
+async function loadUos() {
+  const data = await api('/admin/api/university-own-scholarships')
+  document.getElementById('uosList').innerHTML = data.length
+    ? data.map(u => `<tr>
+        <td>${u.id}</td>
+        <td class="text-sm">${esc(u.university_name)}</td>
+        <td class="truncate">${esc(u.name)}</td>
+        <td class="text-muted text-sm">${esc(u.deadline||'—')}</td>
+        <td class="text-sm">${esc(u.amount||'—')}</td>
+        <td class="text-sm">${esc(u.target||'—')}</td>
+        <td><span class="badge badge--${u.status==='active'?'active':'inactive'}">${u.status==='active'?'有効':'無効'}</span></td>
+        <td><div class="btn-row">
+          <button class="btn btn--ghost" onclick="toggleUos(${u.id})">${u.status==='active'?'無効化':'有効化'}</button>
+          <button class="btn btn--danger" onclick="del('/admin/api/university-own-scholarships/${u.id}',loadUos)">削除</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="8">データなし</td></tr>'
+}
+async function postUos() {
+  const msg = document.getElementById('uosMsg')
+  const university_name = v('uosUniv'), name = v('uosName')
+  if (!university_name || !name) return showMsg(msg, '提供大学名と奨学金名は必須です', false)
+  const payload = { university_name, name, url: v('uosUrl'), deadline: v('uosDeadline'), amount: v('uosAmount'), num_recipients: v('uosRecipients'), target_country: v('uosCountry'), duration: v('uosDuration'), conditions: v('uosConditions'), target: v('uosTarget') }
+  const res = await post('/admin/api/university-own-scholarships', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('uosUniv','uosName','uosUrl','uosDeadline','uosAmount','uosRecipients','uosCountry','uosDuration','uosConditions','uosTarget'); loadUos() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+async function toggleUos(id) {
+  await fetch(`/admin/api/university-own-scholarships/${id}/toggle`, { method: 'PATCH' })
+  loadUos()
+}
+
+// ── Diagnosis Settings ─────────────────────────────────────
+let diagTab = 'colleges'
+function switchDiagTab(tab, el) {
+  diagTab = tab
+  document.querySelectorAll('#page-diagnosis-settings .tab').forEach(t => t.classList.remove('active'))
+  el.classList.add('active')
+  document.getElementById('diagTab-colleges').style.display = tab==='colleges' ? '' : 'none'
+  document.getElementById('diagTab-keywords').style.display = tab==='keywords' ? '' : 'none'
+  document.getElementById('diagTab-scoring').style.display  = tab==='scoring'  ? '' : 'none'
+  document.getElementById('diagTab-config').style.display   = tab==='config'   ? '' : 'none'
+  if (tab === 'colleges') loadDiagColleges()
+  if (tab === 'keywords') loadDiagKeywords()
+  if (tab === 'scoring')  loadDiagScoring()
+  if (tab === 'config')   loadDiagConfig()
+}
+
+// 大学
+async function loadDiagColleges() {
+  const data = await api('/admin/api/diagnosis/colleges')
+  document.getElementById('diagCollegeList').innerHTML = data.length
+    ? data.map(c => `<tr>
+        <td>${c.id}</td>
+        <td class="truncate">${esc(c.name)}</td>
+        <td class="text-sm text-muted">${esc(c.country||'—')}</td>
+        <td>
+          <input type="number" value="${c.score}" style="width:90px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 7px;font-size:0.8rem" id="cscore_${c.id}">
+          <button class="btn btn--ok" onclick="updateDiagScore(${c.id},${c.need_based})">更新</button>
+        </td>
+        <td>${c.need_based ? '✓' : '—'}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/colleges/${c.id}',loadDiagColleges)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
+}
+async function postDiagCollege() {
+  const msg = document.getElementById('diagCollegeMsg')
+  const name = v('dcName'), score = v('dcScore'), country = v('dcCountry')
+  if (!name || !score) return showMsg(msg, '大学名とスコアは必須です', false)
+  const need_based = document.getElementById('dcNeedBased').checked
+  const res = await post('/admin/api/diagnosis/colleges', { name, score, country, need_based })
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dcName','dcScore','dcCountry'); document.getElementById('dcNeedBased').checked=false; loadDiagColleges() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+async function updateDiagScore(id, need_based) {
+  const score = document.getElementById('cscore_' + id)?.value
+  await fetch(`/admin/api/diagnosis/colleges/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ score, need_based }) })
+  loadDiagColleges()
+}
+
+// キーワード
+async function loadDiagKeywords() {
+  const data = await api('/admin/api/diagnosis/keywords')
+  document.getElementById('diagKeywordList').innerHTML = data.length
+    ? data.map(k => `<tr>
+        <td>${k.id}</td>
+        <td>${esc(k.keyword)}</td>
+        <td><span style="color:var(--ok);font-weight:700">+${k.points}</span></td>
+        <td class="text-muted text-sm">${esc(k.category||'—')}</td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/keywords/${k.id}',loadDiagKeywords)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+async function postDiagKeyword() {
+  const msg = document.getElementById('diagKeywordMsg')
+  const keyword = v('dkKeyword')
+  if (!keyword) return showMsg(msg, 'キーワードは必須です', false)
+  const res = await post('/admin/api/diagnosis/keywords', { keyword, points: v('dkPoints')||200, category: v('dkCategory') })
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dkKeyword','dkCategory'); document.getElementById('dkPoints').value='200'; loadDiagKeywords() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// スコアリング
+document.getElementById('dsType').addEventListener('change', function() {
+  const isClassrank = this.value === 'classrank'
+  document.getElementById('dsScopeRange').style.display = isClassrank ? 'none' : ''
+  document.getElementById('dsScopeKey').style.display   = isClassrank ? '' : 'none'
+})
+async function loadDiagScoring() {
+  const data = await api('/admin/api/diagnosis/scoring')
+  const labelMap = {gpa:'GPA',sat:'SAT',act:'ACT',toefl:'TOEFL',ielts:'IELTS',duolingo:'Duolingo',classrank:'クラスランク'}
+  document.getElementById('diagScoringList').innerHTML = data.length
+    ? data.map(s => `<tr>
+        <td>${s.id}</td>
+        <td><span class="badge badge--univ">${labelMap[s.item_type]||s.item_type}</span></td>
+        <td class="text-sm">${s.key_val ? s.key_val : `${s.min_val} 〜 ${s.max_val}`}</td>
+        <td><span style="color:var(--ok);font-weight:700">${s.pts}</span></td>
+        <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/scoring/${s.id}',loadDiagScoring)">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+async function postDiagScoring() {
+  const msg = document.getElementById('diagScoringMsg')
+  const item_type = document.getElementById('dsType').value
+  const pts = v('dsPts')
+  if (!pts) return showMsg(msg, 'ptsは必須です', false)
+  let payload
+  if (item_type === 'classrank') {
+    payload = { item_type, pts, key_val: document.getElementById('dsKeyVal').value, sort_order: v('dsOrder2')||0 }
+  } else {
+    payload = { item_type, pts, min_val: v('dsMin'), max_val: v('dsMax'), sort_order: v('dsOrder')||0 }
+  }
+  const res = await post('/admin/api/diagnosis/scoring', payload)
+  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dsPts','dsMin','dsMax'); loadDiagScoring() }
+  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+}
+
+// 全体設定
+async function loadDiagConfig() {
+  const data = await api('/admin/api/diagnosis/config')
+  document.getElementById('diagConfigList').innerHTML = data.map(c => `
+    <div class="form-field" style="margin-bottom:18px">
+      <label>${esc(c.label||c.cfg_key)}</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="cfg_${c.cfg_key}" value="${esc(c.cfg_val)}" style="width:120px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 12px">
+        <button class="btn btn--ok" onclick="saveDiagConfig('${c.cfg_key}')">保存</button>
+      </div>
+    </div>`).join('') + '<div class="msg" id="diagConfigMsg"></div>'
+}
+async function saveDiagConfig(key) {
+  const val = document.getElementById('cfg_' + key)?.value
+  const msg = document.getElementById('diagConfigMsg')
+  const res = await fetch('/admin/api/diagnosis/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cfg_key: key, cfg_val: val }) })
+  if (res.ok) showMsg(msg, '保存しました ✓', true)
+  else showMsg(msg, 'エラー', false)
+}
+
+// ── Analytics ─────────────────────────────────────────────
+let chartViewsInst = null
+let chartContactsInst = null
+
+async function loadAnalytics() {
+  // Load Chart.js dynamically
+  if (!window.Chart) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script')
+      s.src = 'https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js'
+      s.onload = resolve; s.onerror = reject
+      document.head.appendChild(s)
+    })
+  }
+
+  const [overview, viewsDaily, topUniv, contactsDaily] = await Promise.all([
+    api('/admin/api/analytics/overview'),
+    api('/admin/api/analytics/views-daily'),
+    api('/admin/api/analytics/top-universities'),
+    api('/admin/api/analytics/contacts-daily'),
+  ])
+
+  // Stats cards
+  const stats = [
+    { label: 'ユーザー数',       val: overview.users,       color: 'var(--accent)' },
+    { label: 'スレッド',         val: overview.threads,     color: 'var(--accent)' },
+    { label: '体験談（公開）',   val: overview.experiences, color: 'var(--ok)' },
+    { label: '体験談（承認待ち)',  val: overview.exp_pending, color: 'var(--warn)' },
+    { label: 'お問い合わせ',     val: overview.contacts,    color: 'var(--accent)' },
+    { label: '大学数',           val: overview.universities,color: 'var(--gold)' },
+    { label: '累計閲覧数',       val: overview.total_views, color: 'var(--accent)' },
+    { label: '累計お気に入り',   val: overview.total_favs,  color: 'var(--ok)' },
+  ]
+  document.getElementById('analyticsStats').innerHTML = stats.map(s =>
+    `<div class="stat"><div class="stat__num" style="color:${s.color}">${s.val ?? '—'}</div><div class="stat__label">${s.label}</div></div>`
+  ).join('')
+
+  // Chart helper
+  function mkChart(id, labels, data, label, color) {
+    const ctx = document.getElementById(id)?.getContext('2d')
+    if (!ctx) return
+    const inst = id === 'chartViews' ? chartViewsInst : chartContactsInst
+    if (inst) inst.destroy()
+    const ch = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{ label, data, borderColor: color, backgroundColor: color + '22', tension: 0.3, fill: true, pointRadius: 3 }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } }, scales: { x: { ticks: { color: '#7a7d8e', maxRotation: 45, font: { size: 10 } } }, y: { ticks: { color: '#7a7d8e' }, beginAtZero: true } } }
+    })
+    if (id === 'chartViews') chartViewsInst = ch
+    else chartContactsInst = ch
+  }
+
+  // Fill missing days
+  function fillDays(rows, dateKey, valKey) {
+    const map = {}
+    rows.forEach(r => { map[r[dateKey].slice(0,10)] = r[valKey] })
+    const labels = [], data = []
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i)
+      const key = d.toISOString().slice(0,10)
+      labels.push(key.slice(5))
+      data.push(map[key] || 0)
+    }
+    return { labels, data }
+  }
+
+  const vd = fillDays(viewsDaily, 'day', 'views')
+  mkChart('chartViews', vd.labels, vd.data, '閲覧数', '#ff8040')
+
+  const cd = fillDays(contactsDaily, 'day', 'cnt')
+  mkChart('chartContacts', cd.labels, cd.data, 'お問い合わせ', '#3dba6e')
+
+  // Top universities table
+  document.getElementById('analyticsUnivTable').innerHTML = topUniv.length
+    ? topUniv.map(u => `<tr>
+        <td class="truncate">${esc(u.name)}</td>
+        <td class="text-sm text-muted">${esc(u.country||'—')}</td>
+        <td><span style="color:var(--accent);font-weight:600">${u.views}</span></td>
+        <td><span style="color:var(--ok);font-weight:600">${u.favorites}</span></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="4">データなし</td></tr>'
+}
+</script>
+</body>
+</html>

@@ -12,7 +12,7 @@ const fetch = require('node-fetch')
 // 大学一覧
 router.get('/colleges', (req, res) => {
   db.query(
-    'SELECT id, name, score, need_based FROM diagnosis_colleges ORDER BY score DESC',
+    'SELECT id, name, score, need_based, country FROM diagnosis_colleges ORDER BY score DESC',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message })
       res.json(results)
@@ -23,12 +23,33 @@ router.get('/colleges', (req, res) => {
 // キーワード一覧
 router.get('/keywords', (req, res) => {
   db.query(
-    'SELECT keyword, points FROM diagnosis_keywords',
+    'SELECT keyword, points, category FROM diagnosis_keywords ORDER BY points DESC',
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message })
       res.json(results)
     }
   )
+})
+
+// スコアリングテーブル（フロントエンドで使用）
+router.get('/scoring', (req, res) => {
+  db.query(
+    'SELECT item_type, min_val, max_val, key_val, pts FROM diagnosis_scoring ORDER BY item_type, sort_order ASC',
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json(results)
+    }
+  )
+})
+
+// 全体設定
+router.get('/config', (req, res) => {
+  db.query('SELECT cfg_key, cfg_val, label FROM diagnosis_config', (err, results) => {
+    if (err) return res.status(500).json({ error: err.message })
+    const cfg = {}
+    results.forEach(r => { cfg[r.cfg_key] = r.cfg_val })
+    res.json(cfg)
+  })
 })
 
 // Discord通知

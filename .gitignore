@@ -32,3 +32,13 @@ __pycache__/
 .venv/
 venv/
 env/
+
+# Data files (large / generated)
+GetData/CreateTable/dataset_*.json
+GetData/CreateTable/dataset_*.xlsx
+GetData/CreateTable/dataset_*.csv
+GetData/CreateTable/geocode_progress*.json
+GetData/CreateTable/scrape_progress*.json
+
+# Upload / document folders (PDFs etc.)
+public/document/

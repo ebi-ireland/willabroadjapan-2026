@@ -192,60 +192,14 @@
   </div>
 
   <div class="sp-tab-panel active" id="tab-activity">
-    <div class="sp-report-list">
-      <a href="/document/activity/2025-plan.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📋</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2025年度 計画書</p>
-          <p class="sp-report-date">2025年公開</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
-      <a href="/document/activity/2025-1h.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📄</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2025年 上半期 活動報告</p>
-          <p class="sp-report-date">2025年7月公開予定</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
-      <a href="/document/activity/2024-2h.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📄</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2024年 下半期 活動報告</p>
-          <p class="sp-report-date">2025年2月公開</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
-      <a href="/document/activity/2024-1h.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📄</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2024年 上半期 活動報告</p>
-          <p class="sp-report-date">2024年8月公開</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
+    <div class="sp-report-list" id="activityReportList">
+      <p style="color:#888;text-align:center;padding:24px">読み込み中...</p>
     </div>
   </div>
 
   <div class="sp-tab-panel" id="tab-finance">
-    <div class="sp-report-list">
-      <a href="/document/finance/2025-1h.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📊</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2025年 上半期 収支報告</p>
-          <p class="sp-report-date">2025年7月公開予定</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
-      <a href="/document/finance/2024-annual.pdf" target="_blank" class="sp-report-item">
-        <span class="sp-report-icon">📊</span>
-        <div class="sp-report-meta">
-          <p class="sp-report-title">2024年 年間 財務報告</p>
-          <p class="sp-report-date">2025年3月公開</p>
-        </div>
-        <span class="sp-report-link">PDF を開く</span>
-      </a>
+    <div class="sp-report-list" id="financeReportList">
+      <p style="color:#888;text-align:center;padding:24px">読み込み中...</p>
     </div>
   </div>
 </section>
@@ -298,6 +252,34 @@
 </footer>
 
 <script>
+// ── 報告書を動的読み込み ──────────────────────────────────
+async function loadSupporterReports() {
+  try {
+    const reports = await fetch('/api/supporter-reports').then(r => r.json())
+    const activity = reports.filter(r => r.type === 'activity')
+    const finance  = reports.filter(r => r.type === 'finance')
+
+    const icons = { activity: '📋', finance: '💰' }
+    const renderList = (items, type) => items.length
+      ? items.map(r => `
+          <a href="${r.file_url}" target="_blank" rel="noopener" class="sp-report-item">
+            <span class="sp-report-icon">${icons[type] || '📄'}</span>
+            <div class="sp-report-meta">
+              <p class="sp-report-title">${r.title}</p>
+              <p class="sp-report-date">${r.date_label || ''}</p>
+            </div>
+            <span class="sp-report-link">PDF を開く</span>
+          </a>`).join('')
+      : '<p style="color:#888;text-align:center;padding:24px">現在掲載中の報告書はありません</p>'
+
+    document.getElementById('activityReportList').innerHTML = renderList(activity, 'activity')
+    document.getElementById('financeReportList').innerHTML  = renderList(finance, 'finance')
+  } catch (e) {
+    console.error('報告書読み込みエラー', e)
+  }
+}
+loadSupporterReports()
+
 // ── 寄付ボタン
 let selectedAmount = 5000
 

@@ -40,7 +40,25 @@ app.get('/api/mapbox-token', (req, res) => {
   res.json({ token: process.env.MAPBOX_TOKEN })
 })
 
+app.get('/api/supporter-reports', (req, res) => {
+  const db = require('./db/connection')
+  db.query('SELECT * FROM supporter_reports ORDER BY sort_order DESC, created_at DESC',
+    (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+})
+
 app.use(express.static('public'))
 
-app.listen(3000, () => console.log('👤 User  → http://localhost:3000'))
-app.listen(4000, () => console.log('🔧 Admin → http://localhost:4000'))
+// ── 安全対策: .env ファイルへの直接アクセスを拒否 ─────────
+app.get('/.env', (req, res) => res.status(403).end())
+app.get('/.env*', (req, res) => res.status(403).end())
+
+// ── 本番エラーハンドラー（スタックトレースを外部に見せない）──
+app.use((err, req, res, next) => {
+  const isDev = process.env.NODE_ENV !== 'production'
+  console.error('[ERROR]', err.message)
+  res.status(err.status || 500).json({
+    error: isDev ? err.message : 'サーバーエラーが発生しました'
+  })
+})
+
+app.listen(3000, () => console.log('👤 User → http://localhost:3000'))

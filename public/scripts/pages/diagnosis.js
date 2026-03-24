@@ -14,9 +14,11 @@ if (path === '/student-japan/diagnosis.html') {
   let currentStep = 1
 
   async function loadData() {
-    const [colleges, keywords] = await Promise.all([
+    const [colleges, keywords, scoringRows, config] = await Promise.all([
       fetch('/api/diagnosis/colleges').then(r => r.json()),
       fetch('/api/diagnosis/keywords').then(r => r.json()),
+      fetch('/api/diagnosis/scoring').then(r => r.json()),
+      fetch('/api/diagnosis/config').then(r => r.json()),
     ])
     UNIV_DATA = colleges.map(u => ({
       id: u.id,
@@ -25,6 +27,12 @@ if (path === '/student-japan/diagnosis.html') {
       needBased: !!u.need_based,
     }))
     KW_DATA = keywords
+    SCORING = buildScoringFromAPI(scoringRows)
+    DIAGNOSIS_CONFIG = {
+      pass_threshold:  parseInt(config.pass_threshold  || 90),
+      maybe_threshold: parseInt(config.maybe_threshold || 70),
+      max_selections:  parseInt(config.max_selections  || 5),
+    }
     renderStepIndicator()
     updateLangInput()
   }
@@ -114,78 +122,24 @@ if (path === '/student-japan/diagnosis.html') {
     input.placeholder = type === 'toefl' ? '例: 100' : type === 'ielts' ? '例: 7.0' : '例: 110'
   }
 
-  const SCORING = {
-    gpa: [
-      { min:4.0,  max:4.0,  pts:5000 },
-      { min:3.9,  max:3.99, pts:4600 },
-      { min:3.8,  max:3.89, pts:4200 },
-      { min:3.7,  max:3.79, pts:3800 },
-      { min:3.6,  max:3.69, pts:3400 },
-      { min:3.5,  max:3.59, pts:3000 },
-      { min:3.4,  max:3.49, pts:2600 },
-      { min:3.3,  max:3.39, pts:2200 },
-      { min:3.0,  max:3.29, pts:1800 },
-      { min:0,    max:2.99, pts:1000 },
-    ],
-    sat: [
-      { min:1550, max:1600, pts:5000 },
-      { min:1500, max:1549, pts:4500 },
-      { min:1450, max:1499, pts:4000 },
-      { min:1400, max:1449, pts:3500 },
-      { min:1350, max:1399, pts:3000 },
-      { min:1300, max:1349, pts:2500 },
-      { min:1200, max:1299, pts:2000 },
-      { min:1100, max:1199, pts:1400 },
-      { min:0,    max:1099, pts:800  },
-    ],
-    act: [
-      { min:35, max:36, pts:5000 },
-      { min:33, max:34, pts:4500 },
-      { min:31, max:32, pts:4000 },
-      { min:29, max:30, pts:3500 },
-      { min:27, max:28, pts:3000 },
-      { min:25, max:26, pts:2500 },
-      { min:23, max:24, pts:2000 },
-      { min:20, max:22, pts:1400 },
-      { min:0,  max:19, pts:800  },
-    ],
-    toefl: [
-      { min:115, max:120, pts:4000 },
-      { min:110, max:114, pts:3500 },
-      { min:105, max:109, pts:3000 },
-      { min:100, max:104, pts:2500 },
-      { min:90,  max:99,  pts:2000 },
-      { min:80,  max:89,  pts:1500 },
-      { min:70,  max:79,  pts:1000 },
-      { min:0,   max:69,  pts:500  },
-    ],
-    ielts: [
-      { min:8.5, max:9.0, pts:4000 },
-      { min:8.0, max:8.4, pts:3500 },
-      { min:7.5, max:7.9, pts:3000 },
-      { min:7.0, max:7.4, pts:2500 },
-      { min:6.5, max:6.9, pts:2000 },
-      { min:6.0, max:6.4, pts:1500 },
-      { min:5.5, max:5.9, pts:1000 },
-      { min:0,   max:5.4, pts:500  },
-    ],
-    duolingo: [
-      { min:145, max:160, pts:4000 },
-      { min:130, max:144, pts:3500 },
-      { min:120, max:129, pts:3000 },
-      { min:110, max:119, pts:2500 },
-      { min:100, max:109, pts:2000 },
-      { min:90,  max:99,  pts:1500 },
-      { min:80,  max:89,  pts:1000 },
-      { min:0,   max:79,  pts:500  },
-    ],
-    classrank: {
-      cr_5: 2000, cr_10: 1700, cr_20: 1400,
-      cr_30: 1100, cr_50: 700, cr_lo: 300, cr_na: 0,
-    },
+  let SCORING = {}
+  let DIAGNOSIS_CONFIG = { pass_threshold: 90, maybe_threshold: 70, max_selections: 5 }
+
+  function buildScoringFromAPI(rows) {
+    const scoring = {}
+    rows.forEach(r => {
+      if (!scoring[r.item_type]) scoring[r.item_type] = r.key_val !== null ? {} : []
+      if (r.key_val !== null) {
+        scoring[r.item_type][r.key_val] = r.pts
+      } else {
+        scoring[r.item_type].push({ min: parseFloat(r.min_val), max: parseFloat(r.max_val), pts: r.pts })
+      }
+    })
+    return scoring
   }
 
   function rangeScore(table, value) {
+    if (!Array.isArray(table)) return 0
     for (const row of table) {
       if (value >= row.min && value <= row.max) return row.pts
     }
@@ -236,7 +190,7 @@ if (path === '/student-japan/diagnosis.html') {
     const filtered = UNIV_DATA.filter(u => !q || u.name.toLowerCase().includes(q))
     filtered.forEach(u => {
       const isSelected = selectedUnivIds.includes(u.id)
-      const isDisabled = !isSelected && selectedUnivIds.length >= 5
+      const isDisabled = !isSelected && selectedUnivIds.length >= DIAGNOSIS_CONFIG.max_selections
       const div = document.createElement('div')
       div.className = 'univ-card' + (isSelected ? ' selected' : '') + (isDisabled ? ' disabled' : '')
       div.innerHTML = `
@@ -259,7 +213,7 @@ if (path === '/student-japan/diagnosis.html') {
     if (idx >= 0) {
       selectedUnivIds.splice(idx, 1)
     } else {
-      if (selectedUnivIds.length >= 5) return
+      if (selectedUnivIds.length >= DIAGNOSIS_CONFIG.max_selections) return
       selectedUnivIds.push(id)
     }
     renderUnivSelector()
@@ -284,9 +238,11 @@ if (path === '/student-japan/diagnosis.html') {
       const ratio = Math.min(1, bd.total / u.score)
       const pct   = Math.round(ratio * 100)
       let cls, badgeClass, badgeText, verdict
-      if (ratio >= 0.9)      { cls = 'pass';  badgeClass = 'badge-pass';  badgeText = '合格見込み ✓'; verdict = '合格見込み' }
-      else if (ratio >= 0.7) { cls = 'maybe'; badgeClass = 'badge-maybe'; badgeText = '要検討 △';    verdict = '要検討' }
-      else                   { cls = 'hard';  badgeClass = 'badge-hard';  badgeText = '難しい ✗';    verdict = '難しい' }
+      const passT  = DIAGNOSIS_CONFIG.pass_threshold  / 100
+      const maybeT = DIAGNOSIS_CONFIG.maybe_threshold / 100
+      if (ratio >= passT)      { cls = 'pass';  badgeClass = 'badge-pass';  badgeText = '合格見込み ✓'; verdict = '合格見込み' }
+      else if (ratio >= maybeT){ cls = 'maybe'; badgeClass = 'badge-maybe'; badgeText = '要検討 △';    verdict = '要検討' }
+      else                     { cls = 'hard';  badgeClass = 'badge-hard';  badgeText = '難しい ✗';    verdict = '難しい' }
 
       diagResults.push({ name: u.name, verdict, pct })
 
