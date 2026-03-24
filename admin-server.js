@@ -552,37 +552,146 @@ app.get('/admin/api/analytics/overview', requireAuth, (req, res) => {
   })
 })
 
-app.get('/admin/api/analytics/views-daily', requireAuth, (req, res) => {
-  db.query(`
-    SELECT DATE(viewed_at) as day, COUNT(*) as views
-    FROM view_logs
-    WHERE viewed_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-    GROUP BY DATE(viewed_at)
-    ORDER BY day ASC
-  `, (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+// 閲覧数（時間/日/週/月/年 — 全期間永久保存）
+app.get('/admin/api/analytics/views', requireAuth, (req, res) => {
+  const period = req.query.period || 'day'
+  const FORMAT_MAP = {
+    hour:  "DATE_FORMAT(viewed_at, '%Y-%m-%d %H:00:00')",
+    day:   "DATE(viewed_at)",
+    week:  "DATE_FORMAT(DATE_SUB(viewed_at, INTERVAL WEEKDAY(viewed_at) DAY), '%Y-%m-%d')",
+    month: "DATE_FORMAT(viewed_at, '%Y-%m')",
+    year:  "CAST(YEAR(viewed_at) AS CHAR)",
+  }
+  const fmt = FORMAT_MAP[period]
+  if (!fmt) return res.status(400).json({ error: '不正なperiodです' })
+  db.query(
+    `SELECT ${fmt} as period, COUNT(*) as views FROM view_logs GROUP BY period ORDER BY period ASC`,
+    (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) }
+  )
+})
+
+// お問い合わせ数（時間/日/週/月/年 — 全期間永久保存）
+app.get('/admin/api/analytics/contacts', requireAuth, (req, res) => {
+  const period = req.query.period || 'day'
+  const FORMAT_MAP = {
+    hour:  "DATE_FORMAT(created_at, '%Y-%m-%d %H:00:00')",
+    day:   "DATE(created_at)",
+    week:  "DATE_FORMAT(DATE_SUB(created_at, INTERVAL WEEKDAY(created_at) DAY), '%Y-%m-%d')",
+    month: "DATE_FORMAT(created_at, '%Y-%m')",
+    year:  "CAST(YEAR(created_at) AS CHAR)",
+  }
+  const fmt = FORMAT_MAP[period]
+  if (!fmt) return res.status(400).json({ error: '不正なperiodです' })
+  db.query(
+    `SELECT ${fmt} as period, COUNT(*) as cnt FROM contacts GROUP BY period ORDER BY period ASC`,
+    (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) }
+  )
 })
 
 app.get('/admin/api/analytics/top-universities', requireAuth, (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 20, 500)
+  const period = req.query.period || 'all'
+  const INTERVAL_MAP = { week: '7 DAY', month: '30 DAY', year: '365 DAY' }
+  const interval = INTERVAL_MAP[period]
+  const dateFilter = interval ? `AND vl.viewed_at >= DATE_SUB(NOW(), INTERVAL ${interval})` : ''
+  const favFilter  = interval ? `AND fl.created_at >= DATE_SUB(NOW(), INTERVAL ${interval})` : ''
   db.query(`
     SELECT u.name, u.country,
            COUNT(DISTINCT vl.id) as views,
            COUNT(DISTINCT fl.id) as favorites
     FROM university_scholarships u
-    LEFT JOIN view_logs vl      ON u.id = vl.target_id AND vl.type = 'university'
-    LEFT JOIN favorite_logs fl  ON u.id = fl.university_id
+    LEFT JOIN view_logs vl     ON u.id = vl.target_id AND vl.type = 'university' ${dateFilter}
+    LEFT JOIN favorite_logs fl ON u.id = fl.university_id ${favFilter}
     GROUP BY u.id
     ORDER BY views DESC
-    LIMIT 20
-  `, (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+    LIMIT ?
+  `, [limit], (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
 })
 
-app.get('/admin/api/analytics/contacts-daily', requireAuth, (req, res) => {
+// ── 解析: 曜日×時間帯ヒートマップ ────────────────────────────
+app.get('/admin/api/analytics/heatmap', requireAuth, (req, res) => {
+  db.query(
+    `SELECT DAYOFWEEK(viewed_at) as dow, HOUR(viewed_at) as hour, COUNT(*) as views
+     FROM view_logs GROUP BY dow, hour ORDER BY dow, hour`,
+    (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) }
+  )
+})
+
+// ── 解析: 国別人気 ────────────────────────────────────────────
+app.get('/admin/api/analytics/top-countries', requireAuth, (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 15, 100)
+  const period = req.query.period || 'all'
+  const IMAP = { week: '7 DAY', month: '30 DAY', year: '365 DAY' }
+  const iv = IMAP[period]
+  const vf = iv ? `AND vl.viewed_at >= DATE_SUB(NOW(), INTERVAL ${iv})` : ''
+  const ff = iv ? `AND fl.created_at >= DATE_SUB(NOW(), INTERVAL ${iv})` : ''
   db.query(`
-    SELECT DATE(created_at) as day, COUNT(*) as cnt
-    FROM contacts
-    WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
-    GROUP BY DATE(created_at)
-    ORDER BY day ASC
+    SELECT u.country, COUNT(DISTINCT vl.id) as views, COUNT(DISTINCT fl.id) as favorites
+    FROM university_scholarships u
+    LEFT JOIN view_logs vl ON u.id=vl.target_id AND vl.type='university' ${vf}
+    LEFT JOIN favorite_logs fl ON u.id=fl.university_id ${ff}
+    WHERE u.country IS NOT NULL AND u.country != ''
+    GROUP BY u.country ORDER BY views DESC LIMIT ?
+  `, [limit], (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+})
+
+// ── 解析: MoM 成長率 ──────────────────────────────────────────
+app.get('/admin/api/analytics/growth', requireAuth, (req, res) => {
+  const qs = {
+    views_this:    "SELECT COUNT(*) n FROM view_logs WHERE YEAR(viewed_at)=YEAR(NOW()) AND MONTH(viewed_at)=MONTH(NOW())",
+    views_last:    "SELECT COUNT(*) n FROM view_logs WHERE YEAR(viewed_at)=YEAR(DATE_SUB(NOW(),INTERVAL 1 MONTH)) AND MONTH(viewed_at)=MONTH(DATE_SUB(NOW(),INTERVAL 1 MONTH))",
+    contacts_this: "SELECT COUNT(*) n FROM contacts WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW())",
+    contacts_last: "SELECT COUNT(*) n FROM contacts WHERE YEAR(created_at)=YEAR(DATE_SUB(NOW(),INTERVAL 1 MONTH)) AND MONTH(created_at)=MONTH(DATE_SUB(NOW(),INTERVAL 1 MONTH))",
+    users_this:    "SELECT COUNT(*) n FROM users WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW())",
+    users_last:    "SELECT COUNT(*) n FROM users WHERE YEAR(created_at)=YEAR(DATE_SUB(NOW(),INTERVAL 1 MONTH)) AND MONTH(created_at)=MONTH(DATE_SUB(NOW(),INTERVAL 1 MONTH))",
+    favs_this:     "SELECT COUNT(*) n FROM favorite_logs WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW())",
+    favs_last:     "SELECT COUNT(*) n FROM favorite_logs WHERE YEAR(created_at)=YEAR(DATE_SUB(NOW(),INTERVAL 1 MONTH)) AND MONTH(created_at)=MONTH(DATE_SUB(NOW(),INTERVAL 1 MONTH))",
+  }
+  const results = {}; const keys = Object.keys(qs); let done = 0
+  keys.forEach(k => db.query(qs[k], (err, rows) => {
+    results[k] = err ? 0 : rows[0].n
+    if (++done === keys.length) res.json(results)
+  }))
+})
+
+// ── 解析: お問い合わせ種別 ────────────────────────────────────
+app.get('/admin/api/analytics/contact-breakdown', requireAuth, (req, res) => {
+  db.query(
+    `SELECT COALESCE(type,'その他') as type, COUNT(*) as count FROM contacts GROUP BY type ORDER BY count DESC`,
+    (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) }
+  )
+})
+
+// ── 解析: 転換率（閲覧→お気に入り）──────────────────────────
+app.get('/admin/api/analytics/conversion', requireAuth, (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100)
+  db.query(`
+    SELECT u.name, u.country,
+           COUNT(DISTINCT vl.id) as views, COUNT(DISTINCT fl.id) as favorites,
+           ROUND(COUNT(DISTINCT fl.id)/NULLIF(COUNT(DISTINCT vl.id),0)*100,1) as rate
+    FROM university_scholarships u
+    LEFT JOIN view_logs vl ON u.id=vl.target_id AND vl.type='university'
+    LEFT JOIN favorite_logs fl ON u.id=fl.university_id
+    GROUP BY u.id HAVING views > 0 ORDER BY rate DESC LIMIT ?
+  `, [limit], (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+})
+
+// ── 解析: スレッド人気 ────────────────────────────────────────
+app.get('/admin/api/analytics/top-threads', requireAuth, (req, res) => {
+  const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100)
+  db.query(`
+    SELECT t.title, t.view_count, t.created_at, COUNT(r.id) as reply_count
+    FROM threads t LEFT JOIN thread_replies r ON t.id=r.thread_id
+    GROUP BY t.id ORDER BY t.view_count DESC LIMIT ?
+  `, [limit], (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+})
+
+// ── 解析: 体験談 国別分布 ────────────────────────────────────
+app.get('/admin/api/analytics/experience-dist', requireAuth, (req, res) => {
+  db.query(`
+    SELECT country, COUNT(*) as count, ROUND(AVG(rating),1) as avg_rating
+    FROM experiences WHERE status='published'
+    GROUP BY country ORDER BY count DESC LIMIT 30
   `, (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
 })
 

@@ -35,6 +35,7 @@ app.use('/api/experiences', require('./routes/experiences'))
 app.use('/api/templates',   require('./routes/templates'))
 app.use('/api/scholarships',require('./routes/scholarships'))
 app.use('/api/supporter',  require('./routes/supporter'))
+app.use('/api/support',    require('./routes/support'))
 
 app.get('/api/mapbox-token', (req, res) => {
   res.json({ token: process.env.MAPBOX_TOKEN })
