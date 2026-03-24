@@ -48,9 +48,11 @@ app.get('/api/supporter-reports', (req, res) => {
 
 app.use(express.static('public'))
 
-// ── 安全対策: .env ファイルへの直接アクセスを拒否 ─────────
-app.get('/.env', (req, res) => res.status(403).end())
-app.get('/.env*', (req, res) => res.status(403).end())
+// ── 安全対策: ドットファイルへの直接アクセスを拒否 ─────────
+app.use((req, res, next) => {
+  if (req.path.startsWith('/.')) return res.status(403).end()
+  next()
+})
 
 // ── 本番エラーハンドラー（スタックトレースを外部に見せない）──
 app.use((err, req, res, next) => {
