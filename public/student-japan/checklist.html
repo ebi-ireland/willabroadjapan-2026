@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>出願書類チェックリスト | Will Abroad Japan</title>
+  <link rel="stylesheet" href="/styles/index.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+  <style>
+    /* =====================
+       checklist.html 専用スタイル
+       ===================== */
+
+    .chk__page {
+      padding: clamp(80px, 10vw, 120px) clamp(16px, 5vw, 40px) clamp(48px, 8vw, 96px);
+      min-height: 100vh;
+    }
+
+    .chk__inner {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    /* ログイン促進バナー */
+    .chk__login-banner {
+      background: rgba(255, 128, 64, 0.08);
+      border: 1px solid rgba(255, 128, 64, 0.3);
+      border-radius: 16px;
+      padding: 24px 28px;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .chk__login-text {
+      font-size: clamp(14px, 1.8vw, 16px);
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .chk__login-text strong {
+      color: var(--color-orange);
+    }
+
+    .chk__login-btn {
+      display: inline-block;
+      padding: 10px 24px;
+      background: var(--color-orange);
+      color: var(--color-white);
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 100px;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .chk__login-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* 大学追加フォーム */
+    .chk__add-wrap {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: clamp(20px, 3vw, 32px);
+      margin-bottom: 28px;
+    }
+
+    .chk__add-title {
+      font-size: clamp(15px, 2vw, 18px);
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chk__add-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 1.2em;
+      background: var(--color-orange);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .chk__add-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chk__add-input {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--color-white);
+      font-size: 15px;
+      font-family: 'Segoe UI', sans-serif;
+      transition: border-color 0.2s ease;
+    }
+
+    .chk__add-input:focus {
+      outline: none;
+      border-color: var(--color-orange);
+    }
+
+    .chk__add-input::placeholder {
+      color: #475569;
+    }
+
+    .chk__add-btn {
+      padding: 12px 28px;
+      background: var(--color-orange);
+      color: var(--color-white);
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      font-family: 'Segoe UI', sans-serif;
+      white-space: nowrap;
+    }
+
+    .chk__add-btn:hover {
+      opacity: 0.85;
+    }
+
+    .chk__add-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 大学グループ */
+    .chk__university {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      margin-bottom: 24px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .chk__university:hover {
+      border-color: rgba(255, 128, 64, 0.2);
+    }
+
+    .chk__uni-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .chk__uni-name {
+      font-size: clamp(16px, 2vw, 20px);
+      font-weight: 800;
+      color: var(--color-white);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .chk__uni-name-icon {
+      font-size: 20px;
+    }
+
+    /* 進捗バー */
+    .chk__progress-wrap {
+      flex: 1;
+      min-width: 160px;
+      max-width: 300px;
+    }
+
+    .chk__progress-label {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .chk__progress-bar {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      overflow: hidden;
+    }
+
+    .chk__progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--color-orange), #ffb347);
+      border-radius: 100px;
+      transition: width 0.4s ease;
+    }
+
+    .chk__uni-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .chk__add-item-btn {
+      padding: 8px 16px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .chk__add-item-btn:hover {
+      border-color: var(--color-orange);
+      color: var(--color-orange);
+    }
+
+    /* チェックリストアイテム */
+    .chk__items {
+      list-style: none;
+    }
+
+    .chk__item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 14px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      transition: background 0.15s ease;
+    }
+
+    .chk__item:last-child {
+      border-bottom: none;
+    }
+
+    .chk__item:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .chk__item--done .chk__item-name {
+      text-decoration: line-through;
+      color: #475569;
+    }
+
+    /* ステータスボタン群 */
+    .chk__status-btns {
+      display: flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+
+    .chk__status-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+      font-family: 'Segoe UI', sans-serif;
+      white-space: nowrap;
+    }
+
+    .chk__status-btn--none {
+      background: rgba(100, 116, 139, 0.15);
+      border-color: rgba(100, 116, 139, 0.3);
+      color: #64748b;
+    }
+
+    .chk__status-btn--none.chk__status-btn--active {
+      background: rgba(100, 116, 139, 0.4);
+      border-color: #94a3b8;
+      color: var(--color-white);
+    }
+
+    .chk__status-btn--progress {
+      background: rgba(251, 191, 36, 0.1);
+      border-color: rgba(251, 191, 36, 0.3);
+      color: #f59e0b;
+    }
+
+    .chk__status-btn--progress.chk__status-btn--active {
+      background: rgba(251, 191, 36, 0.25);
+      border-color: #f59e0b;
+    }
+
+    .chk__status-btn--done {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgba(16, 185, 129, 0.3);
+      color: #10b981;
+    }
+
+    .chk__status-btn--done.chk__status-btn--active {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #10b981;
+    }
+
+    /* アイテム本体 */
+    .chk__item-body {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .chk__item-name {
+      font-size: clamp(13px, 1.8vw, 15px);
+      color: var(--color-white);
+      font-weight: 600;
+      line-height: 1.5;
+      margin-bottom: 4px;
+    }
+
+    .chk__item-meta {
+      font-size: 11px;
+      color: #64748b;
+    }
+
+    /* メモ欄 */
+    .chk__memo {
+      font-size: 12px;
+      color: #94a3b8;
+      margin-top: 6px;
+      padding: 6px 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      cursor: text;
+      min-height: 28px;
+      line-height: 1.5;
+      transition: border-color 0.2s ease;
+    }
+
+    .chk__memo:focus {
+      outline: none;
+      border-color: rgba(255, 128, 64, 0.4);
+      border-style: solid;
+    }
+
+    .chk__memo[data-empty="true"] {
+      color: #475569;
+      font-style: italic;
+    }
+
+    /* 空状態 */
+    .chk__empty {
+      text-align: center;
+      padding: clamp(40px, 8vw, 80px) 20px;
+      color: #64748b;
+      font-size: clamp(14px, 2vw, 16px);
+    }
+
+    .chk__empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+
+    /* カスタムアイテム追加モーダル風インライン */
+    .chk__new-item-form {
+      display: none;
+      padding: 16px 24px;
+      background: rgba(255, 128, 64, 0.04);
+      border-top: 1px solid rgba(255, 128, 64, 0.15);
+    }
+
+    .chk__new-item-form--open {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .chk__new-item-input {
+      flex: 1;
+      min-width: 200px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--color-white);
+      font-size: 14px;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    .chk__new-item-input:focus {
+      outline: none;
+      border-color: var(--color-orange);
+    }
+
+    .chk__new-item-confirm {
+      padding: 10px 20px;
+      background: var(--color-orange);
+      color: var(--color-white);
+      font-size: 13px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+      transition: opacity 0.2s ease;
+    }
+
+    .chk__new-item-confirm:hover {
+      opacity: 0.85;
+    }
+
+    .chk__new-item-cancel {
+      padding: 10px 16px;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 8px;
+      color: #94a3b8;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Segoe UI', sans-serif;
+      transition: all 0.2s ease;
+    }
+
+    .chk__new-item-cancel:hover {
+      border-color: #94a3b8;
+      color: var(--color-white);
+    }
+
+    @media (max-width: 600px) {
+      .chk__item {
+        flex-direction: column;
+      }
+      .chk__status-btns {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <main class="chk__page">
+    <div class="chk__inner">
+
+      <h1 class="page__title">出願書類チェックリスト</h1>
+
+      <!-- ログイン促進バナー (未ログイン時に表示) -->
+      <div class="chk__login-banner" id="loginBanner" style="display:none;">
+        <div class="chk__login-text">
+          <strong>ログインすると、チェックリストを保存・管理</strong>できます。<br>
+          ログインしていない状態では、ページを更新するとデータが失われます。
+        </div>
+        <a href="/student-japan/login.html" class="chk__login-btn">ログインする</a>
+      </div>
+
+      <!-- 大学追加フォーム -->
+      <div class="chk__add-wrap">
+        <div class="chk__add-title">大学を追加</div>
+        <div class="chk__add-row">
+          <input class="chk__add-input" type="text" id="uniNameInput" placeholder="大学名を入力（例: Harvard University）" maxlength="100">
+          <button class="chk__add-btn" id="addUniBtn">追加する</button>
+        </div>
+      </div>
+
+      <!-- チェックリスト一覧 -->
+      <div id="checklistContainer">
+        <div class="chk__empty">
+          <div class="chk__empty-icon">📋</div>
+          <div>まだ大学が追加されていません。<br>上のフォームから大学を追加してください。</div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+  <script>
+    // =====================
+    // チェックリスト ロジック
+    // =====================
+
+    // ローカルストレージキー（ログイン前のフォールバック）
+    const LS_KEY = 'waj_checklist_v1';
+
+    let isLoggedIn = false;
+    let universities = []; // [{ id, name, items: [{ id, name, status, memo, custom }] }]
+    let nextId = 1;
+
+    // ステータス定義
+    const STATUSES = [
+      { key: 'none',     label: '未着手', cls: 'chk__status-btn--none' },
+      { key: 'progress', label: '進行中', cls: 'chk__status-btn--progress' },
+      { key: 'done',     label: '完了',   cls: 'chk__status-btn--done' },
+    ];
+
+    // デフォルトのテンプレートアイテム（/api/checklist/init のフォールバック）
+    const DEFAULT_TEMPLATE = [
+      '成績証明書（高校/大学）',
+      '推薦状（1通目）',
+      '推薦状（2通目）',
+      '推薦状（3通目）',
+      '志望動機書（Personal Statement）',
+      'TOEFL / IELTS スコアレポート',
+      '履歴書（CV / Resume）',
+      '財政証明書',
+      '出願フォーム記入',
+      '出願料支払い',
+      'パスポートコピー',
+      '写真',
+    ];
+
+    // ログイン状態確認
+    async function checkAuth() {
+      try {
+        const res = await fetch('/api/auth/me');
+        if (res.ok) {
+          isLoggedIn = true;
+          document.getElementById('loginBanner').style.display = 'none';
+          await loadFromServer();
+          return;
+        }
+      } catch {}
+      isLoggedIn = false;
+      document.getElementById('loginBanner').style.display = 'flex';
+      loadFromLocal();
+    }
+
+    // サーバーから読み込み
+    async function loadFromServer() {
+      try {
+        const res = await fetch('/api/checklist');
+        if (res.ok) {
+          const data = await res.json();
+          // ルートが { universities, nextId } 形式で返す場合と配列の場合に対応
+          const unis = data.universities || (Array.isArray(data) ? data : null);
+          if (unis && unis.length > 0) {
+            universities = unis;
+            nextId = (data.nextId || 1000) + 1;
+            // ローカルにもバックアップ
+            try { localStorage.setItem(LS_KEY, JSON.stringify({ universities, nextId })); } catch {}
+            renderAll();
+            return;
+          }
+          // サーバーが空でもローカルにデータがあればそちらを使う
+        }
+      } catch {}
+      loadFromLocal();
+    }
+
+    // ローカルから読み込み
+    function loadFromLocal() {
+      try {
+        const saved = localStorage.getItem(LS_KEY);
+        if (saved) {
+          const data = JSON.parse(saved);
+          universities = data.universities || [];
+          nextId = data.nextId || 1;
+        }
+      } catch {}
+      renderAll();
+    }
+
+    // 保存（ローカル優先、サーバーはバックグラウンド同期）
+    function save() {
+      // 常にローカルに保存（オフライン対応）
+      try {
+        localStorage.setItem(LS_KEY, JSON.stringify({ universities, nextId }));
+      } catch {}
+      // ログイン中はサーバーにも同期（失敗しても無視）
+      if (isLoggedIn) {
+        fetch('/api/checklist', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ universities }),
+        }).catch(() => {});
+      }
+    }
+
+    // 大学追加
+    async function addUniversity() {
+      const input = document.getElementById('uniNameInput');
+      const name = input.value.trim();
+      if (!name) return;
+
+      const btn = document.getElementById('addUniBtn');
+      btn.disabled = true;
+      btn.textContent = '追加中...';
+
+      let items = DEFAULT_TEMPLATE.map((itemName, i) => ({
+        id: nextId++,
+        name: itemName,
+        status: 'none',
+        memo: '',
+        custom: false,
+      }));
+
+      // ログイン中はAPIからテンプレート取得を試みる（フォールバックあり）
+      if (isLoggedIn) {
+        try {
+          const res = await fetch('/api/checklist/init', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ universityName: name, college_name: name }),
+          });
+          if (res.ok) {
+            const data = await res.json();
+            // ルートが { items: [{name, category}] } を返す
+            if (data.items && data.items.length > 0) {
+              items = data.items.map(item => ({
+                id: nextId++,
+                name: item.name || (typeof item === 'string' ? item : '書類'),
+                status: 'none',
+                memo: '',
+                custom: false,
+              }));
+            }
+          }
+        } catch {}
+      }
+
+      const uni = {
+        id: nextId++,
+        name,
+        items,
+      };
+
+      universities.push(uni);
+      save();
+      renderAll();
+      input.value = '';
+      btn.disabled = false;
+      btn.textContent = '追加する';
+
+      // 追加した大学へスクロール
+      setTimeout(() => {
+        const el = document.getElementById('uni_' + uni.id);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+
+    // ステータス変更
+    function setStatus(uniId, itemId, status) {
+      const uni = universities.find(u => u.id === uniId);
+      if (!uni) return;
+      const item = uni.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.status = status;
+      save();
+      renderUni(uni);
+      // ログイン中で数値IDの場合はAPIにも単体反映
+      const numId = parseInt(itemId);
+      if (isLoggedIn && numId && numId < 1e9) {
+        fetch(`/api/checklist/${numId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        }).catch(() => {});
+      }
+    }
+
+    // メモ更新
+    function updateMemo(uniId, itemId, memo) {
+      const uni = universities.find(u => u.id === uniId);
+      if (!uni) return;
+      const item = uni.items.find(i => i.id === itemId);
+      if (!item) return;
+      item.memo = memo;
+      save();
+    }
+
+    // カスタムアイテム追加
+    function addCustomItem(uniId) {
+      const form = document.getElementById('newItemForm_' + uniId);
+      form.classList.toggle('chk__new-item-form--open');
+      if (form.classList.contains('chk__new-item-form--open')) {
+        form.querySelector('.chk__new-item-input')?.focus();
+      }
+    }
+
+    function confirmCustomItem(uniId) {
+      const form = document.getElementById('newItemForm_' + uniId);
+      const input = form.querySelector('.chk__new-item-input');
+      const name = input?.value.trim();
+      if (!name) return;
+
+      const uni = universities.find(u => u.id === uniId);
+      if (!uni) return;
+
+      uni.items.push({
+        id: nextId++,
+        name,
+        status: 'none',
+        memo: '',
+        custom: true,
+      });
+      save();
+      renderUni(uni);
+      form.classList.remove('chk__new-item-form--open');
+      if (input) input.value = '';
+    }
+
+    function cancelCustomItem(uniId) {
+      const form = document.getElementById('newItemForm_' + uniId);
+      form.classList.remove('chk__new-item-form--open');
+      const input = form.querySelector('.chk__new-item-input');
+      if (input) input.value = '';
+    }
+
+    // 進捗計算
+    function calcProgress(uni) {
+      if (!uni.items.length) return { done: 0, total: 0, pct: 0 };
+      const done = uni.items.filter(i => i.status === 'done').length;
+      const total = uni.items.length;
+      return { done, total, pct: Math.round(done / total * 100) };
+    }
+
+    // 1大学分のHTML
+    function buildUniHTML(uni) {
+      const { done, total, pct } = calcProgress(uni);
+
+      const itemsHTML = uni.items.map(item => {
+        const isDone = item.status === 'done';
+        const statusBtns = STATUSES.map(s => `
+          <button
+            class="chk__status-btn chk__status-btn--${s.key}${item.status === s.key ? ' chk__status-btn--active' : ''}"
+            onclick="setStatus(${uni.id}, ${item.id}, '${s.key}')"
+          >${s.label}</button>
+        `).join('');
+
+        const memoText = item.memo || '';
+        const memoEmpty = !memoText;
+
+        return `
+          <li class="chk__item${isDone ? ' chk__item--done' : ''}" id="item_${item.id}">
+            <div class="chk__status-btns">${statusBtns}</div>
+            <div class="chk__item-body">
+              <div class="chk__item-name">${escHtml(item.name)}${item.custom ? ' <span style="font-size:10px;color:#64748b;font-weight:400;">(カスタム)</span>' : ''}</div>
+              <div
+                class="chk__memo"
+                contenteditable="true"
+                data-empty="${memoEmpty}"
+                data-uni="${uni.id}"
+                data-item="${item.id}"
+                oninput="handleMemoInput(this)"
+                onblur="saveMemo(this)"
+              >${memoEmpty ? 'メモを追加...' : escHtml(memoText)}</div>
+            </div>
+          </li>
+        `;
+      }).join('');
+
+      return `
+        <div class="chk__university" id="uni_${uni.id}">
+          <div class="chk__uni-header">
+            <div class="chk__uni-name">
+              <span class="chk__uni-name-icon">🏫</span>
+              ${escHtml(uni.name)}
+            </div>
+            <div class="chk__progress-wrap">
+              <div class="chk__progress-label">
+                <span>進捗</span>
+                <span>${done} / ${total} 完了（${pct}%）</span>
+              </div>
+              <div class="chk__progress-bar">
+                <div class="chk__progress-fill" style="width:${pct}%"></div>
+              </div>
+            </div>
+            <div class="chk__uni-actions">
+              <button class="chk__add-item-btn" onclick="addCustomItem(${uni.id})">+ アイテム追加</button>
+            </div>
+          </div>
+          <ul class="chk__items">${itemsHTML}</ul>
+          <div class="chk__new-item-form" id="newItemForm_${uni.id}">
+            <input class="chk__new-item-input" type="text" placeholder="新しい書類名を入力..." maxlength="100"
+              onkeydown="if(event.key==='Enter') confirmCustomItem(${uni.id})">
+            <button class="chk__new-item-confirm" onclick="confirmCustomItem(${uni.id})">追加</button>
+            <button class="chk__new-item-cancel" onclick="cancelCustomItem(${uni.id})">キャンセル</button>
+          </div>
+        </div>
+      `;
+    }
+
+    // 1大学分を再描画（差分更新）
+    function renderUni(uni) {
+      const existing = document.getElementById('uni_' + uni.id);
+      if (existing) {
+        const tmp = document.createElement('div');
+        tmp.innerHTML = buildUniHTML(uni);
+        existing.replaceWith(tmp.firstElementChild);
+      }
+    }
+
+    // 全体描画
+    function renderAll() {
+      const container = document.getElementById('checklistContainer');
+      if (!universities.length) {
+        container.innerHTML = `
+          <div class="chk__empty">
+            <div class="chk__empty-icon">📋</div>
+            <div>まだ大学が追加されていません。<br>上のフォームから大学を追加してください。</div>
+          </div>
+        `;
+        return;
+      }
+      container.innerHTML = universities.map(buildUniHTML).join('');
+    }
+
+    // メモ操作
+    function handleMemoInput(el) {
+      const isEmpty = el.textContent.trim() === '';
+      el.dataset.empty = isEmpty;
+      if (!isEmpty && el.dataset.empty === 'true') {
+        el.dataset.empty = 'false';
+      }
+    }
+
+    function saveMemo(el) {
+      const uniId  = parseInt(el.dataset.uni);
+      const itemId = parseInt(el.dataset.item);
+      const text   = el.textContent.trim();
+
+      // プレースホルダーテキストは保存しない
+      if (text === 'メモを追加...') return;
+
+      el.dataset.empty = !text;
+      updateMemo(uniId, itemId, text);
+    }
+
+    // XSS対策
+    function escHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // イベント登録
+    document.getElementById('addUniBtn').addEventListener('click', addUniversity);
+    document.getElementById('uniNameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') addUniversity();
+    });
+
+    // 初期化
+    checkAuth();
+  </script>
+
+</body>
+</html>

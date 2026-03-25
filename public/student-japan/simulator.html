@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学費シミュレーター | Will Abroad Japan</title>
+  <link rel="stylesheet" href="/styles/index.css">
+  <script src="/scripts/index.js" type="module" defer></script>
+  <style>
+    /* =====================
+       simulator.html 専用スタイル
+       ===================== */
+
+    .sim__page {
+      padding: clamp(80px, 10vw, 120px) clamp(16px, 5vw, 40px) clamp(48px, 8vw, 96px);
+      min-height: 100vh;
+    }
+
+    .sim__inner {
+      max-width: 860px;
+      margin: 0 auto;
+    }
+
+    /* フォームカード */
+    .sim__card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: clamp(20px, 3vw, 36px);
+      margin-bottom: 24px;
+    }
+
+    .sim__card-title {
+      font-size: clamp(15px, 2vw, 18px);
+      font-weight: 700;
+      color: var(--color-white);
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sim__card-title::before {
+      content: '';
+      display: inline-block;
+      width: 4px;
+      height: 1.2em;
+      background: var(--color-orange);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* 入力グリッド */
+    .sim__grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+      gap: 20px;
+    }
+
+    .sim__field {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sim__label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+    }
+
+    .sim__input-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sim__input {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 14px;
+      color: var(--color-white);
+      font-size: 15px;
+      font-family: 'Segoe UI', sans-serif;
+      transition: border-color 0.2s ease;
+      min-width: 0;
+    }
+
+    .sim__input:focus {
+      outline: none;
+      border-color: var(--color-orange);
+    }
+
+    .sim__input::placeholder {
+      color: #475569;
+    }
+
+    .sim__select {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--color-white);
+      font-size: 13px;
+      font-family: 'Segoe UI', sans-serif;
+      cursor: pointer;
+      transition: border-color 0.2s ease;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 30px;
+    }
+
+    .sim__select:focus {
+      outline: none;
+      border-color: var(--color-orange);
+    }
+
+    .sim__select option {
+      background: rgb(8, 16, 64);
+      color: var(--color-white);
+    }
+
+    /* 為替レートセクション */
+    .sim__rate-wrap {
+      margin-top: 20px;
+    }
+
+    .sim__rate-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .sim__rate-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+      gap: 12px;
+    }
+
+    .sim__rate-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 14px;
+    }
+
+    .sim__rate-currency {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--color-orange);
+      min-width: 32px;
+    }
+
+    .sim__rate-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      color: var(--color-white);
+      font-size: 14px;
+      font-family: 'Segoe UI', sans-serif;
+      padding: 2px 4px;
+      min-width: 0;
+    }
+
+    .sim__rate-input:focus {
+      outline: none;
+      border-bottom-color: var(--color-orange);
+    }
+
+    .sim__rate-unit {
+      font-size: 11px;
+      color: #64748b;
+      white-space: nowrap;
+    }
+
+    .sim__rate-status {
+      font-size: 12px;
+      margin-top: 8px;
+    }
+
+    .sim__rate-status--ok {
+      color: #10b981;
+    }
+
+    .sim__rate-status--error {
+      color: #f87171;
+    }
+
+    /* 計算ボタン */
+    .sim__calc-btn {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--color-orange);
+      color: var(--color-white);
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: opacity 0.2s ease;
+      font-family: 'Segoe UI', sans-serif;
+      margin-top: 8px;
+    }
+
+    .sim__calc-btn:hover {
+      opacity: 0.85;
+    }
+
+    .sim__calc-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* 結果セクション */
+    .sim__result {
+      display: none;
+    }
+
+    .sim__result--visible {
+      display: block;
+    }
+
+    .sim__result-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .sim__result-title {
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 800;
+      color: var(--color-white);
+    }
+
+    .sim__toggle-wrap {
+      display: flex;
+      gap: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 100px;
+      padding: 4px;
+    }
+
+    .sim__toggle-btn {
+      padding: 6px 16px;
+      border: none;
+      border-radius: 100px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Segoe UI', sans-serif;
+      background: transparent;
+      color: #94a3b8;
+    }
+
+    .sim__toggle-btn--active {
+      background: var(--color-orange);
+      color: var(--color-white);
+    }
+
+    /* サマリーカード */
+    .sim__summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .sim__summary-card {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 20px;
+      transition: border-color 0.2s ease;
+    }
+
+    .sim__summary-card:hover {
+      border-color: rgba(255, 128, 64, 0.3);
+    }
+
+    .sim__summary-card--accent {
+      border-color: rgba(255, 128, 64, 0.3);
+      background: rgba(255, 128, 64, 0.06);
+    }
+
+    .sim__summary-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .sim__summary-value {
+      font-size: clamp(18px, 2.5vw, 24px);
+      font-weight: 800;
+      color: var(--color-white);
+      line-height: 1.2;
+    }
+
+    .sim__summary-card--accent .sim__summary-value {
+      color: var(--color-orange);
+    }
+
+    .sim__summary-sub {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+
+    /* 年別内訳テーブル */
+    .sim__table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sim__table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(12px, 1.5vw, 14px);
+    }
+
+    .sim__table th {
+      background: rgba(255, 255, 255, 0.05);
+      color: #94a3b8;
+      font-weight: 600;
+      padding: 12px 16px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    .sim__table td {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      color: var(--color-white);
+      white-space: nowrap;
+    }
+
+    .sim__table tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .sim__table .sim__table-total td {
+      border-top: 2px solid rgba(255, 128, 64, 0.3);
+      background: rgba(255, 128, 64, 0.05);
+      font-weight: 700;
+      color: var(--color-orange);
+    }
+
+    /* 注意書き */
+    .sim__notice {
+      margin-top: 20px;
+      padding: 14px 18px;
+      background: rgba(255, 128, 64, 0.06);
+      border: 1px solid rgba(255, 128, 64, 0.2);
+      border-radius: 10px;
+      font-size: 13px;
+      color: #94a3b8;
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .sim__notice-icon {
+      color: var(--color-orange);
+      flex-shrink: 0;
+      font-size: 14px;
+      margin-top: 1px;
+    }
+  </style>
+</head>
+<body>
+
+  <main class="sim__page">
+    <div class="sim__inner">
+
+      <h1 class="page__title">学費シミュレーター</h1>
+
+      <!-- 入力フォーム -->
+      <div class="sim__card">
+        <div class="sim__card-title">費用の入力</div>
+
+        <div class="sim__grid">
+          <!-- 年間学費 -->
+          <div class="sim__field">
+            <label class="sim__label" for="tuitionAmount">年間学費</label>
+            <div class="sim__input-row">
+              <input class="sim__input" type="number" id="tuitionAmount" placeholder="例: 50000" min="0" step="1000">
+              <select class="sim__select" id="tuitionCurrency">
+                <option value="JPY">JPY (円)</option>
+                <option value="USD" selected>USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="AUD">AUD (A$)</option>
+                <option value="CAD">CAD (C$)</option>
+                <option value="SGD">SGD (S$)</option>
+                <option value="KRW">KRW (₩)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 年間生活費 -->
+          <div class="sim__field">
+            <label class="sim__label" for="livingAmount">年間生活費</label>
+            <div class="sim__input-row">
+              <input class="sim__input" type="number" id="livingAmount" placeholder="例: 20000" min="0" step="1000">
+              <select class="sim__select" id="livingCurrency">
+                <option value="JPY">JPY (円)</option>
+                <option value="USD" selected>USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="AUD">AUD (A$)</option>
+                <option value="CAD">CAD (C$)</option>
+                <option value="SGD">SGD (S$)</option>
+                <option value="KRW">KRW (₩)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 年間奨学金 -->
+          <div class="sim__field">
+            <label class="sim__label" for="scholarshipAmount">年間奨学金額</label>
+            <div class="sim__input-row">
+              <input class="sim__input" type="number" id="scholarshipAmount" placeholder="例: 30000" min="0" step="1000">
+              <select class="sim__select" id="scholarshipCurrency">
+                <option value="JPY">JPY (円)</option>
+                <option value="USD" selected>USD ($)</option>
+                <option value="GBP">GBP (£)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="AUD">AUD (A$)</option>
+                <option value="CAD">CAD (C$)</option>
+                <option value="SGD">SGD (S$)</option>
+                <option value="KRW">KRW (₩)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 在学年数 -->
+          <div class="sim__field">
+            <label class="sim__label" for="years">在学年数</label>
+            <select class="sim__select" id="years" style="padding-right:30px;">
+              <option value="1">1年</option>
+              <option value="2">2年</option>
+              <option value="3">3年</option>
+              <option value="4" selected>4年</option>
+              <option value="5">5年</option>
+              <option value="6">6年</option>
+              <option value="7">7年</option>
+              <option value="8">8年</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 為替レート -->
+        <div class="sim__rate-wrap">
+          <div class="sim__rate-label">為替レート（JPY換算・手動上書き可能）</div>
+          <div class="sim__rate-grid" id="rateGrid">
+            <!-- JSで生成 -->
+            <div style="color:#64748b;font-size:13px;padding:8px 0;">為替レートを読み込み中...</div>
+          </div>
+          <div id="rateStatus" class="sim__rate-status"></div>
+        </div>
+      </div>
+
+      <!-- 計算ボタン -->
+      <button class="sim__calc-btn" id="calcBtn">計算する</button>
+
+      <!-- 結果 -->
+      <div class="sim__result" id="simResult">
+        <div class="sim__card" style="margin-top:32px;">
+
+          <div class="sim__result-header">
+            <div class="sim__result-title">試算結果</div>
+            <div class="sim__toggle-wrap">
+              <button class="sim__toggle-btn sim__toggle-btn--active" id="toggleJPY" onclick="setDisplay('jpy')">円 (JPY)</button>
+              <button class="sim__toggle-btn" id="toggleForeign" onclick="setDisplay('foreign')">外貨</button>
+            </div>
+          </div>
+
+          <!-- サマリー -->
+          <div class="sim__summary" id="summaryCards">
+            <!-- JSで生成 -->
+          </div>
+
+          <!-- 年別内訳 -->
+          <div class="sim__card-title" style="margin-bottom:16px;">年別内訳</div>
+          <div class="sim__table-wrap">
+            <table class="sim__table">
+              <thead>
+                <tr>
+                  <th>年次</th>
+                  <th id="colTuition">学費</th>
+                  <th id="colLiving">生活費</th>
+                  <th id="colScholarship">奨学金</th>
+                  <th id="colGross">総費用</th>
+                  <th id="colNet">実質負担</th>
+                </tr>
+              </thead>
+              <tbody id="breakdownBody">
+              </tbody>
+            </table>
+          </div>
+
+          <!-- 注意書き -->
+          <div class="sim__notice">
+            <span class="sim__notice-icon">⚠</span>
+            <span>為替レートは変動します。あくまで目安です。実際の費用は各大学・奨学金団体にご確認ください。</span>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+
+  <script>
+    // =====================
+    // シミュレーター ロジック
+    // =====================
+
+    const CURRENCIES = ['USD', 'GBP', 'EUR', 'AUD', 'CAD', 'SGD', 'KRW'];
+    const CURRENCY_SYMBOLS = { JPY:'¥', USD:'$', GBP:'£', EUR:'€', AUD:'A$', CAD:'C$', SGD:'S$', KRW:'₩' };
+
+    // デフォルト為替レート（フォールバック用）
+    const DEFAULT_RATES = { USD: 150, GBP: 190, EUR: 165, AUD: 98, CAD: 111, SGD: 112, KRW: 0.11 };
+
+    let rates = { ...DEFAULT_RATES };
+    let displayMode = 'jpy';
+    let lastResult = null;
+
+    // 通貨ごとの入力フィールドを生成
+    function buildRateGrid() {
+      const grid = document.getElementById('rateGrid');
+      grid.innerHTML = CURRENCIES.map(cur => `
+        <div class="sim__rate-item">
+          <span class="sim__rate-currency">${cur}</span>
+          <input class="sim__rate-input" type="number" id="rate_${cur}" value="${rates[cur]}" step="0.01" min="0.001"
+            onchange="rates['${cur}'] = parseFloat(this.value) || DEFAULT_RATES['${cur}']">
+          <span class="sim__rate-unit">円</span>
+        </div>
+      `).join('');
+    }
+
+    // 為替レート自動取得
+    async function fetchRates() {
+      try {
+        const res = await fetch('/api/simulator/exchange-rates');
+        if (!res.ok) throw new Error('fetch failed');
+        const data = await res.json();
+        // { USD: 150.5, GBP: 192.1, ... } の形式を期待
+        const fetched = data.rates || data;
+        CURRENCIES.forEach(cur => {
+          if (fetched[cur] && typeof fetched[cur] === 'number') {
+            rates[cur] = fetched[cur];
+          }
+        });
+        document.getElementById('rateStatus').textContent = '✓ 為替レートを自動取得しました';
+        document.getElementById('rateStatus').className = 'sim__rate-status sim__rate-status--ok';
+      } catch {
+        document.getElementById('rateStatus').textContent = '※ 為替レートの自動取得に失敗しました。デフォルト値を使用しています。';
+        document.getElementById('rateStatus').className = 'sim__rate-status sim__rate-status--error';
+      }
+      buildRateGrid();
+    }
+
+    // 通貨をJPYに変換
+    function toJPY(amount, currency) {
+      if (!amount || isNaN(amount)) return 0;
+      if (currency === 'JPY') return amount;
+      return amount * (rates[currency] || DEFAULT_RATES[currency] || 150);
+    }
+
+    // 表示用フォーマット
+    function fmt(amount, mode, currency) {
+      if (mode === 'jpy') {
+        return '¥' + Math.round(amount).toLocaleString('ja-JP');
+      } else {
+        // 外貨モード: 学費・生活費・奨学金は各自通貨、合計はJPY
+        const sym = CURRENCY_SYMBOLS[currency] || currency;
+        return sym + amount.toLocaleString('en-US', { maximumFractionDigits: 0 });
+      }
+    }
+
+    // 計算実行
+    async function calculate() {
+      const tuitionAmt = parseFloat(document.getElementById('tuitionAmount').value) || 0;
+      const tuitionCur = document.getElementById('tuitionCurrency').value;
+      const livingAmt  = parseFloat(document.getElementById('livingAmount').value) || 0;
+      const livingCur  = document.getElementById('livingCurrency').value;
+      const scholAmt   = parseFloat(document.getElementById('scholarshipAmount').value) || 0;
+      const scholCur   = document.getElementById('scholarshipCurrency').value;
+      const years      = parseInt(document.getElementById('years').value) || 4;
+
+      // 最新レートを入力フィールドから再取得
+      CURRENCIES.forEach(cur => {
+        const el = document.getElementById('rate_' + cur);
+        if (el) rates[cur] = parseFloat(el.value) || DEFAULT_RATES[cur];
+      });
+
+      const btn = document.getElementById('calcBtn');
+      btn.disabled = true;
+      btn.textContent = '計算中...';
+
+      try {
+        const payload = {
+          tuition:     { amount: tuitionAmt, currency: tuitionCur },
+          living:      { amount: livingAmt,  currency: livingCur  },
+          scholarship: { amount: scholAmt,   currency: scholCur   },
+          years,
+          rates,
+        };
+
+        let result;
+        try {
+          const res = await fetch('/api/simulator/calculate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          if (res.ok) {
+            result = await res.json();
+          }
+        } catch {}
+
+        // APIが失敗した場合はクライアント側で計算
+        if (!result) {
+          result = clientCalculate(tuitionAmt, tuitionCur, livingAmt, livingCur, scholAmt, scholCur, years);
+        }
+
+        lastResult = { result, tuitionCur, livingCur, scholCur };
+        renderResult(result, tuitionCur, livingCur, scholCur);
+
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '計算する';
+      }
+    }
+
+    // クライアント側計算（APIフォールバック）
+    function clientCalculate(tuitionAmt, tuitionCur, livingAmt, livingCur, scholAmt, scholCur, years) {
+      const tuitionJPY = toJPY(tuitionAmt, tuitionCur);
+      const livingJPY  = toJPY(livingAmt,  livingCur);
+      const scholJPY   = toJPY(scholAmt,   scholCur);
+
+      const annualGross = tuitionJPY + livingJPY;
+      const annualNet   = Math.max(0, annualGross - scholJPY);
+
+      const breakdown = Array.from({ length: years }, (_, i) => ({
+        year:        i + 1,
+        tuition:     tuitionJPY,
+        living:      livingJPY,
+        scholarship: scholJPY,
+        gross:       annualGross,
+        net:         annualNet,
+      }));
+
+      return {
+        annualGross,
+        annualNet,
+        totalGross: annualGross * years,
+        totalNet:   annualNet  * years,
+        breakdown,
+      };
+    }
+
+    // 結果描画
+    function renderResult(result, tuitionCur, livingCur, scholCur) {
+      const el = document.getElementById('simResult');
+      el.classList.add('sim__result--visible');
+
+      // サマリーカード
+      renderSummary(result);
+      // 内訳テーブル
+      renderBreakdown(result, tuitionCur, livingCur, scholCur);
+      // スクロール
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderSummary(result) {
+      const isJPY = displayMode === 'jpy';
+      const { tuitionCur, livingCur, scholCur } = lastResult || {};
+      const rT = (tuitionCur && tuitionCur !== 'JPY') ? (rates[tuitionCur] || DEFAULT_RATES[tuitionCur] || 150) : 1;
+      const rL = (livingCur  && livingCur  !== 'JPY') ? (rates[livingCur]  || DEFAULT_RATES[livingCur]  || 150) : 1;
+      const rS = (scholCur   && scholCur   !== 'JPY') ? (rates[scholCur]   || DEFAULT_RATES[scholCur]   || 150) : 1;
+      const yrs = result.breakdown.length;
+
+      let cards;
+      if (isJPY) {
+        cards = [
+          { label: '年間総費用',           value: fmt(result.annualGross, 'jpy'), sub: '学費 + 生活費（円換算）' },
+          { label: '年間実質負担',          value: fmt(result.annualNet,   'jpy'), sub: '奨学金控除後', accent: true },
+          { label: `${yrs}年間合計（総額）`, value: fmt(result.totalGross,  'jpy'), sub: '全期間の総費用' },
+          { label: `${yrs}年間合計（実質）`, value: fmt(result.totalNet,    'jpy'), sub: '全期間の実質負担', accent: true },
+        ];
+      } else {
+        // 外貨モード：学費・生活費・奨学金を各元の通貨で表示
+        const tSym = CURRENCY_SYMBOLS[tuitionCur] || tuitionCur || '¥';
+        const lSym = CURRENCY_SYMBOLS[livingCur]  || livingCur  || '¥';
+        const sSym = CURRENCY_SYMBOLS[scholCur]   || scholCur   || '¥';
+        const annualTuitionFx  = Math.round(result.breakdown[0]?.tuition     / rT);
+        const annualLivingFx   = Math.round(result.breakdown[0]?.living      / rL);
+        const annualScholFx    = Math.round(result.breakdown[0]?.scholarship / rS);
+        cards = [
+          { label: `年間学費 (${tuitionCur || 'JPY'})`,    value: `${tSym}${annualTuitionFx?.toLocaleString()}`, sub: `≈ ${fmt(result.breakdown[0]?.tuition, 'jpy')}` },
+          { label: `年間生活費 (${livingCur || 'JPY'})`,   value: `${lSym}${annualLivingFx?.toLocaleString()}`,  sub: `≈ ${fmt(result.breakdown[0]?.living, 'jpy')}` },
+          { label: `年間奨学金 (${scholCur || 'JPY'})`,    value: `${sSym}${annualScholFx?.toLocaleString()}`,   sub: `≈ ${fmt(result.breakdown[0]?.scholarship, 'jpy')}`, accent: true },
+          { label: `${yrs}年間実質負担（円）`,              value: fmt(result.totalNet, 'jpy'),                   sub: '奨学金控除後の総負担', accent: true },
+        ];
+      }
+
+      document.getElementById('summaryCards').innerHTML = cards.map(c => `
+        <div class="sim__summary-card${c.accent ? ' sim__summary-card--accent' : ''}">
+          <div class="sim__summary-label">${c.label}</div>
+          <div class="sim__summary-value">${c.value}</div>
+          <div class="sim__summary-sub">${c.sub}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderBreakdown(result, tuitionCur, livingCur, scholCur) {
+      const isJPY = displayMode === 'jpy';
+
+      // ヘッダー更新
+      if (!isJPY) {
+        document.getElementById('colTuition').textContent    = `学費 (${tuitionCur})`;
+        document.getElementById('colLiving').textContent     = `生活費 (${livingCur})`;
+        document.getElementById('colScholarship').textContent = `奨学金 (${scholCur})`;
+        document.getElementById('colGross').textContent      = '総費用 (JPY)';
+        document.getElementById('colNet').textContent        = '実質負担 (JPY)';
+      } else {
+        document.getElementById('colTuition').textContent    = '学費';
+        document.getElementById('colLiving').textContent     = '生活費';
+        document.getElementById('colScholarship').textContent = '奨学金';
+        document.getElementById('colGross').textContent      = '年間総費用';
+        document.getElementById('colNet').textContent        = '実質負担';
+      }
+
+      const tbody = document.getElementById('breakdownBody');
+      const rows = result.breakdown.map(row => {
+        let tuitionDisp, livingDisp, scholDisp;
+        if (isJPY) {
+          tuitionDisp = fmt(row.tuition,     'jpy');
+          livingDisp  = fmt(row.living,      'jpy');
+          scholDisp   = fmt(row.scholarship, 'jpy');
+        } else {
+          // 外貨逆算
+          const rT = tuitionCur !== 'JPY' ? (rates[tuitionCur] || 150) : 1;
+          const rL = livingCur  !== 'JPY' ? (rates[livingCur]  || 150) : 1;
+          const rS = scholCur   !== 'JPY' ? (rates[scholCur]   || 150) : 1;
+          tuitionDisp = fmt(row.tuition     / rT, 'foreign', tuitionCur);
+          livingDisp  = fmt(row.living      / rL, 'foreign', livingCur);
+          scholDisp   = fmt(row.scholarship / rS, 'foreign', scholCur);
+        }
+        return `
+          <tr>
+            <td>${row.year}年次</td>
+            <td>${tuitionDisp}</td>
+            <td>${livingDisp}</td>
+            <td>${scholDisp}</td>
+            <td>${fmt(row.gross, 'jpy')}</td>
+            <td>${fmt(row.net,   'jpy')}</td>
+          </tr>
+        `;
+      });
+
+      // 合計行
+      rows.push(`
+        <tr class="sim__table-total">
+          <td>合計</td>
+          <td colspan="3"></td>
+          <td>${fmt(result.totalGross, 'jpy')}</td>
+          <td>${fmt(result.totalNet,   'jpy')}</td>
+        </tr>
+      `);
+
+      tbody.innerHTML = rows.join('');
+    }
+
+    // 円/外貨 切り替え
+    function setDisplay(mode) {
+      displayMode = mode;
+      document.getElementById('toggleJPY').classList.toggle('sim__toggle-btn--active', mode === 'jpy');
+      document.getElementById('toggleForeign').classList.toggle('sim__toggle-btn--active', mode === 'foreign');
+      if (lastResult) {
+        renderSummary(lastResult.result);
+        renderBreakdown(lastResult.result, lastResult.tuitionCur, lastResult.livingCur, lastResult.scholCur);
+      }
+    }
+
+    // イベント
+    document.getElementById('calcBtn').addEventListener('click', calculate);
+
+    // 初期化
+    fetchRates();
+  </script>
+
+</body>
+</html>

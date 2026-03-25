@@ -1,0 +1,22 @@
+{
+  "name": "WillAbroad Japan",
+  "short_name": "WillAbroad",
+  "description": "日本人学生向け海外大学留学支援ポータル",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a3a5c",
+  "orientation": "portrait-primary",
+  "lang": "ja",
+  "scope": "/",
+  "categories": ["education"],
+  "icons": [
+    { "src": "/images/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/images/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/images/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "大学検索", "url": "/student-japan.html#map", "description": "大学マップで検索" },
+    { "name": "奨学金", "url": "/student-japan/scholarship.html", "description": "奨学金を探す" }
+  ]
+}

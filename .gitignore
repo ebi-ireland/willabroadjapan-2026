@@ -42,3 +42,6 @@ GetData/CreateTable/scrape_progress*.json
 
 # Upload / document folders (PDFs etc.)
 public/document/
+
+# Backup files
+/backups/

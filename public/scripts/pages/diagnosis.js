@@ -29,9 +29,22 @@ if (path === '/student-japan/diagnosis.html') {
     KW_DATA = keywords
     SCORING = buildScoringFromAPI(scoringRows)
     DIAGNOSIS_CONFIG = {
-      pass_threshold:  parseInt(config.pass_threshold  || 90),
-      maybe_threshold: parseInt(config.maybe_threshold || 70),
-      max_selections:  parseInt(config.max_selections  || 5),
+      pass_threshold:   parseInt(config.pass_threshold   || 90),
+      maybe_threshold:  parseInt(config.maybe_threshold  || 70),
+      max_selections:   parseInt(config.max_selections   || 5),
+      // 重み係数
+      weight_gpa:       parseFloat(config.weight_gpa       || 1.0),
+      weight_sat:       parseFloat(config.weight_sat       || 1.0),
+      weight_act:       parseFloat(config.weight_act       || 1.0),
+      weight_lang:      parseFloat(config.weight_lang      || 1.0),
+      weight_classrank: parseFloat(config.weight_classrank || 1.0),
+      weight_keywords:  parseFloat(config.weight_keywords  || 1.0),
+      // 上限pts（0 = 無制限）
+      cap_gpa:          parseInt(config.cap_gpa        || 0),
+      cap_sat:          parseInt(config.cap_sat        || 0),
+      cap_lang:         parseInt(config.cap_lang       || 0),
+      cap_classrank:    parseInt(config.cap_classrank  || 0),
+      cap_keywords:     parseInt(config.cap_keywords   || 0),
     }
     renderStepIndicator()
     updateLangInput()
@@ -123,7 +136,20 @@ if (path === '/student-japan/diagnosis.html') {
   }
 
   let SCORING = {}
-  let DIAGNOSIS_CONFIG = { pass_threshold: 90, maybe_threshold: 70, max_selections: 5 }
+  let DIAGNOSIS_CONFIG = {
+    pass_threshold: 90, maybe_threshold: 70, max_selections: 5,
+    weight_gpa: 1.0, weight_sat: 1.0, weight_act: 1.0,
+    weight_lang: 1.0, weight_classrank: 1.0, weight_keywords: 1.0,
+    cap_gpa: 0, cap_sat: 0, cap_lang: 0, cap_classrank: 0, cap_keywords: 0,
+  }
+
+  // 重み係数を適用し、上限でクランプする
+  function applyWeightCap(pts, weightKey, capKey) {
+    const w = parseFloat(DIAGNOSIS_CONFIG['weight_' + weightKey] || 1.0)
+    const c = parseInt(DIAGNOSIS_CONFIG['cap_' + capKey] || 0)
+    const weighted = Math.round(pts * w)
+    return c > 0 ? Math.min(weighted, c) : weighted
+  }
 
   function buildScoringFromAPI(rows) {
     const scoring = {}
@@ -148,36 +174,58 @@ if (path === '/student-japan/diagnosis.html') {
 
   function calcScore() {
     const bd = {}
+
+    // GPA
     const gpa = parseFloat(document.getElementById('in_gpa').value)
-    bd.gpa = isNaN(gpa) ? 0 : rangeScore(SCORING.gpa, gpa)
+    const gpaRaw = isNaN(gpa) ? 0 : rangeScore(SCORING.gpa, gpa)
+    bd.gpa = applyWeightCap(gpaRaw, 'gpa', 'gpa')
+
+    // SAT / ACT（高い方を採用し、それぞれの重みを適用してから比較）
     const sat = parseInt(document.getElementById('in_sat').value)
     const act = parseInt(document.getElementById('in_act').value)
-    const satPts = isNaN(sat) ? 0 : rangeScore(SCORING.sat, sat)
-    const actPts = isNaN(act) ? 0 : rangeScore(SCORING.act, act)
-    bd.test = Math.max(satPts, actPts)
-    bd.testLabel = satPts >= actPts ? (isNaN(sat) ? 'SAT/ACT なし' : 'SAT ' + sat) : 'ACT ' + act
+    const satRaw = isNaN(sat) ? 0 : rangeScore(SCORING.sat, sat)
+    const actRaw = isNaN(act) ? 0 : rangeScore(SCORING.act, act)
+    const satWeighted = applyWeightCap(satRaw, 'sat', 'sat')
+    const actWeighted = applyWeightCap(actRaw, 'act', 'sat')   // cap_sat を共用
+    if (satWeighted >= actWeighted) {
+      bd.test = satWeighted
+      bd.testLabel = isNaN(sat) ? 'SAT/ACT なし' : 'SAT ' + sat
+    } else {
+      bd.test = actWeighted
+      bd.testLabel = 'ACT ' + act
+    }
+
+    // 英語資格
     const langType = document.querySelector('input[name="langType"]:checked')?.value || 'none'
     const langVal  = parseFloat(document.getElementById('in_lang').value)
     bd.lang = 0
     bd.langLabel = '英語資格なし'
     if (langType !== 'none' && !isNaN(langVal)) {
-      bd.lang = rangeScore(SCORING[langType], langVal)
+      const langRaw = rangeScore(SCORING[langType], langVal)
+      bd.lang = applyWeightCap(langRaw, 'lang', 'lang')
       bd.langLabel = langType.toUpperCase() + ' ' + langVal
     }
+
+    // クラスランク
     const cr = document.getElementById('in_classrank').value
-    bd.classrank = cr ? (SCORING.classrank[cr] || 0) : 0
-    bd.activity = 0
+    const crRaw = cr ? (SCORING.classrank?.[cr] || 0) : 0
+    bd.classrank = applyWeightCap(crRaw, 'classrank', 'classrank')
+
+    // キーワード・課外活動
+    let actRawTotal = 0
     bd.actLabels = []
     ;[1, 2, 3].forEach(n => {
       const val = (document.getElementById('act' + n)?.value || '').trim().toLowerCase()
       if (!val) return
       KW_DATA.forEach(kw => {
         if (val.includes(kw.keyword.toLowerCase())) {
-          bd.activity += kw.points
+          actRawTotal += kw.points
           bd.actLabels.push(kw.keyword + ' +' + kw.points)
         }
       })
     })
+    bd.activity = applyWeightCap(actRawTotal, 'keywords', 'keywords')
+
     bd.total = bd.gpa + bd.test + bd.lang + bd.classrank + bd.activity
     return bd
   }

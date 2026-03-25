@@ -1,0 +1,697 @@
+/* =====================================================================
+   responsive.css
+   全ページ共通レスポンシブ対応
+   ブレイクポイント:
+     --sp:  max-width 480px  (スマートフォン)
+     --tab: max-width 768px  (タブレット)
+     --md:  max-width 1024px (小型デスクトップ)
+   ===================================================================== */
+
+/* ── バーガーボタン アニメーション ──────────────────────────────── */
+.navbar__burger.is-open span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.navbar__burger.is-open span:nth-child(2) {
+  opacity: 0;
+  transform: scaleX(0);
+}
+.navbar__burger.is-open span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+/* ── 横スクロール防止（最重要） ─────────────────────────────────── */
+/* ⚠️ body に overflow-x: hidden を付けると Mapbox GL JS が壊れるため html のみに適用 */
+html {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* ── 画像・動画の横はみ出し防止 ──────────────────────────────────── */
+img, video, iframe, canvas, svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* ── テーブルの横スクロール対応 ──────────────────────────────────── */
+.table-wrap,
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+table {
+  min-width: 500px; /* テーブルは最低幅を確保してスクロール */
+}
+
+/* ── タップターゲット最小サイズ（44px） ──────────────────────────── */
+button, a, [role="button"], input[type="submit"], input[type="button"] {
+  min-height: 44px;
+}
+
+/* =====================================================================
+   ナビバー（.navbar） - スマートフォン / タブレット
+   ===================================================================== */
+
+@media (max-width: 768px) {
+
+  /* デスクトップナビの表示を抑制 */
+  .navbar__list {
+    display: none;
+  }
+
+  /* バーガーボタンを表示 */
+  .navbar__burger {
+    display: flex;
+  }
+
+  /* モバイルメニューが開いたとき */
+  .navbar__menu--open .navbar__list {
+    display: flex;
+  }
+
+  /* ドロップダウン（グループ）をモバイルではインライン展開 */
+  .navbar__item--group .navbar__group {
+    display: none;
+    position: static;
+    box-shadow: none;
+    border: none;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    margin: 4px 0 4px 12px;
+    padding: 4px 0;
+  }
+
+  .navbar__item--group.open .navbar__group {
+    display: block;
+  }
+
+  /* ユーザーメニュー */
+  .navbar__user-menu {
+    right: 0;
+    left: auto;
+    min-width: 160px;
+  }
+
+  /* ログイン・コンタクトボタンのテキストを縮小 */
+  .navbar__contact,
+  .navbar__login {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* ユーザー名は非表示 */
+  .navbar__user-name {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar__inner {
+    padding: 10px 14px;
+  }
+
+  /* コンタクトボタンは超小型では非表示（ログインのみ残す） */
+  .navbar__contact {
+    display: none;
+  }
+}
+
+/* =====================================================================
+   navy-gold ナビバー（英語ページ）
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  .ng-nav__inner {
+    padding: 0 20px;
+  }
+
+  .ng-nav__links {
+    display: none;
+  }
+
+  .ng-nav__burger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  .ng-nav__burger span {
+    display: block;
+    width: 24px;
+    height: 2px;
+    background: var(--cream, #f5f0e8);
+    border-radius: 2px;
+  }
+
+  .ng-nav__mobile-menu {
+    display: none;
+    flex-direction: column;
+    padding: 20px;
+    border-top: 1px solid var(--border, rgba(200,147,42,0.15));
+    gap: 8px;
+  }
+
+  .ng-nav__mobile-menu--open {
+    display: flex;
+  }
+
+  .ng-nav__mobile-link {
+    display: block;
+    padding: 10px 12px;
+    color: var(--cream, #f5f0e8);
+    font-size: 15px;
+    border-radius: 8px;
+    transition: background 0.2s;
+  }
+
+  .ng-nav__mobile-link:hover,
+  .ng-nav__mobile-link:active {
+    background: rgba(200,147,42,0.1);
+  }
+}
+
+/* =====================================================================
+   グリッドレイアウト 共通修正
+   ===================================================================== */
+
+/* 3列グリッド → タブレット2列 → スマホ1列 */
+@media (max-width: 1024px) {
+  .grid-3,
+  [style*="grid-template-columns: 1fr 1fr 1fr"],
+  [style*="grid-template-columns: repeat(3"] {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-3,
+  .grid-2,
+  [style*="grid-template-columns: 1fr 1fr 1fr"],
+  [style*="grid-template-columns: 1fr 1fr"],
+  [style*="grid-template-columns: repeat("] {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* 2列グリッド → スマホ1列 */
+@media (max-width: 640px) {
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =====================================================================
+   セクション・カード 余白調整
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  .section {
+    padding: clamp(32px, 6vw, 64px) clamp(14px, 4vw, 24px);
+  }
+
+  .section__inner {
+    max-width: 100%;
+  }
+
+  /* カード系のパディング縮小 */
+  .card,
+  .form-card,
+  [class*="card"] {
+    padding: 20px 16px;
+  }
+
+  /* ページヘッダーのボタン折り返し */
+  .page-header {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* Adminのstatsカード */
+  .stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .stat {
+    padding: 14px 12px;
+  }
+
+  .stat__num {
+    font-size: 1.4rem;
+  }
+}
+
+/* =====================================================================
+   フォーム・インプット
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  /* 横並びフォームを縦並びに */
+  .form-row,
+  [style*="display: grid"][style*="1fr 1fr"],
+  [style*="display:grid"][style*="1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* インプット・セレクト・テキストエリア全幅 */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="date"],
+  input[type="url"],
+  input[type="password"],
+  select,
+  textarea {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  /* ボタンの横並びを縦に */
+  .btn-group,
+  .button-row {
+    flex-direction: column;
+  }
+
+  .btn-group .btn,
+  .button-row .btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =====================================================================
+   タブ（.tabs）
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .tabs {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .tab {
+    font-size: 12px;
+    padding: 7px 10px;
+    flex-shrink: 0;
+  }
+}
+
+/* =====================================================================
+   Admin パネル（admin/index.html）
+   ===================================================================== */
+
+@media (max-width: 900px) {
+  /* サイドバーをオーバーレイに変更 */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    height: 100vh;
+    z-index: 300;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .sidebar--open {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+  }
+
+  .main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* ハンバーガーボタン表示 */
+  .sidebar-toggle {
+    display: flex !important;
+  }
+
+  /* オーバーレイ背景 */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 299;
+  }
+
+  .sidebar-overlay--visible {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  /* Admin: データテーブルのフォント縮小 */
+  .data-table {
+    font-size: 12px;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 8px 10px;
+  }
+
+  /* truncateの最大幅を縮小 */
+  .truncate {
+    max-width: 120px;
+  }
+}
+
+/* =====================================================================
+   ヒーロー・バナー系
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  .hero,
+  .hero-section,
+  [class*="hero"] {
+    padding: clamp(80px, 15vw, 120px) clamp(16px, 5vw, 32px) clamp(48px, 10vw, 80px);
+  }
+
+  .hero h1,
+  .hero__title,
+  [class*="hero__title"] {
+    font-size: clamp(24px, 6vw, 40px);
+  }
+
+  .hero p,
+  .hero__sub,
+  [class*="hero__sub"] {
+    font-size: clamp(14px, 3vw, 18px);
+  }
+}
+
+/* =====================================================================
+   フレックスレイアウト修正
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  /* 横並びのflexを縦並びに（gap付き） */
+  .flex-row,
+  [class*="__row"],
+  [class*="__header"] {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* notices, articles等のメタ情報 */
+  .notices__item {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+/* =====================================================================
+   地図（Mapbox）のレスポンシブ
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  #map,
+  .map-container {
+    height: 50vh;
+    min-height: 280px;
+  }
+
+  /* マップサイドパネルを下部に移動 */
+  .map-layout {
+    flex-direction: column !important;
+  }
+
+  .map-sidebar {
+    width: 100% !important;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+}
+
+/* =====================================================================
+   モーダル・オーバーレイ
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .modal,
+  [class*="modal"] {
+    width: calc(100% - 32px) !important;
+    max-width: 100% !important;
+    margin: 16px;
+    border-radius: 14px;
+  }
+}
+
+/* =====================================================================
+   フッター
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .footer__inner,
+  .footer-inner {
+    flex-direction: column;
+    gap: 24px;
+    text-align: center;
+  }
+
+  .footer__links,
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* =====================================================================
+   診断・体験談・スレッドなど固有コンポーネント
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  /* 診断フォーム */
+  .diagnosis-form,
+  .diagnosis__options {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 体験談カード */
+  .experience-card,
+  .experiences__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 奨学金カード */
+  .scholarship-grid,
+  .scholarship__list {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 記事グリッド */
+  .articles-grid,
+  .articles__grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =====================================================================
+   学費シミュレーター・チェックリスト・締め切りページ
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  /* 通貨+金額の入力ペア */
+  .currency-input-group {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .currency-input-group select {
+    width: 100%;
+  }
+
+  /* 結果カード */
+  .result-cards {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* 締め切りアイテム */
+  .deadline-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* チェックリストのボタン */
+  .checklist-status-btns {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
+@media (max-width: 400px) {
+  .result-cards {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =====================================================================
+   Supporter ページ
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .supporter-grid,
+  .supporter__grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .stripe-btn,
+  .donation-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =====================================================================
+   navy-gold.css 英語ページ（大学向け・留学生向け）
+   ===================================================================== */
+
+@media (max-width: 768px) {
+  .ng-nav__inner {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  body[class*="ng-"],
+  .ng-page {
+    padding-top: 60px;
+  }
+
+  /* ヒーロー */
+  .ng-hero {
+    padding: 60px 20px 40px;
+    min-height: auto;
+  }
+
+  .ng-hero h1 {
+    font-size: clamp(24px, 7vw, 40px);
+  }
+
+  /* カードグリッド */
+  .ng-cards,
+  .ng-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* セクション */
+  .ng-section {
+    padding: 40px 20px;
+  }
+
+  /* CTAボタン */
+  .ng-cta-btns {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ng-btn {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* =====================================================================
+   プロフィール・ユーザーページ
+   ===================================================================== */
+
+@media (max-width: 640px) {
+  .profile-header,
+  .profile__header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .profile-avatar,
+  .profile__avatar {
+    margin: 0 auto;
+  }
+
+  .profile-stats,
+  .profile__stats {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* =====================================================================
+   スマホ専用ユーティリティ
+   ===================================================================== */
+
+/* スマホのみ非表示 */
+@media (max-width: 480px) {
+  .hide-sp { display: none !important; }
+}
+
+/* タブレット以下で非表示 */
+@media (max-width: 768px) {
+  .hide-tab { display: none !important; }
+}
+
+/* スマホのみ表示 */
+@media (min-width: 481px) {
+  .show-sp { display: none !important; }
+}
+
+/* =====================================================================
+   タッチデバイスのhover対策
+   （hover依存のドロップダウンをタッチで動かすJS補助用クラス）
+   ===================================================================== */
+
+@media (hover: none) {
+  /* タッチデバイスではhoverを無効化 */
+  .navbar__item--group:hover .navbar__group {
+    display: none;
+  }
+
+  .navbar__item--group.open .navbar__group {
+    display: block;
+  }
+
+  .navbar__user:hover .navbar__user-menu {
+    display: none;
+  }
+
+  .navbar__user.open .navbar__user-menu {
+    display: block;
+  }
+}
+
+/* =====================================================================
+   iOS Safari 特有の修正
+   ===================================================================== */
+
+/* ボトムナビ・セーフエリア対応 */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .footer,
+  footer {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+}
+
+/* inputのズームを防ぐ（16px以上に設定） */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  input[type="date"],
+  input[type="url"],
+  input[type="password"],
+  input[type="search"],
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

@@ -8,9 +8,15 @@ const express = require('express')
 const session = require('express-session')
 const path    = require('path')
 const db      = require('./db/connection')
+const helmet    = require('helmet')
+const logger    = require('./middleware/logger')
+const { adminLoginLimiter, generalLimiter } = require('./middleware/rateLimiter')
+const { runBackup, listBackups } = require('./services/backup')
 
 const app = express()
 app.use(express.json({ limit: '2mb' }))
+app.use(helmet({ contentSecurityPolicy: false }))
+app.use('/admin/api/', generalLimiter)
 app.use(express.static(path.join(__dirname, 'admin')))
 
 // ── セキュリティヘルパー ────────────────────────────────────
@@ -36,10 +42,64 @@ function handleErr(res, err) {
   res.status(status).json({ error: err.message })
 }
 
+// ── MySQL 永続セッションストア ────────────────────────────────
+// express-session の Store を継承して MySQL に保存
+// → サーバー再起動後もセッションが維持される
+const SessionStore = session.Store
+class AdminSessionStore extends SessionStore {
+  constructor(pool) {
+    super()
+    this.pool = pool
+    // テーブルが存在しない場合は自動作成
+    pool.query(`
+      CREATE TABLE IF NOT EXISTS admin_sessions (
+        sid     VARCHAR(255) PRIMARY KEY,
+        sess    TEXT        NOT NULL,
+        expired DATETIME    NOT NULL,
+        INDEX idx_expired (expired)
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+    `, (err) => { if (err) console.error('[Session] テーブル作成エラー:', err.message) })
+    // 1時間ごとに期限切れセッションを削除
+    setInterval(() => {
+      pool.query('DELETE FROM admin_sessions WHERE expired < NOW()')
+    }, 60 * 60 * 1000)
+  }
+  get(sid, cb) {
+    this.pool.query(
+      'SELECT sess FROM admin_sessions WHERE sid = ? AND expired > NOW()',
+      [sid],
+      (err, rows) => {
+        if (err) return cb(err)
+        if (!rows.length) return cb(null, null)
+        try { cb(null, JSON.parse(rows[0].sess)) } catch { cb(null, null) }
+      }
+    )
+  }
+  set(sid, sess, cb) {
+    // サーバー側TTL: 24時間（クッキーはセッションクッキーのままでブラウザを閉じると消える）
+    const exp = new Date(Date.now() + 24 * 60 * 60 * 1000)
+    const s   = JSON.stringify(sess)
+    this.pool.query(
+      'INSERT INTO admin_sessions (sid, sess, expired) VALUES (?,?,?) ON DUPLICATE KEY UPDATE sess=?, expired=?',
+      [sid, s, exp, s, exp],
+      (err) => { if (cb) cb(err) }
+    )
+  }
+  destroy(sid, cb) {
+    this.pool.query('DELETE FROM admin_sessions WHERE sid = ?', [sid], (err) => { if (cb) cb(err) })
+  }
+}
+
 app.use(session({
+  store: new AdminSessionStore(db),
   secret: process.env.SESSION_SECRET || 'admin_secret',
   resave: false,
   saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'strict',
+    // maxAge を指定しない = セッションクッキー（ブラウザを閉じると自動削除）
+  },
 }))
 
 const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'willadmin'
@@ -50,7 +110,7 @@ function requireAuth(req, res, next) {
 }
 
 // ── 認証 ─────────────────────────────────────────────────
-app.post('/admin/api/login', (req, res) => {
+app.post('/admin/api/login', adminLoginLimiter, (req, res) => {
   if (req.body.password === ADMIN_PASS) {
     req.session.admin = true
     res.json({ ok: true })
@@ -59,6 +119,11 @@ app.post('/admin/api/login', (req, res) => {
   }
 })
 app.post('/admin/api/logout', (req, res) => { req.session.destroy(); res.json({ ok: true }) })
+
+// セッション確認（ページリロード時に呼び出す）
+app.get('/admin/api/auth-check', (req, res) => {
+  res.json({ authenticated: !!req.session.admin })
+})
 
 // ── お知らせ ──────────────────────────────────────────────
 app.get('/admin/api/notices', requireAuth, (req, res) => {
@@ -450,6 +515,50 @@ app.delete('/admin/api/diagnosis/colleges/:id', requireAuth, (req, res) => {
   } catch(e) { return handleErr(res, e) }
 })
 
+// ── 診断 大学一括インポート ────────────────────────────────
+// body: { colleges: [{name, score, country, need_based}] }
+app.post('/admin/api/diagnosis/colleges/bulk', requireAuth, (req, res) => {
+  try {
+    const list = req.body.colleges
+    if (!Array.isArray(list) || list.length === 0)
+      return res.status(400).json({ error: 'colleges配列が必要です' })
+
+    const valid = list
+      .map(c => ({
+        name:      safeStr(String(c.name || ''), 255).trim(),
+        score:     Math.max(0, parseInt(c.score, 10) || 10000),
+        country:   safeStr(String(c.country || ''), 100).trim(),
+        need_based: c.need_based ? 1 : 0,
+      }))
+      .filter(c => c.name.length > 0)
+
+    if (valid.length === 0)
+      return res.status(400).json({ error: '有効な大学名がありません' })
+
+    // 既存大学名を取得して重複チェック
+    db.query('SELECT name FROM diagnosis_colleges', (err, existing) => {
+      if (err) return res.status(500).json({ error: err.message })
+      const existSet = new Set(existing.map(r => r.name.toLowerCase()))
+
+      const toInsert = valid.filter(c => !existSet.has(c.name.toLowerCase()))
+      const skipped  = valid.length - toInsert.length
+
+      if (toInsert.length === 0)
+        return res.json({ ok: true, inserted: 0, skipped })
+
+      const values = toInsert.map(c => [c.name, c.score, c.need_based, c.country])
+      db.query(
+        'INSERT INTO diagnosis_colleges (name, score, need_based, country) VALUES ?',
+        [values],
+        (err2) => {
+          if (err2) return res.status(500).json({ error: err2.message })
+          res.json({ ok: true, inserted: toInsert.length, skipped })
+        }
+      )
+    })
+  } catch(e) { return handleErr(res, e) }
+})
+
 // ── 診断 キーワード ────────────────────────────────────────
 app.get('/admin/api/diagnosis/keywords', requireAuth, (req, res) => {
   db.query('SELECT * FROM diagnosis_keywords ORDER BY points DESC', (err, rows) => {
@@ -519,13 +628,31 @@ app.get('/admin/api/diagnosis/config', requireAuth, (req, res) => {
 })
 app.put('/admin/api/diagnosis/config', requireAuth, (req, res) => {
   try {
-    const ALLOWED_KEYS = ['pass_threshold','maybe_threshold','max_selections']
-    const { cfg_key, cfg_val } = req.body
-    safeEnum(cfg_key, ALLOWED_KEYS)
-    const val = safeStr(cfg_val, 50)
-    if (!val) return res.status(400).json({ error: '値は必須です' })
-    db.query('UPDATE diagnosis_config SET cfg_val = ? WHERE cfg_key = ?', [val, cfg_key],
-      (err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true }) })
+    const ALLOWED_KEYS = [
+      // 既存
+      'pass_threshold', 'maybe_threshold', 'max_selections',
+      // 重み係数
+      'weight_gpa', 'weight_sat', 'weight_act',
+      'weight_lang', 'weight_classrank', 'weight_keywords',
+      // 上限pts
+      'cap_gpa', 'cap_sat', 'cap_lang', 'cap_classrank', 'cap_keywords',
+    ]
+    const { cfg_key, cfg_val, cfg_label, upsert } = req.body
+    if (!ALLOWED_KEYS.includes(cfg_key))
+      return res.status(400).json({ error: `許可されていないキー: ${cfg_key}` })
+    const val   = safeStr(String(cfg_val ?? ''), 50)
+    const label = safeStr(String(cfg_label || cfg_key), 100)
+    if (upsert) {
+      // INSERT ... ON DUPLICATE KEY UPDATE（初回登録 or 更新）
+      db.query(
+        'INSERT INTO diagnosis_config (cfg_key, cfg_val, label) VALUES (?,?,?) ON DUPLICATE KEY UPDATE cfg_val=?',
+        [cfg_key, val, label, val],
+        (err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true }) }
+      )
+    } else {
+      db.query('UPDATE diagnosis_config SET cfg_val=? WHERE cfg_key=?', [val, cfg_key],
+        (err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true }) })
+    }
   } catch(e) { return handleErr(res, e) }
 })
 
@@ -693,6 +820,197 @@ app.get('/admin/api/analytics/experience-dist', requireAuth, (req, res) => {
     FROM experiences WHERE status='published'
     GROUP BY country ORDER BY count DESC LIMIT 30
   `, (err, rows) => { if (err) return res.status(500).json({ error: err.message }); res.json(rows) })
+})
+
+// ── バックアップ ──────────────────────────────────────────────
+app.post('/admin/api/backup/run', requireAuth, (req, res) => {
+  runBackup((err, filename) => {
+    if (err) return res.status(500).json({ error: 'バックアップ失敗: ' + err.message })
+    res.json({ ok: true, message: `バックアップ完了: ${filename}` })
+  })
+})
+
+app.get('/admin/api/backup/list', requireAuth, (req, res) => {
+  res.json(listBackups())
+})
+
+// ── ユーザー管理 ──────────────────────────────────────────────
+app.get('/admin/api/users', requireAuth, (req, res) => {
+  const page   = Math.max(1, parseInt(req.query.page, 10) || 1)
+  const limit  = Math.min(50, parseInt(req.query.limit, 10) || 20)
+  const offset = (page - 1) * limit
+  const q      = req.query.q ? `%${req.query.q.slice(0, 100)}%` : null
+  const status = ['active','suspended','banned','deleted'].includes(req.query.status) ? req.query.status : null
+
+  let where = 'WHERE 1=1'
+  const params = []
+  if (q)      { where += ' AND (name LIKE ? OR email LIKE ?)'; params.push(q, q) }
+  if (status) { where += ' AND status = ?'; params.push(status) }
+
+  db.query(`SELECT COUNT(*) as total FROM users ${where}`, params, (err, countRows) => {
+    if (err) return res.status(500).json({ error: err.message })
+    db.query(
+      `SELECT id, name, email, role, status, nationality, target_country, last_login_at, created_at FROM users ${where} ORDER BY created_at DESC LIMIT ? OFFSET ?`,
+      [...params, limit, offset],
+      (err2, rows) => {
+        if (err2) return res.status(500).json({ error: err2.message })
+        res.json({ users: rows, total: countRows[0].total, page, limit })
+      }
+    )
+  })
+})
+
+app.get('/admin/api/users/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  db.query('SELECT id, name, email, role, status, bio, nationality, target_country, target_university, enrollment_year, last_login_at, created_at FROM users WHERE id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message })
+    if (!rows[0]) return res.status(404).json({ error: 'ユーザーが見つかりません' })
+    res.json(rows[0])
+  })
+})
+
+app.patch('/admin/api/users/:id/status', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  const { status } = req.body
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  if (!['active','suspended','banned','deleted'].includes(status)) return res.status(400).json({ error: '無効なステータス' })
+  db.query('UPDATE users SET status = ? WHERE id = ?', [status, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true })
+  })
+})
+
+app.patch('/admin/api/users/:id/role', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  const { role } = req.body
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  if (!['student','supporter','admin'].includes(role)) return res.status(400).json({ error: '無効なロール' })
+  db.query('UPDATE users SET role = ? WHERE id = ?', [role, id], (err) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true })
+  })
+})
+
+app.get('/admin/api/users/stats/summary', requireAuth, (req, res) => {
+  const queries = {
+    total:    'SELECT COUNT(*) n FROM users WHERE status != "deleted"',
+    active:   'SELECT COUNT(*) n FROM users WHERE status = "active"',
+    banned:   'SELECT COUNT(*) n FROM users WHERE status IN ("banned","suspended")',
+    thisMonth:'SELECT COUNT(*) n FROM users WHERE YEAR(created_at)=YEAR(NOW()) AND MONTH(created_at)=MONTH(NOW())',
+  }
+  const results = {}
+  const keys = Object.keys(queries)
+  let done = 0
+  keys.forEach(k => db.query(queries[k], (err, rows) => {
+    results[k] = err ? 0 : rows[0].n
+    if (++done === keys.length) res.json(results)
+  }))
+})
+
+// ── SEO管理 ──────────────────────────────────────────────────
+app.get('/admin/api/seo', requireAuth, (req, res) => {
+  db.query('SELECT * FROM seo_meta ORDER BY page_path', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(rows)
+  })
+})
+
+app.post('/admin/api/seo', requireAuth, (req, res) => {
+  const { page_path, title, description, og_title, og_description, og_image, canonical, robots } = req.body
+  if (!page_path) return res.status(400).json({ error: 'page_pathは必須です' })
+  db.query(
+    'INSERT INTO seo_meta (page_path, title, description, og_title, og_description, og_image, canonical, robots) VALUES (?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE title=VALUES(title), description=VALUES(description), og_title=VALUES(og_title), og_description=VALUES(og_description), og_image=VALUES(og_image), canonical=VALUES(canonical), robots=VALUES(robots)',
+    [page_path.slice(0,500), title||null, description||null, og_title||null, og_description||null, og_image||null, canonical||null, robots||'index, follow'],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json({ ok: true })
+    }
+  )
+})
+
+app.delete('/admin/api/seo/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  db.query('DELETE FROM seo_meta WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true })
+  })
+})
+
+// ── エラーログ管理 ────────────────────────────────────────────
+app.get('/admin/api/logs', requireAuth, (req, res) => {
+  const level  = ['error','warn','info'].includes(req.query.level) ? req.query.level : null
+  const limit  = Math.min(200, parseInt(req.query.limit, 10) || 50)
+  let where = 'WHERE 1=1'; const params = []
+  if (level) { where += ' AND level = ?'; params.push(level) }
+  db.query(`SELECT id, level, message, path, method, ip, created_at FROM error_logs ${where} ORDER BY created_at DESC LIMIT ?`,
+    [...params, limit], (err, rows) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json(rows)
+    })
+})
+
+app.get('/admin/api/logs/:id/detail', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  db.query('SELECT * FROM error_logs WHERE id = ?', [id], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(rows[0] || {})
+  })
+})
+
+app.delete('/admin/api/logs/old', requireAuth, (req, res) => {
+  db.query('DELETE FROM error_logs WHERE created_at < DATE_SUB(NOW(), INTERVAL 30 DAY)', (err, result) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true, deleted: result.affectedRows })
+  })
+})
+
+// ── 公式締め切り管理 ──────────────────────────────────────────
+app.get('/admin/api/official-deadlines', requireAuth, (req, res) => {
+  db.query('SELECT * FROM official_deadlines ORDER BY deadline_date ASC', (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json(rows)
+  })
+})
+
+app.post('/admin/api/official-deadlines', requireAuth, (req, res) => {
+  const { title, deadline_date, category, description, url, target_country } = req.body
+  if (!title || !deadline_date) return res.status(400).json({ error: 'title・deadline_dateは必須です' })
+  const cats = ['application','test','document','scholarship','other']
+  db.query(
+    'INSERT INTO official_deadlines (title, deadline_date, category, description, url, target_country) VALUES (?,?,?,?,?,?)',
+    [title.slice(0,200), deadline_date, cats.includes(category) ? category : 'other', description||null, url||null, target_country||null],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json({ ok: true })
+    }
+  )
+})
+
+app.patch('/admin/api/official-deadlines/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  const { title, deadline_date, category, description, url, target_country, is_active } = req.body
+  const cats = ['application','test','document','scholarship','other']
+  db.query(
+    'UPDATE official_deadlines SET title=?, deadline_date=?, category=?, description=?, url=?, target_country=?, is_active=? WHERE id=?',
+    [title?.slice(0,200), deadline_date, cats.includes(category) ? category : 'other', description||null, url||null, target_country||null, is_active ? 1 : 0, id],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message })
+      res.json({ ok: true })
+    }
+  )
+})
+
+app.delete('/admin/api/official-deadlines/:id', requireAuth, (req, res) => {
+  const id = parseInt(req.params.id, 10)
+  if (!id) return res.status(400).json({ error: '無効なID' })
+  db.query('DELETE FROM official_deadlines WHERE id = ?', [id], (err) => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true })
+  })
 })
 
 // ── SPA fallback ──────────────────────────────────────────

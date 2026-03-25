@@ -20,3 +20,4 @@
 @import '/styles/comp/scholarship.css';
 @import '/styles/comp/profile.css';
 @import '/styles/comp/login.css';
+@import '/styles/responsive.css'; /* ← 必ず最後（上書き優先） */

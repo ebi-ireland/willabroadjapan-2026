@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>オフライン - WillAbroad Japan</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #f4f6fa;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+    .container {
+      text-align: center;
+      padding: 40px 24px;
+      max-width: 480px;
+    }
+    .icon {
+      font-size: 5rem;
+      margin-bottom: 24px;
+      display: block;
+    }
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #1a3a5c;
+    }
+    p {
+      color: #666;
+      line-height: 1.7;
+      margin-bottom: 32px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 12px 32px;
+      background: #1a3a5c;
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-size: 1rem;
+    }
+    .btn:hover { background: #2a5280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="icon">📡</span>
+    <h1>オフラインです</h1>
+    <p>
+      インターネット接続が見つかりません。<br>
+      接続を確認してから再度お試しください。<br>
+      以前に閲覧したページはキャッシュから表示できる場合があります。
+    </p>
+    <button class="btn" onclick="window.location.reload()">再読み込み</button>
+    <br><br>
+    <a class="btn" href="/" style="background:#c8932a;margin-top:12px">トップページへ</a>
+  </div>
+</body>
+</html>

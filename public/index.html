@@ -3,6 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1a3a5c">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="WillAbroad">
   <link rel="stylesheet" href="/styles/index.css">
   <script src="/scripts/index.js" type="module" defer></script>
 </head>
@@ -50,5 +56,14 @@
       </a>
 
   </main>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+          .then(reg => console.log('SW registered:', reg.scope))
+          .catch(err => console.error('SW error:', err))
+      })
+    }
+  </script>
 </body>
 </html>

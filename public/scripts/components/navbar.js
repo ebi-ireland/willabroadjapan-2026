@@ -17,6 +17,11 @@ if (isStudentJapan) {
       { label: '🎯 プログラム',  href: '/student-japan/program.html' },
     ]},
     { label: '📊 大学合格診断', href: '/student-japan/diagnosis.html' },
+    { label: '🛠️ ツール',       href: '#', group: [
+      { label: '💰 学費シミュレーター', href: '/student-japan/simulator.html' },
+      { label: '📋 出願チェックリスト', href: '/student-japan/checklist.html' },
+      { label: '📅 締め切りリスト',     href: '/student-japan/deadlines.html' },
+    ]},
     { label: '📰 記事',         href: '/student-japan/articles.html' },
     { label: '✈️ 留学体験記',   href: '/student-japan/experiences.html' },
     { label: '🤝 サポート',     href: '/student-japan/support.html' },
@@ -109,10 +114,54 @@ if (isStudentJapan) {
 
   function initBurger() {
     const burger = document.getElementById('navBurger')
-    const menu = document.getElementById('navMenu')
+    const menu   = document.getElementById('navMenu')
+
+    // ── バーガーボタン ──────────────────────────────────────────
     burger?.addEventListener('click', () => {
       const isOpen = menu.classList.toggle('navbar__menu--open')
       burger.setAttribute('aria-expanded', isOpen)
+      // バーガーアニメーション
+      burger.classList.toggle('is-open', isOpen)
+    })
+
+    // ── タッチデバイス: ドロップダウンをクリックで開閉 ──────────
+    document.querySelectorAll('.navbar__link--group').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        // タッチデバイスまたはモバイルメニュー表示中のみ動作
+        const isTouchOrMobile = window.matchMedia('(max-width: 768px)').matches
+          || window.matchMedia('(hover: none)').matches
+        if (!isTouchOrMobile) return
+
+        e.preventDefault()
+        const item = trigger.closest('.navbar__item--group')
+        const isOpen = item.classList.toggle('open')
+
+        // 他のグループを閉じる
+        document.querySelectorAll('.navbar__item--group').forEach(other => {
+          if (other !== item) other.classList.remove('open')
+        })
+      })
+    })
+
+    // ── ユーザーメニューのタッチ対応 ────────────────────────────
+    const navUser = document.getElementById('navUser')
+    navUser?.addEventListener('click', (e) => {
+      const isTouchOrMobile = window.matchMedia('(hover: none)').matches
+        || window.matchMedia('(max-width: 768px)').matches
+      if (!isTouchOrMobile) return
+      navUser.classList.toggle('open')
+      e.stopPropagation()
+    })
+
+    // ── 外側クリックで全メニューを閉じる ────────────────────────
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.navbar')) {
+        menu.classList.remove('navbar__menu--open')
+        burger?.setAttribute('aria-expanded', 'false')
+        burger?.classList.remove('is-open')
+        document.querySelectorAll('.navbar__item--group').forEach(i => i.classList.remove('open'))
+        navUser?.classList.remove('open')
+      }
     })
   }
 

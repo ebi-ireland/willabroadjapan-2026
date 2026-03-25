@@ -206,6 +206,13 @@
     <div class="nav-item" data-page="contacts">📩 お問い合わせ</div>
     <div class="nav-item" data-page="supporter-contacts">💛 サポーター連絡</div>
 
+        <div class="nav-group">システム管理</div>
+        <div class="nav-item" data-page="users">👥 ユーザー管理</div>
+        <div class="nav-item" data-page="seo">🔍 SEO管理</div>
+        <div class="nav-item" data-page="deadlines-admin">📅 公式締め切り</div>
+        <div class="nav-item" data-page="logs">⚠️ エラーログ</div>
+        <div class="nav-item" data-page="backup">💾 バックアップ</div>
+
     <div class="sidebar__spacer"></div>
     <div class="sidebar__logout" onclick="logout()">← ログアウト</div>
   </aside>
@@ -540,41 +547,119 @@
 
     <!-- 診断設定 -->
     <div class="page" id="page-diagnosis-settings">
-      <div class="page-header"><div><div class="page-title">🎯 合格診断設定</div><div class="page-sub">大学スコア・キーワード・採点基準・全体設定を管理</div></div></div>
-      <div class="tabs">
+      <div class="page-header">
+        <div>
+          <div class="page-title">🎯 合格診断設定</div>
+          <div class="page-sub">大学スコア・インポート・キーワード・採点基準・計算調整・全体設定</div>
+        </div>
+      </div>
+      <div class="tabs" style="flex-wrap:wrap">
         <div class="tab active" onclick="switchDiagTab('colleges',this)">🏫 大学スコア</div>
+        <div class="tab" onclick="switchDiagTab('import',this)">📥 インポート</div>
         <div class="tab" onclick="switchDiagTab('keywords',this)">🔑 キーワード</div>
         <div class="tab" onclick="switchDiagTab('scoring',this)">📊 採点テーブル</div>
+        <div class="tab" onclick="switchDiagTab('weights',this)">🧮 計算調整</div>
         <div class="tab" onclick="switchDiagTab('config',this)">⚙️ 全体設定</div>
       </div>
 
-      <!-- 大学スコア -->
+      <!-- 🏫 大学スコア -->
       <div id="diagTab-colleges">
+        <!-- 使い方 -->
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:16px">
+          <h3 style="font-size:0.82rem;margin-bottom:8px;color:var(--accent)">📖 大学スコアとは</h3>
+          <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">ターゲットスコア</strong>：ユーザーの入力から計算した得点がこの数値の何%かで合否を判定します</li>
+            <li><strong style="color:var(--text)">合格判定</strong>：得点 ÷ ターゲットスコア ≥ 合格しきい値(%) → 合格圏、≥ 可能性しきい値 → 可能性あり</li>
+            <li><strong style="color:var(--text)">Need-based対応</strong>：チェックすると「Need-based Scholarship希望」のユーザーでも減点なし</li>
+            <li>大量登録は <strong style="color:var(--text)">📥 インポートタブ</strong> をご利用ください</li>
+          </ul>
+        </div>
         <div class="form-card">
-          <h3>大学を追加</h3>
+          <h3>大学を手動追加</h3>
           <div class="form-row">
             <div class="form-field"><label>大学名 *</label><input id="dcName" type="text" placeholder="例: Harvard University"></div>
             <div class="form-field"><label>国</label><input id="dcCountry" type="text" placeholder="例: アメリカ"></div>
           </div>
           <div class="form-row">
-            <div class="form-field"><label>ターゲットスコア *</label><input id="dcScore" type="number" placeholder="例: 16000" min="0"></div>
+            <div class="form-field">
+              <label>ターゲットスコア *</label>
+              <input id="dcScore" type="number" placeholder="例: 16000" min="0">
+              <span style="font-size:0.72rem;color:var(--muted);margin-top:3px">ユーザーの満点想定値。採点テーブルの合計を参考に設定してください</span>
+            </div>
             <div class="form-field" style="align-self:flex-end;padding-bottom:14px">
               <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
-                <input type="checkbox" id="dcNeedBased"> Need-based 対応
+                <input type="checkbox" id="dcNeedBased"> Need-based 対応校
               </label>
             </div>
           </div>
           <button class="btn btn--accent" onclick="postDiagCollege()">追加する</button>
           <div class="msg" id="diagCollegeMsg"></div>
         </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <span style="font-size:0.8rem;color:var(--muted)" id="diagCollegeCount"></span>
+          <input type="text" id="diagCollegeSearch" placeholder="大学名で絞り込み..." oninput="filterDiagColleges()"
+            style="background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;color:var(--text);font-size:0.82rem;width:220px">
+        </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>ID</th><th>大学名</th><th>国</th><th>ターゲットスコア</th><th>Need-based</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>大学名</th><th>国</th><th>ターゲットスコア</th><th>Need-based</th><th>操作</th></tr></thead>
           <tbody id="diagCollegeList"></tbody>
         </table></div>
       </div>
 
-      <!-- キーワード -->
+      <!-- 📥 インポート -->
+      <div id="diagTab-import" style="display:none">
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--accent)">📖 インポート形式</h3>
+          <ul style="font-size:0.8rem;color:var(--muted);line-height:2.2;padding-left:1.2em">
+            <li>1行1大学で貼り付けてください</li>
+            <li><strong style="color:var(--text)">最小形式</strong>（大学名とスコアのみ）：<code style="background:var(--bg);padding:1px 6px;border-radius:3px">Harvard University,16000</code></li>
+            <li><strong style="color:var(--text)">標準形式</strong>：<code style="background:var(--bg);padding:1px 6px;border-radius:3px">Harvard University,16000,アメリカ,0</code></li>
+            <li>列順：<strong style="color:var(--text)">①大学名, ②スコア, ③国（省略可）, ④Need-based 0か1（省略可）</strong></li>
+            <li>スコアを省略または0にすると <strong style="color:var(--text)">10000</strong> が自動設定されます</li>
+            <li><strong style="color:var(--text)">重複チェック</strong>：すでに同名の大学が存在する場合はスキップされます</li>
+            <li>区切り文字はカンマ・タブ・スペースから選べます</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:16px">データを貼り付け</h3>
+          <div class="form-field" style="margin-bottom:16px">
+            <label>区切り文字</label>
+            <select id="importDelimiter" style="width:200px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:8px 12px;color:var(--text)">
+              <option value=",">カンマ（,）CSV形式</option>
+              <option value="tab">タブ（Tab）TSV形式</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label>データ貼り付け欄 *</label>
+            <textarea id="importRaw" rows="10"
+              placeholder="Harvard University,16000,アメリカ,0&#10;Massachusetts Institute of Technology,16500,アメリカ,0&#10;University of Oxford,15000,イギリス,0&#10;University of Cambridge,15200,イギリス,1&#10;Stanford University,16300,アメリカ,0"
+              style="background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:10px 14px;color:var(--text);font-size:0.83rem;font-family:'Consolas',monospace;width:100%;min-height:200px;resize:vertical"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap">
+            <button class="btn btn--accent" onclick="parseImport()">🔍 プレビュー確認</button>
+            <button class="btn btn--ghost" onclick="clearImport()">クリア</button>
+          </div>
+          <div id="importPreview"></div>
+          <div style="margin-top:16px;display:none" id="importExecWrap">
+            <button class="btn btn--accent" id="importExecBtn" onclick="execImport()">▶️ インポート実行</button>
+            <span style="font-size:0.78rem;color:var(--muted);margin-left:10px">プレビューで確認後に実行してください</span>
+          </div>
+          <div class="msg" id="importMsg"></div>
+        </div>
+      </div>
+
+      <!-- 🔑 キーワード -->
       <div id="diagTab-keywords" style="display:none">
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:16px">
+          <h3 style="font-size:0.82rem;margin-bottom:8px;color:var(--accent)">📖 キーワード加点とは</h3>
+          <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:1.2em">
+            <li>ユーザーが課外活動欄に入力したテキストに一致するキーワードが含まれていると加点されます</li>
+            <li>例：「リーダー」→ 「生徒会長として…」「チームリーダーとして…」に反応</li>
+            <li>大文字・小文字・ひらがな・カタカナの表記ゆれは手動で複数登録してください</li>
+            <li>カテゴリはグルーピング用です（表示には影響しません）</li>
+          </ul>
+        </div>
         <div class="form-card">
           <h3>キーワード加点を追加</h3>
           <div class="form-row3">
@@ -591,35 +676,50 @@
         </table></div>
       </div>
 
-      <!-- 採点テーブル -->
+      <!-- 📊 採点テーブル -->
       <div id="diagTab-scoring" style="display:none">
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:16px">
+          <h3 style="font-size:0.82rem;margin-bottom:8px;color:var(--accent)">📖 採点テーブルの仕組み</h3>
+          <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:1.2em">
+            <li>ユーザーが入力したスコアが「最小値 ≤ スコア ≤ 最大値」の範囲内に入ったとき、そのptsが加算されます</li>
+            <li>同じ項目（GPA等）で複数のブラケットを設定することで段階的な加点が可能です</li>
+            <li>クラスランクは数値範囲ではなくキー値（cr_5等）で一致させます</li>
+            <li>各カテゴリの加点上限は「🧮 計算調整」タブで設定できます</li>
+          </ul>
+        </div>
         <div class="form-card">
           <h3>採点ブラケットを追加</h3>
           <div class="form-row">
             <div class="form-field"><label>項目</label>
               <select id="dsType">
-                <option value="gpa">GPA</option><option value="sat">SAT</option>
-                <option value="act">ACT</option><option value="toefl">TOEFL</option>
-                <option value="ielts">IELTS</option><option value="duolingo">Duolingo</option>
-                <option value="classrank">クラスランク</option>
+                <option value="gpa">GPA（0.0〜4.0）</option>
+                <option value="sat">SAT（400〜1600）</option>
+                <option value="act">ACT（1〜36）</option>
+                <option value="toefl">TOEFL iBT（0〜120）</option>
+                <option value="ielts">IELTS（0.0〜9.0）</option>
+                <option value="duolingo">Duolingo（10〜160）</option>
+                <option value="classrank">クラスランク（キー値で指定）</option>
               </select>
             </div>
-            <div class="form-field"><label>pts（得点）</label><input id="dsPts" type="number" placeholder="1000"></div>
+            <div class="form-field"><label>pts（加点）</label><input id="dsPts" type="number" placeholder="例: 2000"></div>
           </div>
           <div id="dsScopeRange">
             <div class="form-row3">
-              <div class="form-field"><label>最小値（min）</label><input id="dsMin" type="number" step="any" placeholder="0"></div>
-              <div class="form-field"><label>最大値（max）</label><input id="dsMax" type="number" step="any" placeholder="100"></div>
-              <div class="form-field"><label>表示順</label><input id="dsOrder" type="number" value="0"></div>
+              <div class="form-field"><label>最小値（min、以上）</label><input id="dsMin" type="number" step="any" placeholder="3.8"></div>
+              <div class="form-field"><label>最大値（max、以下）</label><input id="dsMax" type="number" step="any" placeholder="4.0"></div>
+              <div class="form-field"><label>表示順（昇順）</label><input id="dsOrder" type="number" value="0"></div>
             </div>
           </div>
           <div id="dsScopeKey" style="display:none">
             <div class="form-row">
-              <div class="form-field"><label>キー値</label>
+              <div class="form-field"><label>クラスランク キー値</label>
                 <select id="dsKeyVal">
-                  <option value="cr_5">上位5%以内</option><option value="cr_10">上位6〜10%</option>
-                  <option value="cr_20">上位11〜20%</option><option value="cr_30">上位21〜30%</option>
-                  <option value="cr_50">上位31〜50%</option><option value="cr_lo">50%以下</option>
+                  <option value="cr_5">上位5%以内</option>
+                  <option value="cr_10">上位6〜10%</option>
+                  <option value="cr_20">上位11〜20%</option>
+                  <option value="cr_30">上位21〜30%</option>
+                  <option value="cr_50">上位31〜50%</option>
+                  <option value="cr_lo">50%以下</option>
                   <option value="cr_na">クラスランクなし</option>
                 </select>
               </div>
@@ -630,13 +730,41 @@
           <div class="msg" id="diagScoringMsg"></div>
         </div>
         <div class="table-wrap"><table>
-          <thead><tr><th>ID</th><th>項目</th><th>範囲 / キー</th><th>得点</th><th></th></tr></thead>
+          <thead><tr><th>ID</th><th>項目</th><th>範囲 / キー</th><th>得点(pts)</th><th></th></tr></thead>
           <tbody id="diagScoringList"></tbody>
         </table></div>
       </div>
 
-      <!-- 全体設定 -->
+      <!-- 🧮 計算調整 -->
+      <div id="diagTab-weights" style="display:none">
+        <div class="form-card" style="border-left:3px solid #6b7ae8;background:rgba(107,122,232,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:#6b7ae8">📖 計算調整の仕組み</h3>
+          <ul style="font-size:0.8rem;color:var(--muted);line-height:2.2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">重み係数（Weight）</strong>：各カテゴリの採点テーブルで得たptsにこの係数を掛けます。<br>
+              例：GPA重み=1.5 なら、GPA採点結果×1.5が実際の加算点になります</li>
+            <li><strong style="color:var(--text)">最大pts上限（Cap）</strong>：各カテゴリから得られるptsの上限。0は上限なし。<br>
+              例：英語資格上限=2000 なら、英語スコアが高くても最大2000ptsまで</li>
+            <li>変更後は診断ページをリロードすると即反映されます</li>
+            <li>初期値は全て重み1.0、上限なし（0）です</li>
+          </ul>
+        </div>
+        <div class="form-card">
+          <div id="diagWeightsList">
+            <div style="color:var(--muted);text-align:center;padding:24px">読み込み中...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⚙️ 全体設定 -->
       <div id="diagTab-config" style="display:none">
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:16px">
+          <h3 style="font-size:0.82rem;margin-bottom:8px;color:var(--accent)">📖 全体設定の意味</h3>
+          <ul style="font-size:0.78rem;color:var(--muted);line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">合格判定しきい値</strong>：ユーザー得点 ÷ ターゲットスコア がこの値(%)以上で「合格圏」表示</li>
+            <li><strong style="color:var(--text)">可能性ありしきい値</strong>：上記未満・この値以上で「可能性あり」表示。それ未満は「厳しい」</li>
+            <li><strong style="color:var(--text)">最大選択大学数</strong>：ユーザーが一度に診断できる大学数の上限</li>
+          </ul>
+        </div>
         <div class="form-card">
           <h3>診断しきい値の設定</h3>
           <div id="diagConfigList"></div>
@@ -777,24 +905,380 @@
       </table></div>
     </div>
 
+      <!-- ユーザー管理 -->
+      <div class="page" id="page-users">
+        <div class="page-header">
+          <div>
+            <div class="page-title">👥 ユーザー管理</div>
+            <div class="page-sub">登録ユーザーの確認・ロール変更・アカウント停止を行います</div>
+          </div>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--accent)">📖 使い方ガイド</h3>
+          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">ロール</strong>：student（学生）/ supporter（サポーター）/ admin（管理者）の3種類</li>
+            <li><strong style="color:var(--text)">ステータス変更</strong>：「停止」でログイン不可、「BAN」で永久追放。誤BANはアクティブに戻せます</li>
+            <li><strong style="color:var(--text)">検索</strong>：名前またはメールアドレスで絞り込み可能</li>
+            <li><strong style="color:var(--text)">注意</strong>：adminロールのユーザーは絶対にBANしないこと（管理画面に入れなくなります）</li>
+          </ul>
+        </div>
+
+        <div class="stats" id="userStats"></div>
+
+        <div class="form-card" style="margin-top:20px">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center">
+            <input id="userSearch" type="text" placeholder="名前・メール検索..."
+              style="flex:1;min-width:200px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 13px;color:var(--text);font-size:0.85rem"
+              oninput="filterUsers()">
+            <select id="userStatusFilter" onchange="filterUsers()"
+              style="width:150px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 13px;color:var(--text);font-size:0.85rem">
+              <option value="">全ステータス</option>
+              <option value="active">✅ アクティブ</option>
+              <option value="suspended">⏸ 停止中</option>
+              <option value="banned">🚫 BAN</option>
+            </select>
+            <button class="btn btn--ghost" onclick="loadUsers()">🔄 更新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>名前</th><th>メール</th><th>ロール</th><th>ステータス</th><th>最終ログイン</th><th>登録日</th><th>操作</th></tr></thead>
+              <tbody id="usersTable"></tbody>
+            </table>
+          </div>
+          <div id="usersPagination" style="display:flex;gap:8px;justify-content:center;margin-top:16px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+
+      <!-- SEO管理 -->
+      <div class="page" id="page-seo">
+        <div class="page-header">
+          <div>
+            <div class="page-title">🔍 SEO管理</div>
+            <div class="page-sub">各ページのタイトル・description・OGP・Robotsを設定します</div>
+          </div>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--accent)">📖 使い方ガイド</h3>
+          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">ページパス</strong>：URLパスを入力します（例: <code style="background:var(--bg);padding:1px 5px;border-radius:3px">/student-japan.html</code>）</li>
+            <li><strong style="color:var(--text)">タイトル</strong>：ブラウザのタブに表示されるタイトル（60文字以内推奨）</li>
+            <li><strong style="color:var(--text)">ディスクリプション</strong>：Google検索結果に表示される説明文（120文字以内推奨）</li>
+            <li><strong style="color:var(--text)">OG設定</strong>：LINE・X（旧Twitter）・FacebookでシェアされたときのSNSカード表示</li>
+            <li><strong style="color:var(--text)">Robots</strong>：<code style="background:var(--bg);padding:1px 5px;border-radius:3px">index, follow</code>が標準。非公開ページは<code style="background:var(--bg);padding:1px 5px;border-radius:3px">noindex</code>に変更</li>
+            <li><strong style="color:var(--text)">反映タイミング</strong>：保存後に各ページのHTMLが動的にMETAタグを読み込むことで反映されます</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:16px">新規 / 更新</h3>
+          <form id="seoForm" onsubmit="saveSeo(event)">
+            <div class="form-row">
+              <div class="form-field">
+                <label>ページパス *</label>
+                <input name="page_path" placeholder="/student-japan.html" required>
+              </div>
+              <div class="form-field">
+                <label>タイトル（〜60文字）</label>
+                <input name="title" placeholder="Will Abroad Japan — 日本人学生の留学情報">
+              </div>
+            </div>
+            <div class="form-field">
+              <label>ディスクリプション（〜120文字）</label>
+              <textarea name="description" rows="2" placeholder="このページの概要をここに書きます。Google検索結果に表示されます。"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>OGタイトル（SNSシェア時）</label>
+                <input name="og_title" placeholder="SNSでシェアされたときのタイトル">
+              </div>
+              <div class="form-field">
+                <label>OG画像URL</label>
+                <input name="og_image" placeholder="https://willabroadjapan.com/images/ogp.png">
+              </div>
+            </div>
+            <div class="form-field">
+              <label>OGディスクリプション</label>
+              <textarea name="og_description" rows="2" placeholder="SNSカードに表示される説明文"></textarea>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>Canonical URL（重複ページがある場合のみ）</label>
+                <input name="canonical" placeholder="https://willabroadjapan.com/student-japan.html">
+              </div>
+              <div class="form-field">
+                <label>Robots（通常は index, follow のまま）</label>
+                <input name="robots" value="index, follow">
+              </div>
+            </div>
+            <div style="display:flex;gap:10px;margin-top:4px">
+              <button type="submit" class="btn btn--accent">💾 保存</button>
+              <button type="button" class="btn btn--ghost" onclick="resetSeoForm()">クリア</button>
+            </div>
+            <div class="msg" id="seoMsg"></div>
+          </form>
+        </div>
+
+        <div class="form-card" style="margin-top:16px">
+          <h3 style="margin-bottom:12px">登録済みSEO設定一覧</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ページパス</th><th>タイトル</th><th>Robots</th><th>更新日</th><th>操作</th></tr></thead>
+              <tbody id="seoTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 公式締め切り管理 -->
+      <div class="page" id="page-deadlines-admin">
+        <div class="page-header">
+          <div>
+            <div class="page-title">📅 公式締め切り管理</div>
+            <div class="page-sub">ユーザーの締め切りリストページに表示される「公式情報」を管理します</div>
+          </div>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--accent)">📖 使い方ガイド</h3>
+          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">公式締め切りとは</strong>：管理者が登録した締め切り情報で、全ユーザーの「締め切りリスト」ページに共通表示されます</li>
+            <li><strong style="color:var(--text)">ユーザー個人の締め切り</strong>との違い：各ユーザーが自分で追加した個人締め切りとは別に表示されます</li>
+            <li><strong style="color:var(--text)">カテゴリ分類</strong>：出願 / 奨学金 / テスト / 書類 / その他 から選択。ユーザー側でフィルタ可能</li>
+            <li><strong style="color:var(--text)">対象国</strong>：特定の国向けの場合は国名を入力。全員向けの場合は空欄にしてください</li>
+            <li><strong style="color:var(--text)">URL</strong>：大学や奨学金の公式ページURLを入れるとユーザーがリンクから直接確認できます</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:16px">締め切りを追加</h3>
+          <form id="deadlineAdminForm" onsubmit="saveOfficialDeadline(event)">
+            <div class="form-row">
+              <div class="form-field">
+                <label>タイトル *</label>
+                <input name="title" required placeholder="ハーバード大学 出願締め切り">
+              </div>
+              <div class="form-field">
+                <label>日付 *</label>
+                <input name="deadline_date" type="date" required>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-field">
+                <label>カテゴリ</label>
+                <select name="category">
+                  <option value="application">📋 出願</option>
+                  <option value="scholarship">💰 奨学金</option>
+                  <option value="test">📝 テスト</option>
+                  <option value="document">📁 書類</option>
+                  <option value="other">📌 その他</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>対象国（空欄=全国共通）</label>
+                <input name="target_country" placeholder="アメリカ">
+              </div>
+            </div>
+            <div class="form-field">
+              <label>説明（任意）</label>
+              <textarea name="description" rows="2" placeholder="締め切りに関する補足情報"></textarea>
+            </div>
+            <div class="form-field">
+              <label>公式URL（任意）</label>
+              <input name="url" type="url" placeholder="https://college.harvard.edu/admissions">
+            </div>
+            <button type="submit" class="btn btn--accent">➕ 追加</button>
+            <div class="msg" id="deadlineAdminMsg"></div>
+          </form>
+        </div>
+
+        <div class="form-card" style="margin-top:16px">
+          <h3 style="margin-bottom:12px">登録済み公式締め切り一覧</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>タイトル</th><th>日付</th><th>カテゴリ</th><th>対象国</th><th>操作</th></tr></thead>
+              <tbody id="officialDeadlinesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- エラーログ -->
+      <div class="page" id="page-logs">
+        <div class="page-header">
+          <div>
+            <div class="page-title">⚠️ エラーログ</div>
+            <div class="page-sub">サーバーで発生したエラー・警告の記録を確認します</div>
+          </div>
+          <button class="btn btn--danger" onclick="deleteOldLogs()">🗑️ 30日以上前を削除</button>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="form-card" style="border-left:3px solid var(--warn);background:rgba(224,154,32,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--warn)">📖 使い方ガイド</h3>
+          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--err)">error</strong>：サーバーがクラッシュしそうな重大なエラー。すぐに対処が必要</li>
+            <li><strong style="color:var(--warn)">warn</strong>：軽微な異常（認証失敗が多いなど）。念のため確認推奨</li>
+            <li><strong style="color:var(--ok)">info</strong>：通常の動作ログ（バックアップ完了など）</li>
+            <li><strong style="color:var(--text)">「詳細」ボタン</strong>：スタックトレース（エラーの詳しい発生場所）を確認できます</li>
+            <li><strong style="color:var(--text)">定期削除</strong>：ログは増え続けるため、月1回「30日以上前を削除」を実行してDBを軽くしてください</li>
+            <li><strong style="color:var(--text)">同じIPが大量に出る場合</strong>：DoS攻撃の可能性あり。該当IPをファイアウォールでブロック検討</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+            <select id="logLevelFilter" onchange="loadLogs()"
+              style="width:140px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 13px;color:var(--text);font-size:0.85rem">
+              <option value="">全レベル</option>
+              <option value="error">🔴 error</option>
+              <option value="warn">🟡 warn</option>
+              <option value="info">🟢 info</option>
+            </select>
+            <select id="logLimitFilter" onchange="loadLogs()"
+              style="width:110px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:9px 13px;color:var(--text);font-size:0.85rem">
+              <option value="50">最新50件</option>
+              <option value="100">最新100件</option>
+              <option value="200">最新200件</option>
+            </select>
+            <button class="btn btn--ghost" onclick="loadLogs()">🔄 更新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>レベル</th><th>メッセージ</th><th>パス</th><th>IP</th><th>日時</th><th>詳細</th></tr></thead>
+              <tbody id="logsTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- バックアップ -->
+      <div class="page" id="page-backup">
+        <div class="page-header">
+          <div>
+            <div class="page-title">💾 データベースバックアップ</div>
+            <div class="page-sub">MySQLデータベース全体の自動・手動バックアップを管理します</div>
+          </div>
+        </div>
+
+        <!-- 使い方ガイド -->
+        <div class="form-card" style="border-left:3px solid var(--ok);background:rgba(61,186,110,0.05);margin-bottom:20px">
+          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--ok)">📖 使い方ガイド</h3>
+          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
+            <li><strong style="color:var(--text)">自動バックアップ</strong>：毎日午前3時（サーバー時間）に自動で実行されます。何もしなくてOKです</li>
+            <li><strong style="color:var(--text)">手動バックアップ</strong>：大規模なデータ更新の前後、または不安なときにいつでも実行できます</li>
+            <li><strong style="color:var(--text)">保存場所</strong>：サーバー内の <code style="background:var(--bg);padding:1px 5px;border-radius:3px">/backups/</code> フォルダに <code style="background:var(--bg);padding:1px 5px;border-radius:3px">.sql</code> ファイルとして保存</li>
+            <li><strong style="color:var(--text)">保管期間</strong>：90日分が自動保持。91日以上前のファイルは自動削除されます</li>
+            <li><strong style="color:var(--text)">リストア方法</strong>：万が一データが消えた場合は、<code style="background:var(--bg);padding:1px 5px;border-radius:3px">mysql -u root -p データベース名 &lt; backup_ファイル名.sql</code> で復元できます</li>
+            <li><strong style="color:var(--text)">推奨</strong>：月1回、最新の .sql ファイルをPCにダウンロードしてローカルにも保存してください</li>
+          </ul>
+        </div>
+
+        <div class="form-card">
+          <h3 style="margin-bottom:12px">手動バックアップ実行</h3>
+          <p style="color:var(--muted);font-size:0.82rem;margin-bottom:16px">
+            ボタンを押すとサーバー上で <code style="background:var(--bg);padding:1px 5px;border-radius:3px">mysqldump</code> が実行され、
+            全テーブルのスナップショットが保存されます。<br>
+            データ量によっては数秒〜数十秒かかる場合があります。
+          </p>
+          <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap">
+            <button class="btn btn--accent" onclick="runBackup(this)">▶️ 今すぐバックアップ実行</button>
+            <span id="backupStatus" style="color:var(--muted);font-size:0.83rem"></span>
+          </div>
+        </div>
+
+        <div class="form-card" style="margin-top:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+            <h3>バックアップ一覧（最新90日分）</h3>
+            <button class="btn btn--ghost" onclick="loadBackups()">🔄 更新</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>ファイル名</th><th>サイズ</th><th>作成日時</th></tr></thead>
+              <tbody id="backupTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
   </main>
 </div>
 </div>
 
 <script>
 // ── Auth ──────────────────────────────────────────────────
+
+// ページ表示・非表示の切り替えヘルパー
+function showAdminApp() {
+  document.getElementById('loginScreen').style.display = 'none'
+  document.getElementById('adminApp').style.display = 'block'
+}
+function showLoginScreen() {
+  document.getElementById('adminApp').style.display = 'none'
+  document.getElementById('loginScreen').style.display = 'flex'
+}
+
+// リロード時にセッションを確認し、ログイン済みなら管理画面をそのまま表示
+async function checkAuth() {
+  try {
+    const res = await fetch('/admin/api/auth-check')
+    if (res.ok) {
+      const data = await res.json()
+      if (data.authenticated) {
+        showAdminApp()
+        loadDashboard()
+        return
+      }
+    }
+  } catch {}
+  showLoginScreen()
+}
+
+// ログイン
 async function login() {
   const pw = document.getElementById('loginPw').value
   const msg = document.getElementById('loginMsg')
   const res = await fetch('/admin/api/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: pw }) })
   if (res.ok) {
-    document.getElementById('loginScreen').style.display = 'none'
-    document.getElementById('adminApp').style.display = 'block'
+    showAdminApp()
     loadDashboard()
   } else { showMsg(msg, 'パスワードが違います', false) }
 }
 document.getElementById('loginPw').addEventListener('keydown', e => { if (e.key === 'Enter') login() })
-async function logout() { await fetch('/admin/api/logout', { method: 'POST' }); location.reload() }
+
+// ログアウト
+async function logout() {
+  await fetch('/admin/api/logout', { method: 'POST' })
+  location.reload()
+}
+
+// ── スリープ検出（長時間非表示でログアウト）────────────────
+// PCがスリープ→復帰したとき、またはタブが長時間非アクティブだったとき自動ログアウト
+// 閾値: 8時間（28800秒）
+const SLEEP_THRESHOLD_MS = 8 * 60 * 60 * 1000
+let hiddenAt = null
+document.addEventListener('visibilitychange', async () => {
+  if (document.visibilityState === 'hidden') {
+    hiddenAt = Date.now()
+  } else if (document.visibilityState === 'visible' && hiddenAt !== null) {
+    const elapsed = Date.now() - hiddenAt
+    hiddenAt = null
+    if (elapsed >= SLEEP_THRESHOLD_MS) {
+      // 8時間以上非表示（スリープ等）→ 自動ログアウト
+      await fetch('/admin/api/logout', { method: 'POST' }).catch(() => {})
+      showLoginScreen()
+      document.getElementById('loginMsg').textContent = 'スリープのため自動ログアウトしました'
+      document.getElementById('loginMsg').style.color = 'var(--muted)'
+    }
+  }
+})
+
+// ページロード時にセッション確認
+checkAuth()
 
 // ── Navigation ────────────────────────────────────────────
 document.querySelectorAll('.nav-item[data-page]').forEach(el => {
@@ -825,6 +1309,11 @@ const pageLoaders = {
   'university-own-scholarships': loadUos,
   'diagnosis-settings': () => loadDiagColleges(),
   analytics: loadAnalytics,
+  users: loadUsers,
+  seo: loadSeo,
+  'deadlines-admin': loadOfficialDeadlines,
+  logs: loadLogs,
+  backup: loadBackups,
 }
 
 // ── Dashboard ─────────────────────────────────────────────
@@ -1266,7 +1755,24 @@ async function doExport(table, label) {
 }
 
 // ── Utils ─────────────────────────────────────────────────
-async function api(url) { try { const r = await fetch(url); return r.ok ? r.json() : [] } catch { return [] } }
+// api(url) → GET、api(url,'POST',body) → POST with JSON、etc.
+async function api(url, method, body) {
+  try {
+    const opts = method
+      ? { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+      : {}
+    const r = await fetch(url, opts)
+    if (!r.ok) {
+      const e = await r.json().catch(() => ({}))
+      throw new Error(e.error || ('HTTP ' + r.status))
+    }
+    return r.json()
+  } catch(e) {
+    console.warn('[api]', url, e.message)
+    throw e   // 呼び出し側でcatchして適切にハンドリングできるよう再スロー
+  }
+}
+// 後方互換: POSTレスポンスオブジェクトが欲しい場合（既存コードのpost()はそのまま使える）
 async function post(url, body) { return fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) }
 async function del(url, reload) { if (!confirm('削除しますか？')) return; await fetch(url, { method: 'DELETE' }); reload && reload() }
 function v(id) { return document.getElementById(id)?.value?.trim() || '' }
@@ -1313,33 +1819,49 @@ async function toggleUos(id) {
 
 // ── Diagnosis Settings ─────────────────────────────────────
 let diagTab = 'colleges'
+let _diagAllColleges = []
+
 function switchDiagTab(tab, el) {
   diagTab = tab
   document.querySelectorAll('#page-diagnosis-settings .tab').forEach(t => t.classList.remove('active'))
   el.classList.add('active')
-  document.getElementById('diagTab-colleges').style.display = tab==='colleges' ? '' : 'none'
-  document.getElementById('diagTab-keywords').style.display = tab==='keywords' ? '' : 'none'
-  document.getElementById('diagTab-scoring').style.display  = tab==='scoring'  ? '' : 'none'
-  document.getElementById('diagTab-config').style.display   = tab==='config'   ? '' : 'none'
+  ;['colleges','import','keywords','scoring','weights','config'].forEach(t => {
+    const d = document.getElementById('diagTab-' + t)
+    if (d) d.style.display = t === tab ? '' : 'none'
+  })
   if (tab === 'colleges') loadDiagColleges()
+  if (tab === 'import')   {} // 何もしない（入力待ち）
   if (tab === 'keywords') loadDiagKeywords()
   if (tab === 'scoring')  loadDiagScoring()
+  if (tab === 'weights')  loadDiagWeights()
   if (tab === 'config')   loadDiagConfig()
 }
 
-// 大学
+// ── 🏫 大学スコア ──────────────────────────────────────────
 async function loadDiagColleges() {
   const data = await api('/admin/api/diagnosis/colleges')
+  _diagAllColleges = data
+  document.getElementById('diagCollegeCount').textContent = `全 ${data.length} 件`
+  renderDiagColleges(data)
+}
+function filterDiagColleges() {
+  const q = (document.getElementById('diagCollegeSearch')?.value || '').toLowerCase()
+  renderDiagColleges(q ? _diagAllColleges.filter(c => c.name.toLowerCase().includes(q) || (c.country||'').toLowerCase().includes(q)) : _diagAllColleges)
+}
+function renderDiagColleges(data) {
   document.getElementById('diagCollegeList').innerHTML = data.length
     ? data.map(c => `<tr>
-        <td>${c.id}</td>
-        <td class="truncate">${esc(c.name)}</td>
+        <td class="text-muted text-sm">${c.id}</td>
+        <td class="truncate" style="max-width:260px" title="${esc(c.name)}">${esc(c.name)}</td>
         <td class="text-sm text-muted">${esc(c.country||'—')}</td>
         <td>
-          <input type="number" value="${c.score}" style="width:90px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:3px 7px;font-size:0.8rem" id="cscore_${c.id}">
-          <button class="btn btn--ok" onclick="updateDiagScore(${c.id},${c.need_based})">更新</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            <input type="number" value="${c.score}" id="cscore_${c.id}"
+              style="width:90px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:5px;padding:4px 8px;font-size:0.82rem">
+            <button class="btn btn--ok" onclick="updateDiagScore(${c.id},${c.need_based})">更新</button>
+          </div>
         </td>
-        <td>${c.need_based ? '✓' : '—'}</td>
+        <td style="text-align:center">${c.need_based ? '<span style="color:var(--ok)">✓</span>' : '<span style="color:var(--muted)">—</span>'}</td>
         <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/colleges/${c.id}',loadDiagColleges)">削除</button></td>
       </tr>`).join('')
     : '<tr class="empty-row"><td colspan="6">データなし</td></tr>'
@@ -1350,23 +1872,94 @@ async function postDiagCollege() {
   if (!name || !score) return showMsg(msg, '大学名とスコアは必須です', false)
   const need_based = document.getElementById('dcNeedBased').checked
   const res = await post('/admin/api/diagnosis/colleges', { name, score, country, need_based })
-  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dcName','dcScore','dcCountry'); document.getElementById('dcNeedBased').checked=false; loadDiagColleges() }
-  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+  if (res.ok) {
+    showMsg(msg, '✅ 追加しました', true)
+    clear('dcName','dcScore','dcCountry')
+    document.getElementById('dcNeedBased').checked = false
+    loadDiagColleges()
+  } else showMsg(msg, '❌ エラー: ' + (await res.json()).error, false)
 }
 async function updateDiagScore(id, need_based) {
   const score = document.getElementById('cscore_' + id)?.value
-  await fetch(`/admin/api/diagnosis/colleges/${id}`, { method:'PATCH', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ score, need_based }) })
-  loadDiagColleges()
+  const r = await fetch(`/admin/api/diagnosis/colleges/${id}`, {
+    method: 'PATCH', headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ score, need_based })
+  })
+  if (r.ok) loadDiagColleges()
 }
 
-// キーワード
+// ── 📥 インポート ──────────────────────────────────────────
+let _importParsed = []
+function parseImport() {
+  const raw   = document.getElementById('importRaw').value.trim()
+  const delim = document.getElementById('importDelimiter').value === 'tab' ? '\t' : ','
+  if (!raw) return
+  const lines = raw.split('\n').filter(l => l.trim())
+  _importParsed = lines.map((line, i) => {
+    const parts = line.split(delim).map(p => p.trim().replace(/^["']|["']$/g, ''))
+    const name      = parts[0] || ''
+    const score     = parseInt(parts[1]) || 10000
+    const country   = parts[2] || ''
+    const need_based = parseInt(parts[3]) === 1 ? 1 : 0
+    return { line: i + 1, name, score, country, need_based, valid: name.length > 0 }
+  })
+  const valid   = _importParsed.filter(r => r.valid)
+  const invalid = _importParsed.filter(r => !r.valid)
+  document.getElementById('importPreview').innerHTML = `
+    <div style="margin:12px 0 8px;font-size:0.83rem">
+      <span style="color:var(--ok);font-weight:700">✅ 有効: ${valid.length}件</span>
+      ${invalid.length > 0 ? `　<span style="color:var(--err)">❌ スキップ: ${invalid.length}件（大学名なし）</span>` : ''}
+    </div>
+    <div class="table-wrap" style="max-height:340px;overflow-y:auto">
+      <table>
+        <thead><tr><th>#</th><th>大学名</th><th>スコア</th><th>国</th><th>Need-based</th><th>状態</th></tr></thead>
+        <tbody>
+          ${_importParsed.map(r => `
+            <tr ${!r.valid ? 'style="opacity:0.5"' : ''}>
+              <td class="text-muted text-sm">${r.line}</td>
+              <td class="truncate">${r.name ? esc(r.name) : '<span style="color:var(--err)">空欄</span>'}</td>
+              <td class="text-sm">${r.score.toLocaleString()}</td>
+              <td class="text-sm text-muted">${esc(r.country)||'—'}</td>
+              <td style="text-align:center">${r.need_based ? '✓' : '—'}</td>
+              <td>${r.valid ? '<span style="color:var(--ok);font-size:0.75rem">OK</span>' : '<span style="color:var(--err);font-size:0.75rem">スキップ</span>'}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>`
+  document.getElementById('importExecWrap').style.display = valid.length > 0 ? '' : 'none'
+}
+function clearImport() {
+  document.getElementById('importRaw').value = ''
+  document.getElementById('importPreview').innerHTML = ''
+  document.getElementById('importExecWrap').style.display = 'none'
+  _importParsed = []
+}
+async function execImport() {
+  const valid = _importParsed.filter(r => r.valid)
+  if (!valid.length) return
+  const msg = document.getElementById('importMsg')
+  const btn = document.getElementById('importExecBtn')
+  btn.disabled = true; btn.textContent = '⏳ インポート中...'
+  try {
+    const r = await api('/admin/api/diagnosis/colleges/bulk', 'POST', { colleges: valid })
+    showMsg(msg, `✅ ${r.inserted}件追加、${r.skipped}件スキップ（既存）`, true)
+    clearImport()
+    // 大学スコアタブも更新
+    await loadDiagColleges()
+  } catch(e) {
+    showMsg(msg, '❌ エラー: ' + e.message, false)
+  }
+  btn.disabled = false; btn.textContent = '▶️ インポート実行'
+}
+
+// ── 🔑 キーワード ──────────────────────────────────────────
 async function loadDiagKeywords() {
   const data = await api('/admin/api/diagnosis/keywords')
   document.getElementById('diagKeywordList').innerHTML = data.length
     ? data.map(k => `<tr>
-        <td>${k.id}</td>
+        <td class="text-muted text-sm">${k.id}</td>
         <td>${esc(k.keyword)}</td>
-        <td><span style="color:var(--ok);font-weight:700">+${k.points}</span></td>
+        <td><span style="color:var(--ok);font-weight:700">+${k.points} pts</span></td>
         <td class="text-muted text-sm">${esc(k.category||'—')}</td>
         <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/keywords/${k.id}',loadDiagKeywords)">削除</button></td>
       </tr>`).join('')
@@ -1377,11 +1970,14 @@ async function postDiagKeyword() {
   const keyword = v('dkKeyword')
   if (!keyword) return showMsg(msg, 'キーワードは必須です', false)
   const res = await post('/admin/api/diagnosis/keywords', { keyword, points: v('dkPoints')||200, category: v('dkCategory') })
-  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dkKeyword','dkCategory'); document.getElementById('dkPoints').value='200'; loadDiagKeywords() }
-  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+  if (res.ok) {
+    showMsg(msg, '✅ 追加しました', true)
+    clear('dkKeyword','dkCategory'); document.getElementById('dkPoints').value = '200'
+    loadDiagKeywords()
+  } else showMsg(msg, '❌ エラー: ' + (await res.json()).error, false)
 }
 
-// スコアリング
+// ── 📊 採点テーブル ────────────────────────────────────────
 document.getElementById('dsType').addEventListener('change', function() {
   const isClassrank = this.value === 'classrank'
   document.getElementById('dsScopeRange').style.display = isClassrank ? 'none' : ''
@@ -1389,16 +1985,20 @@ document.getElementById('dsType').addEventListener('change', function() {
 })
 async function loadDiagScoring() {
   const data = await api('/admin/api/diagnosis/scoring')
-  const labelMap = {gpa:'GPA',sat:'SAT',act:'ACT',toefl:'TOEFL',ielts:'IELTS',duolingo:'Duolingo',classrank:'クラスランク'}
+  const labelMap = { gpa:'GPA', sat:'SAT', act:'ACT', toefl:'TOEFL', ielts:'IELTS', duolingo:'Duolingo', classrank:'クラスランク' }
+  const CR_LABELS = { cr_5:'上位5%',cr_10:'上位6-10%',cr_20:'上位11-20%',cr_30:'上位21-30%',cr_50:'上位31-50%',cr_lo:'50%以下',cr_na:'なし' }
+  // 項目ごとにグループ表示
+  const groups = {}
+  data.forEach(s => { (groups[s.item_type] = groups[s.item_type] || []).push(s) })
   document.getElementById('diagScoringList').innerHTML = data.length
     ? data.map(s => `<tr>
-        <td>${s.id}</td>
+        <td class="text-muted text-sm">${s.id}</td>
         <td><span class="badge badge--univ">${labelMap[s.item_type]||s.item_type}</span></td>
-        <td class="text-sm">${s.key_val ? s.key_val : `${s.min_val} 〜 ${s.max_val}`}</td>
-        <td><span style="color:var(--ok);font-weight:700">${s.pts}</span></td>
+        <td class="text-sm">${s.key_val ? (CR_LABELS[s.key_val]||s.key_val) : `${s.min_val} 〜 ${s.max_val}`}</td>
+        <td><span style="color:var(--ok);font-weight:700">${Number(s.pts).toLocaleString()} pts</span></td>
         <td><button class="btn btn--danger" onclick="del('/admin/api/diagnosis/scoring/${s.id}',loadDiagScoring)">削除</button></td>
       </tr>`).join('')
-    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+    : '<tr class="empty-row"><td colspan="5">データなし（採点ブラケットを追加してください）</td></tr>'
 }
 async function postDiagScoring() {
   const msg = document.getElementById('diagScoringMsg')
@@ -1409,31 +2009,116 @@ async function postDiagScoring() {
   if (item_type === 'classrank') {
     payload = { item_type, pts, key_val: document.getElementById('dsKeyVal').value, sort_order: v('dsOrder2')||0 }
   } else {
-    payload = { item_type, pts, min_val: v('dsMin'), max_val: v('dsMax'), sort_order: v('dsOrder')||0 }
+    const minVal = v('dsMin'), maxVal = v('dsMax')
+    if (!minVal || !maxVal) return showMsg(msg, '最小値・最大値は必須です', false)
+    payload = { item_type, pts, min_val: minVal, max_val: maxVal, sort_order: v('dsOrder')||0 }
   }
   const res = await post('/admin/api/diagnosis/scoring', payload)
-  if (res.ok) { showMsg(msg, '追加しました ✓', true); clear('dsPts','dsMin','dsMax'); loadDiagScoring() }
-  else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
+  if (res.ok) { showMsg(msg, '✅ 追加しました', true); clear('dsPts','dsMin','dsMax'); loadDiagScoring() }
+  else showMsg(msg, '❌ エラー: ' + (await res.json()).error, false)
 }
 
-// 全体設定
+// ── 🧮 計算調整 ────────────────────────────────────────────
+const DIAG_WEIGHT_DEFS = [
+  { key:'weight_gpa',       label:'GPA 重み係数',           desc:'GPAの採点pts × この係数',       def:'1.0', type:'weight' },
+  { key:'weight_sat',       label:'SAT 重み係数',           desc:'SATの採点pts × この係数',        def:'1.0', type:'weight' },
+  { key:'weight_act',       label:'ACT 重み係数',           desc:'ACTの採点pts × この係数',        def:'1.0', type:'weight' },
+  { key:'weight_lang',      label:'英語資格 重み係数',      desc:'TOEFL/IELTS/Duolingoの pts × この係数', def:'1.0', type:'weight' },
+  { key:'weight_classrank', label:'クラスランク 重み係数', desc:'クラスランクの採点pts × この係数', def:'1.0', type:'weight' },
+  { key:'weight_keywords',  label:'キーワード・活動 重み係数', desc:'課外活動キーワードの pts × この係数', def:'1.0', type:'weight' },
+  { key:'cap_gpa',          label:'GPA 最大pts上限',        desc:'GPAで得られる最大pts（0=上限なし）', def:'0', type:'cap' },
+  { key:'cap_sat',          label:'SAT/ACT 最大pts上限',    desc:'SAT・ACT合計の最大pts（0=上限なし）', def:'0', type:'cap' },
+  { key:'cap_lang',         label:'英語資格 最大pts上限',   desc:'英語スコアの最大pts（0=上限なし）',  def:'0', type:'cap' },
+  { key:'cap_classrank',    label:'クラスランク 最大pts上限', desc:'クラスランクの最大pts（0=上限なし）', def:'0', type:'cap' },
+  { key:'cap_keywords',     label:'キーワード 最大pts上限', desc:'キーワード合計の上限pts（0=上限なし）', def:'0', type:'cap' },
+]
+async function loadDiagWeights() {
+  const data = await api('/admin/api/diagnosis/config')
+  const cfgMap = {}
+  data.forEach(c => { cfgMap[c.cfg_key] = c.cfg_val })
+
+  // 未登録のキーを自動upsert
+  const missing = DIAG_WEIGHT_DEFS.filter(d => !(d.key in cfgMap))
+  for (const d of missing) {
+    await fetch('/admin/api/diagnosis/config', {
+      method:'PUT', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ cfg_key: d.key, cfg_val: d.def, cfg_label: d.label, upsert: true })
+    })
+    cfgMap[d.key] = d.def
+  }
+
+  const weights = DIAG_WEIGHT_DEFS.filter(d => d.type === 'weight')
+  const caps    = DIAG_WEIGHT_DEFS.filter(d => d.type === 'cap')
+
+  const renderGroup = (items, color, title) => `
+    <div style="margin-bottom:24px">
+      <h3 style="font-size:0.88rem;margin-bottom:14px;color:${color}">${title}</h3>
+      ${items.map(d => `
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-wrap:wrap">
+          <div style="min-width:180px;font-size:0.82rem;font-weight:600;color:var(--text)">${d.label}</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" id="wkey_${d.key}" value="${cfgMap[d.key]||d.def}"
+              min="0" max="${d.type==='weight'?'5':'99999'}" step="${d.type==='weight'?'0.1':'100'}"
+              style="width:100px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:7px 11px;font-size:0.85rem">
+            <button class="btn btn--ok" onclick="saveWeightKey('${d.key}')">保存</button>
+            <button class="btn btn--ghost" onclick="resetWeightKey('${d.key}','${d.def}')">初期値</button>
+          </div>
+          <span style="font-size:0.75rem;color:var(--muted)">${d.desc}</span>
+        </div>`).join('')}
+    </div>`
+
+  document.getElementById('diagWeightsList').innerHTML =
+    renderGroup(weights, '#6b7ae8', '⚖️ カテゴリ別 重み係数（倍率）') +
+    '<hr style="border-color:var(--border);margin:20px 0">' +
+    renderGroup(caps, 'var(--warn)', '🔒 カテゴリ別 最大pts上限（0=上限なし）') +
+    '<div class="msg" id="weightsMsg"></div>'
+}
+async function saveWeightKey(key) {
+  const val = document.getElementById('wkey_' + key)?.value
+  const msg = document.getElementById('weightsMsg')
+  const r = await fetch('/admin/api/diagnosis/config', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ cfg_key: key, cfg_val: val, upsert: true })
+  })
+  showMsg(msg, r.ok ? '✅ 保存しました' : '❌ エラー', r.ok)
+}
+function resetWeightKey(key, defVal) {
+  const el = document.getElementById('wkey_' + key)
+  if (el) { el.value = defVal; saveWeightKey(key) }
+}
+
+// ── ⚙️ 全体設定 ───────────────────────────────────────────
+const DIAG_CONFIG_LABELS = {
+  pass_threshold:  { label: '合格判定しきい値（%）',   desc: '例: 90 → 得点 ÷ ターゲット ≥ 90% で合格圏' },
+  maybe_threshold: { label: '可能性ありしきい値（%）', desc: '例: 70 → 70〜89%で可能性あり、70%未満は厳しい' },
+  max_selections:  { label: '最大選択大学数',           desc: '例: 5 → ユーザーが一度に診断できる大学の上限' },
+}
 async function loadDiagConfig() {
   const data = await api('/admin/api/diagnosis/config')
-  document.getElementById('diagConfigList').innerHTML = data.map(c => `
-    <div class="form-field" style="margin-bottom:18px">
-      <label>${esc(c.label||c.cfg_key)}</label>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input type="text" id="cfg_${c.cfg_key}" value="${esc(c.cfg_val)}" style="width:120px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 12px">
-        <button class="btn btn--ok" onclick="saveDiagConfig('${c.cfg_key}')">保存</button>
-      </div>
-    </div>`).join('') + '<div class="msg" id="diagConfigMsg"></div>'
+  // 重み/cap系は除外して表示
+  const filtered = data.filter(c => c.cfg_key in DIAG_CONFIG_LABELS)
+  document.getElementById('diagConfigList').innerHTML = filtered.map(c => {
+    const meta = DIAG_CONFIG_LABELS[c.cfg_key] || { label: c.cfg_key, desc: '' }
+    return `
+      <div class="form-field" style="margin-bottom:20px">
+        <label style="font-weight:700">${meta.label}</label>
+        <div style="font-size:0.75rem;color:var(--muted);margin-bottom:6px">${meta.desc}</div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="cfg_${c.cfg_key}" value="${esc(c.cfg_val)}"
+            style="width:140px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:7px;padding:8px 12px;font-size:0.9rem">
+          <button class="btn btn--ok" onclick="saveDiagConfig('${c.cfg_key}')">保存</button>
+        </div>
+      </div>`}).join('') || '<p style="color:var(--muted)">設定が見つかりません。DBに diagnosis_config テーブルを作成してください。</p>'
+  document.getElementById('diagConfigList').insertAdjacentHTML('beforeend','<div class="msg" id="diagConfigMsg"></div>')
 }
 async function saveDiagConfig(key) {
   const val = document.getElementById('cfg_' + key)?.value
   const msg = document.getElementById('diagConfigMsg')
-  const res = await fetch('/admin/api/diagnosis/config', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ cfg_key: key, cfg_val: val }) })
-  if (res.ok) showMsg(msg, '保存しました ✓', true)
-  else showMsg(msg, 'エラー', false)
+  const r = await fetch('/admin/api/diagnosis/config', {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ cfg_key: key, cfg_val: val })
+  })
+  showMsg(msg, r.ok ? '✅ 保存しました' : '❌ エラー', r.ok)
 }
 
 // ── Analytics ─────────────────────────────────────────────
@@ -1634,6 +2319,194 @@ async function loadContactBreakdown() {
       <span style="font-weight:700">${r.count}</span>
       <span style="color:var(--muted);font-size:0.78rem">${total?Math.round(r.count/total*100):0}%</span>
     </div>`).join('')
+}
+
+// ── ユーザー管理 ──────────────────────────────────────────────
+let _usersData = [], _usersPage = 1
+async function loadUsers() {
+  const [stats, data] = await Promise.all([
+    api('/admin/api/users/stats/summary'),
+    api('/admin/api/users?limit=50')
+  ])
+  document.getElementById('userStats').innerHTML = [
+    { label:'総ユーザー数', val:stats.total, color:'var(--accent)' },
+    { label:'アクティブ',   val:stats.active, color:'var(--ok)' },
+    { label:'停止/BAN',    val:stats.banned, color:'var(--err)' },
+    { label:'今月登録',     val:stats.thisMonth, color:'var(--gold)' },
+  ].map(s=>`<div class="stat"><div class="stat__num" style="color:${s.color}">${s.val??0}</div><div class="stat__label">${s.label}</div></div>`).join('')
+  _usersData = data.users || []
+  renderUsers()
+}
+function filterUsers() { renderUsers() }
+function renderUsers() {
+  const q = (document.getElementById('userSearch')?.value||'').toLowerCase()
+  const st = document.getElementById('userStatusFilter')?.value||''
+  const filtered = _usersData.filter(u =>
+    (!q || u.name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q)) &&
+    (!st || u.status === st)
+  )
+  const STATUS_COLORS = { active:'var(--ok)', suspended:'var(--warn)', banned:'var(--err)', deleted:'var(--muted)' }
+  const ROLE_LABELS = { student:'学生', supporter:'サポーター', admin:'管理者' }
+  document.getElementById('usersTable').innerHTML = filtered.length
+    ? filtered.map((u,i)=>`<tr>
+        <td class="text-muted text-sm">${i+1}</td>
+        <td>${esc(u.name||'—')}</td>
+        <td class="text-sm">${esc(u.email||'—')}</td>
+        <td><span style="font-size:0.78rem">${ROLE_LABELS[u.role]||u.role}</span></td>
+        <td><span style="color:${STATUS_COLORS[u.status]||'var(--muted)'};font-weight:600;font-size:0.78rem">${u.status}</span></td>
+        <td class="text-muted text-sm">${u.last_login_at ? new Date(u.last_login_at).toLocaleDateString('ja-JP') : '—'}</td>
+        <td class="text-muted text-sm">${new Date(u.created_at).toLocaleDateString('ja-JP')}</td>
+        <td>
+          <select style="font-size:0.72rem;padding:2px 4px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:4px" onchange="changeUserStatus(${u.id},this.value)">
+            <option value="active" ${u.status==='active'?'selected':''}>アクティブ</option>
+            <option value="suspended" ${u.status==='suspended'?'selected':''}>停止</option>
+            <option value="banned" ${u.status==='banned'?'selected':''}>BAN</option>
+          </select>
+        </td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="8">ユーザーなし</td></tr>'
+}
+async function changeUserStatus(id, status) {
+  await api(`/admin/api/users/${id}/status`, 'PATCH', { status })
+  await loadUsers()
+}
+
+// ── SEO管理 ──────────────────────────────────────────────────
+async function loadSeo() {
+  const data = await api('/admin/api/seo')
+  document.getElementById('seoTable').innerHTML = data.length
+    ? data.map(s=>`<tr>
+        <td class="text-sm">${esc(s.page_path)}</td>
+        <td class="text-sm truncate">${esc(s.title||'—')}</td>
+        <td class="text-sm text-muted">${esc(s.robots||'—')}</td>
+        <td class="text-sm text-muted">${new Date(s.updated_at).toLocaleDateString('ja-JP')}</td>
+        <td><button class="btn btn--danger" onclick="deleteSeo(${s.id})">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+async function saveSeo(e) {
+  e.preventDefault()
+  const fd = new FormData(e.target)
+  const body = Object.fromEntries(fd)
+  try {
+    await api('/admin/api/seo', 'POST', body)
+    showMsg(document.getElementById('seoMsg'), '✅ 保存しました', true)
+    e.target.reset()
+    await loadSeo()
+  } catch(err) {
+    showMsg(document.getElementById('seoMsg'), '❌ 保存に失敗: ' + err.message, false)
+  }
+}
+async function deleteSeo(id) {
+  if (!confirm('削除しますか？')) return
+  await api(`/admin/api/seo/${id}`, 'DELETE')
+  await loadSeo()
+}
+function resetSeoForm() { document.getElementById('seoForm')?.reset() }
+
+// ── エラーログ ────────────────────────────────────────────────
+async function loadLogs() {
+  const level = document.getElementById('logLevelFilter')?.value||''
+  const limit = document.getElementById('logLimitFilter')?.value||50
+  const data = await api(`/admin/api/logs?level=${level}&limit=${limit}`)
+  const LEVEL_COLORS = { error:'var(--err)', warn:'var(--warn)', info:'var(--ok)' }
+  document.getElementById('logsTable').innerHTML = data.length
+    ? data.map(l=>`<tr>
+        <td><span style="color:${LEVEL_COLORS[l.level]||'var(--muted)'};font-weight:700;font-size:0.78rem">${l.level}</span></td>
+        <td class="text-sm truncate" style="max-width:300px" title="${esc(l.message)}">${esc(l.message)}</td>
+        <td class="text-sm text-muted">${esc(l.path||'—')}</td>
+        <td class="text-sm text-muted">${esc(l.ip||'—')}</td>
+        <td class="text-sm text-muted">${new Date(l.created_at).toLocaleString('ja-JP')}</td>
+        <td><button class="btn btn--ghost" onclick="showLogDetail(${l.id})">詳細</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="6">ログなし</td></tr>'
+}
+async function showLogDetail(id) {
+  const d = await api(`/admin/api/logs/${id}/detail`)
+  alert(`[${d.level}] ${d.message}\n\n${d.stack||'スタックなし'}`)
+}
+async function deleteOldLogs() {
+  if (!confirm('30日以上前のログを削除しますか？')) return
+  const r = await api('/admin/api/logs/old', 'DELETE')
+  alert(`${r.deleted}件削除しました`)
+  await loadLogs()
+}
+
+// ── 公式締め切り ──────────────────────────────────────────────
+async function loadOfficialDeadlines() {
+  const data = await api('/admin/api/official-deadlines')
+  const CAT = { application:'出願', scholarship:'奨学金', test:'テスト', document:'書類', other:'その他' }
+  document.getElementById('officialDeadlinesTable').innerHTML = data.length
+    ? data.map(d=>`<tr>
+        <td>${esc(d.title)}</td>
+        <td>${new Date(d.deadline_date).toLocaleDateString('ja-JP')}</td>
+        <td>${CAT[d.category]||d.category}</td>
+        <td class="text-muted text-sm">${esc(d.target_country||'共通')}</td>
+        <td><button class="btn btn--danger" onclick="deleteOfficialDeadline(${d.id})">削除</button></td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="5">データなし</td></tr>'
+}
+async function saveOfficialDeadline(e) {
+  e.preventDefault()
+  const fd = new FormData(e.target)
+  const body = Object.fromEntries(fd)
+  try {
+    await api('/admin/api/official-deadlines', 'POST', body)
+    showMsg(document.getElementById('deadlineAdminMsg'), '✅ 追加しました', true)
+    e.target.reset()
+    await loadOfficialDeadlines()
+  } catch(err) {
+    showMsg(document.getElementById('deadlineAdminMsg'), '❌ 追加に失敗: ' + err.message, false)
+  }
+}
+async function deleteOfficialDeadline(id) {
+  if (!confirm('削除しますか？')) return
+  await api(`/admin/api/official-deadlines/${id}`, 'DELETE')
+  await loadOfficialDeadlines()
+}
+
+// ── バックアップ ──────────────────────────────────────────────
+async function loadBackups() {
+  const data = await api('/admin/api/backup/list')
+  document.getElementById('backupTable').innerHTML = data.length
+    ? data.map(b=>`<tr>
+        <td class="text-sm">${esc(b.name)}</td>
+        <td class="text-sm text-muted">${(b.size/1024).toFixed(1)} KB</td>
+        <td class="text-sm text-muted">${new Date(b.created_at).toLocaleString('ja-JP')}</td>
+      </tr>`).join('')
+    : '<tr class="empty-row"><td colspan="3">バックアップなし</td></tr>'
+}
+async function runBackup(btn) {
+  if (!btn) btn = document.querySelector('[onclick^="runBackup"]')
+  btn.disabled = true
+  const status = document.getElementById('backupStatus')
+  status.style.color = 'var(--warn)'
+  status.textContent = '⏳ 実行中...'
+  try {
+    const r = await api('/admin/api/backup/run', 'POST')
+    status.style.color = 'var(--ok)'
+    status.textContent = '✅ ' + (r.message || '完了')
+    await loadBackups()
+  } catch(e) {
+    status.style.color = 'var(--err)'
+    status.textContent = '❌ エラー: ' + e.message
+  }
+  btn.disabled = false
+}
+
+// ── showPage（システム管理ページ用） ──────────────────────────
+function showPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'))
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'))
+  const page = document.getElementById(pageId)
+  if (page) page.classList.add('active')
+  switch (pageId) {
+    case 'page-users':          loadUsers(); break
+    case 'page-seo':            loadSeo(); break
+    case 'page-logs':           loadLogs(); break
+    case 'page-backup':         loadBackups(); break
+    case 'page-deadlines-admin':loadOfficialDeadlines(); break
+  }
 }
 
 // loadAnalytics（全セクション統括）
