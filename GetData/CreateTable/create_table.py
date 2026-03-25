@@ -527,7 +527,8 @@ def build_excel(universities: list, output_path: Path):
                 if is_alt:
                     cell.fill = alt_fill
 
-    # DataValidation: セルごとでなく列範囲で一括登録（大規模データでの速度・安定性向上）
+    # DataValidation: Python 3.14 + openpyxl の add_data_validation() フリーズバグを回避するため
+    # 内部リストへ直接 append する（sqref の MultiCellRange.__contains__ の無限ループを回避）
     for cb_col_idx in cb_col_indices:
         letter = get_column_letter(cb_col_idx)
         dv = DataValidation(
@@ -537,7 +538,7 @@ def build_excel(universities: list, output_path: Path):
             sqref=f"{letter}2:{letter}{max_row}",
         )
         dv.showDropDown = False
-        ws.add_data_validation(dv)
+        ws.data_validations.dataValidation.append(dv)
 
     # ── 列幅
     col_widths = {
