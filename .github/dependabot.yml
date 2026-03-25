@@ -1,0 +1,43 @@
+# .github/dependabot.yml
+# Automated dependency updates via Dependabot
+# https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  # npm dependencies (production + dev)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 5
+    labels:
+      - "chore"
+      - "dependencies"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Group minor/patch updates to reduce PR noise
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+      production-patch-updates:
+        dependency-type: "production"
+        update-types:
+          - "patch"
+
+  # GitHub Actions versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "chore"
+      - "github-actions"
+    commit-message:
+      prefix: "chore(ci)"

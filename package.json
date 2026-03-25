@@ -4,7 +4,9 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --forceExit",
+    "test:watch": "jest --watch --forceExit",
+    "test:coverage": "jest --coverage --forceExit",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "admin": "node --watch admin-server.js"
@@ -13,6 +15,35 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "setupFiles": [
+      "./tests/setup.js"
+    ],
+    "moduleNameMapper": {
+      "^jsdom$": "<rootDir>/tests/__mocks__/jsdom-mock.js",
+      "^dompurify$": "<rootDir>/tests/__mocks__/dompurify-mock.js"
+    },
+    "collectCoverageFrom": [
+      "routes/**/*.js",
+      "middleware/**/*.js",
+      "services/**/*.js",
+      "!**/node_modules/**"
+    ],
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html"
+    ],
+    "coverageDirectory": "coverage"
+  },
   "dependencies": {
     "csrf-csrf": "^4.0.3",
     "dompurify": "^3.3.3",
