@@ -504,11 +504,6 @@ def build_excel(universities: list, output_path: Path):
         if col_name in CHECKBOX_COLUMNS
     }
 
-    # DataValidation: リスト形式で TRUE/FALSE を選ぶドロップダウン
-    dv = DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=True)
-    dv.showDropDown = False  # ドロップダウン矢印を表示
-    ws.add_data_validation(dv)
-
     # ── データ行
     max_row = len(universities) + 1
     for row_idx, uni in enumerate(universities, start=2):
@@ -519,10 +514,9 @@ def build_excel(universities: list, output_path: Path):
             cell.font = data_font
 
             if col_idx in cb_col_indices:
-                # チェックボックス列: TRUE/FALSE ドロップダウン + 薄緑背景
+                # チェックボックス列: 薄緑背景
                 cell.alignment = Alignment(horizontal="center", vertical="center")
                 cell.fill = cb_fill
-                dv.add(cell)
                 if value is None:
                     cell.value = "FALSE"
             else:
@@ -532,6 +526,18 @@ def build_excel(universities: list, output_path: Path):
                 )
                 if is_alt:
                     cell.fill = alt_fill
+
+    # DataValidation: セルごとでなく列範囲で一括登録（大規模データでの速度・安定性向上）
+    for cb_col_idx in cb_col_indices:
+        letter = get_column_letter(cb_col_idx)
+        dv = DataValidation(
+            type="list",
+            formula1='"TRUE,FALSE"',
+            allow_blank=True,
+            sqref=f"{letter}2:{letter}{max_row}",
+        )
+        dv.showDropDown = False
+        ws.add_data_validation(dv)
 
     # ── 列幅
     col_widths = {
