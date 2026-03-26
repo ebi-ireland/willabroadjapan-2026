@@ -7,11 +7,13 @@ require('dotenv').config()
 const express = require('express')
 const session = require('express-session')
 const path    = require('path')
+const fs      = require('fs')
 const db      = require('./db/connection')
 const helmet    = require('helmet')
 const logger    = require('./middleware/logger')
 const { adminLoginLimiter, generalLimiter } = require('./middleware/rateLimiter')
 const { runBackup, listBackups } = require('./services/backup')
+const multer  = require('multer')
 
 const app = express()
 app.use(express.json({ limit: '2mb' }))
@@ -102,11 +104,19 @@ app.use(session({
   },
 }))
 
-const ADMIN_PASS = process.env.ADMIN_PASSWORD || 'willadmin'
+const ADMIN_PASS   = process.env.ADMIN_PASSWORD || 'willadmin'
+const DATASET_PASS = process.env.DATASET_PASSWORD || ''
 
 function requireAuth(req, res, next) {
   if (req.session.admin) return next()
   res.status(401).json({ error: 'Unauthorized' })
+}
+
+// データセットファイル専用の二段階認証
+function requireDatasetAuth(req, res, next) {
+  if (!req.session.admin)        return res.status(401).json({ error: 'Unauthorized' })
+  if (!req.session.datasetAuth)  return res.status(403).json({ error: 'DATASET_AUTH_REQUIRED' })
+  next()
 }
 
 // ── 認証 ─────────────────────────────────────────────────
@@ -1016,6 +1026,148 @@ app.delete('/admin/api/official-deadlines/:id', requireAuth, (req, res) => {
 // ── SPA fallback ──────────────────────────────────────────
 app.get('/{*path}', (req, res) => {
   res.sendFile(path.join(__dirname, 'admin', 'index.html'))
+})
+
+// ── データセット専用パスワード認証 ────────────────────────────────────────
+app.post('/admin/api/dataset-files/auth', requireAuth, express.json(), (req, res) => {
+  if (!DATASET_PASS) return res.status(500).json({ error: '.env に DATASET_PASSWORD が設定されていません' })
+  if (req.body.password !== DATASET_PASS) return res.status(401).json({ error: 'パスワードが違います' })
+  req.session.datasetAuth = true
+  res.json({ ok: true })
+})
+
+app.post('/admin/api/dataset-files/auth/logout', requireAuth, (req, res) => {
+  req.session.datasetAuth = false
+  res.json({ ok: true })
+})
+
+// ── データセットファイル管理（奨学金リスト・ランキングPDF）────────────────
+const DATA_LISTING_DIR = path.join(
+  'C:/Users/user/OneDrive/Desktop/willabroadjapan/GetData/CreateTable/data_listing'
+)
+
+// 許可するプレフィックスと表示名
+const DATASET_PREFIXES = {
+  yanai:              { label: '柳井正財団',                 ext: 'txt' },
+  sasakawa:           { label: '笹川平和財団',               ext: 'txt' },
+  grew:               { label: 'グルーバンクロフト基金',     ext: 'txt' },
+  YouAreWelcomeHere:  { label: 'YouAreWelcomeHere',          ext: 'txt' },
+  toshin:             { label: '東進海外進学支援制度',       ext: 'txt' },
+  Laidlaw:            { label: 'Laidlaw Scholars',           ext: 'txt' },
+  stamps:             { label: 'Stamps Scholar Program',     ext: 'txt' },
+  ezo_art:            { label: '江副（芸術指定校）',         ext: 'pdf' },
+}
+
+// multer: メモリに受け取ってからディスクへ保存（安全チェック後）
+const datasetUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2 * 1024 * 1024 },  // 2MB
+})
+
+// ファイル名バリデーション: {prefix}_{YYYY}.{ext} のみ許可
+function parseDatasetFilename(filename) {
+  const m = filename.match(/^([A-Za-z0-9_]+)_(\d{4})\.(txt|pdf)$/)
+  if (!m) return null
+  const [, prefix, year, ext] = m
+  const meta = DATASET_PREFIXES[prefix]
+  if (!meta) return null
+  if (meta.ext !== ext) return null
+  const y = parseInt(year, 10)
+  if (y < 2025 || y > 2040) return null
+  return { prefix, year: y, ext, label: meta.label }
+}
+
+// ファイル一覧
+app.get('/admin/api/dataset-files', requireDatasetAuth, (req, res) => {
+  try {
+    if (!fs.existsSync(DATA_LISTING_DIR)) return res.json([])
+    const files = fs.readdirSync(DATA_LISTING_DIR)
+      .filter(f => parseDatasetFilename(f))
+      .map(f => {
+        const parsed  = parseDatasetFilename(f)
+        const fpath   = path.join(DATA_LISTING_DIR, f)
+        const stat    = fs.statSync(fpath)
+        return {
+          filename: f,
+          prefix:   parsed.prefix,
+          label:    parsed.label,
+          year:     parsed.year,
+          ext:      parsed.ext,
+          size:     stat.size,
+          mtime:    stat.mtime,
+        }
+      })
+      .sort((a, b) => a.prefix.localeCompare(b.prefix) || b.year - a.year)
+    res.json(files)
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ファイル内容取得（txtのみ）
+app.get('/admin/api/dataset-files/:filename/content', requireDatasetAuth, (req, res) => {
+  const parsed = parseDatasetFilename(req.params.filename)
+  if (!parsed) return res.status(400).json({ error: '無効なファイル名です' })
+  if (parsed.ext !== 'txt') return res.status(400).json({ error: 'テキストファイルのみ参照できます' })
+  const fpath = path.join(DATA_LISTING_DIR, req.params.filename)
+  if (!fs.existsSync(fpath)) return res.status(404).json({ error: 'ファイルが見つかりません' })
+  try {
+    const content = fs.readFileSync(fpath, 'utf8')
+    res.json({ content })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ファイルアップロード（旧年度ファイルは archive/ へ自動移動）
+app.post('/admin/api/dataset-files/upload', requireDatasetAuth, datasetUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'ファイルが選択されていません' })
+  const filename = req.file.originalname
+  const parsed   = parseDatasetFilename(filename)
+  if (!parsed) return res.status(400).json({
+    error: `ファイル名は {prefix}_{年度}.{ext} の形式にしてください。\n許可プレフィックス: ${Object.keys(DATASET_PREFIXES).join(', ')}`
+  })
+
+  try {
+    if (!fs.existsSync(DATA_LISTING_DIR)) fs.mkdirSync(DATA_LISTING_DIR, { recursive: true })
+
+    // 同プレフィックスの既存ファイルをすべて archive/ へ移動
+    const archiveDir = path.join(DATA_LISTING_DIR, 'archive')
+    const archived   = []
+    const existing   = fs.readdirSync(DATA_LISTING_DIR)
+      .filter(f => {
+        const p = parseDatasetFilename(f)
+        return p && p.prefix === parsed.prefix && f !== filename
+      })
+    for (const old of existing) {
+      if (!fs.existsSync(archiveDir)) fs.mkdirSync(archiveDir, { recursive: true })
+      const src  = path.join(DATA_LISTING_DIR, old)
+      const dest = path.join(archiveDir, old)
+      fs.renameSync(src, dest)
+      archived.push(old)
+    }
+
+    // 新ファイルを保存
+    fs.writeFileSync(path.join(DATA_LISTING_DIR, filename), req.file.buffer)
+
+    res.json({ ok: true, filename, label: parsed.label, year: parsed.year, archived })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
+})
+
+// ファイル削除
+app.delete('/admin/api/dataset-files/:filename', requireDatasetAuth, (req, res) => {
+  const parsed = parseDatasetFilename(req.params.filename)
+  if (!parsed) return res.status(400).json({ error: '無効なファイル名です' })
+  const fpath = path.join(DATA_LISTING_DIR, req.params.filename)
+  if (!fs.existsSync(fpath)) return res.status(404).json({ error: 'ファイルが見つかりません' })
+  try {
+    fs.unlinkSync(fpath)
+    res.json({ ok: true })
+  } catch (e) {
+    res.status(500).json({ error: e.message })
+  }
 })
 
 // ── 本番エラーハンドラー ───────────────────────────────────

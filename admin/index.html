@@ -201,6 +201,7 @@
     <div class="nav-group">ツール</div>
     <div class="nav-item" data-page="analytics">📊 解析</div>
     <div class="nav-item" data-page="import-export">📤 インポート / エクスポート</div>
+    <div class="nav-item" data-page="dataset-files">📂 データセットファイル</div>
 
     <div class="nav-group">受信</div>
     <div class="nav-item" data-page="contacts">📩 お問い合わせ</div>
@@ -475,6 +476,9 @@
     </div>
 
     <!-- インポート / エクスポート -->
+    <!-- データセットファイル管理 -->
+    <div class="page" id="page-dataset-files"></div>
+
     <div class="page" id="page-import-export">
       <div class="page-header"><div><div class="page-title">📤 インポート / エクスポート</div><div class="page-sub">JSON貼り付けでの一括登録 / CSVダウンロード</div></div></div>
 
@@ -1306,6 +1310,7 @@ const pageLoaders = {
   'university-scholarships': loadUniversities,
   'supporter-reports': () => loadReports('all'),
   'import-export': () => {},
+  'dataset-files': loadDatasetFilesPage,
   'university-own-scholarships': loadUos,
   'diagnosis-settings': () => loadDiagColleges(),
   analytics: loadAnalytics,
@@ -1314,6 +1319,27 @@ const pageLoaders = {
   'deadlines-admin': loadOfficialDeadlines,
   logs: loadLogs,
   backup: loadBackups,
+}
+
+// ── データセットファイル管理 ───────────────────────────────
+let _datasetLoaded = false
+async function loadDatasetFilesPage() {
+  const container = document.getElementById('page-dataset-files')
+  if (!_datasetLoaded) {
+    const res  = await fetch('/admin/dataset-files.html')
+    const html = await res.text()
+    // <body> 内だけ取り出して挿入
+    const m = html.match(/<body[^>]*>([\s\S]*)<\/body>/i)
+    container.innerHTML = m ? m[1] : html
+    // script タグを再実行
+    container.querySelectorAll('script').forEach(old => {
+      const s = document.createElement('script')
+      s.textContent = old.textContent
+      old.replaceWith(s)
+    })
+    _datasetLoaded = true
+  }
+  window.initDatasetFiles && window.initDatasetFiles()
 }
 
 // ── Dashboard ─────────────────────────────────────────────

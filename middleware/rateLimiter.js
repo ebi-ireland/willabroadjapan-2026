@@ -16,7 +16,7 @@ const authLimiter = rateLimit({
 
 const adminLoginLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 5,
+  max: 20,
   message: { error: 'ロックアウトされました。1時間後に再試行してください。' }
 })
 

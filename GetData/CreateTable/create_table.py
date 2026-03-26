@@ -1068,7 +1068,8 @@ def fill_egasoe_ranking(universities: list):
 # 大学名として認識するキーワード（英語機関名の判別用）
 _INST_KEYWORDS = (
     "university", "college", "institute", "school", "academy",
-    "polytechnic", "minerva", "sciences", "technology",
+    "polytechnic", "polytechnique", "école", "ecole",   # EPFL 等の仏語機関名対応
+    "minerva", "sciences", "technology",
 )
 
 def _parse_scholarship_txt(text: str) -> set:
@@ -1090,14 +1091,16 @@ def _parse_scholarship_txt(text: str) -> set:
                     names.add(p.lower())
             continue
 
-        # ── sasakawa 形式: 英語大学名が1行に1校 ──
+        # ── sasakawa / YouAreWelcomeHere 形式: 英語大学名が1行に1校 ──
         lower = line.lower()
         if any(kw in lower for kw in _INST_KEYWORDS):
-            # 括弧内の注記 "(UCL)" 等を除去したバージョンも登録
+            # 括弧内の都市名注記 "(Garden City, New York)" 等を除去
             clean = re.sub(r'\s*[\(（][^)）]*[\)）]', '', line).strip()
+            # 末尾の * を除去（YouAreWelcomeHere 形式の注記記号）
+            clean = clean.rstrip('*').strip()
             names.add(clean.lower())
             if clean.lower() != lower:
-                names.add(lower)   # 括弧付き元表記も保持
+                names.add(lower)   # 元表記も保持
 
     return names
 
@@ -1144,14 +1147,24 @@ def _is_list_match(university_name: str, name_set: set) -> bool:
 
 def fill_scholarship_lists(universities: list):
     """
-    柳井正財団・笹川平和財団・グルーバンクロフト基金の対象校リストを読み込み、
-    該当大学の各カラムを TRUE に設定する。
+    各奨学金の対象校リストを読み込み、該当大学の各カラムを TRUE に設定する。
+      - 柳井正財団
+      - 笹川平和財団
+      - グルーバンクロフト基金
+      - YouAreWelcomeHere Scholarship
+      - 東進海外進学支援制度
+      - Laidlaw Scholars
+      - Stamps Scholar Program
     """
     yanai_list    = load_scholarship_list("yanai")
     sasakawa_list = load_scholarship_list("sasakawa")
     grew_list     = load_scholarship_list("grew")
+    yawh_list     = load_scholarship_list("YouAreWelcomeHere")
+    toshin_list   = load_scholarship_list("toshin")
+    laidlaw_list  = load_scholarship_list("Laidlaw")
+    stamps_list   = load_scholarship_list("stamps")
 
-    count_y = count_s = count_g = 0
+    count_y = count_s = count_g = count_w = count_t = count_l = count_st = 0
     for uni in universities:
         name = uni.get("大学名", "")
         if _is_list_match(name, yanai_list):
@@ -1163,10 +1176,22 @@ def fill_scholarship_lists(universities: list):
         if _is_list_match(name, grew_list):
             uni["グルーバンクロフト基金"] = "TRUE"
             count_g += 1
+        if _is_list_match(name, yawh_list):
+            uni["YouAreWelcomeHere Scholarship"] = "TRUE"
+            count_w += 1
+        if _is_list_match(name, toshin_list):
+            uni["東進海外進学支援制度"] = "TRUE"
+            count_t += 1
+        if _is_list_match(name, laidlaw_list):
+            uni["Laidlaw Scholars"] = "TRUE"
+            count_l += 1
+        if _is_list_match(name, stamps_list):
+            uni["Stamps Scholar Program"] = "TRUE"
+            count_st += 1
 
-    print(f"  → 柳井正財団 TRUE: {count_y}大学"
-          f"  /  笹川平和財団 TRUE: {count_s}大学"
-          f"  /  グルーバンクロフト基金 TRUE: {count_g}大学")
+    print(f"  → 柳井正財団:{count_y}  笹川平和財団:{count_s}  グルー:{count_g}"
+          f"  YouAreWelcomeHere:{count_w}  東進:{count_t}"
+          f"  Laidlaw:{count_l}  Stamps:{count_st}")
 
 # ────────────────────────────────────────────────────────────
 # Excel 作成
