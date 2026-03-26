@@ -1,0 +1,623 @@
+[
+  {
+    "大学名": "Agricultural University of Iceland",
+    "国": "アイスランド",
+    "都市": "Hvanneyri",
+    "URL": "",
+    "緯度": 64.0024468,
+    "経度": -21.1806193,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Háskóli Íslands",
+    "国": "アイスランド",
+    "都市": "Reykjavík",
+    "URL": "",
+    "緯度": 64.1401832,
+    "経度": -21.9539633,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Háskólinn á Akureyri",
+    "国": "アイスランド",
+    "都市": "Akureyri",
+    "URL": "",
+    "緯度": 65.6853853,
+    "経度": -18.1225152,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Háskólinn á Bifröst",
+    "国": "アイスランド",
+    "都市": "Borgarnes",
+    "URL": "",
+    "緯度": 64.7664483,
+    "経度": -21.5520387,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Háskólinn á Hólum",
+    "国": "アイスランド",
+    "都市": "Sauoarkrokur",
+    "URL": "",
+    "緯度": 65.7334683,
+    "経度": -19.112369,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Háskólinn í Reykjavík",
+    "国": "アイスランド",
+    "都市": "Reykjavík",
+    "URL": "",
+    "緯度": 64.1247374,
+    "経度": -21.9275372,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Listaháskóli Íslands",
+    "国": "アイスランド",
+    "都市": "Reykjavík",
+    "URL": "",
+    "緯度": 64.1367474,
+    "経度": -21.9020594,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Atlantic Technological University",
+    "国": "アイルランド",
+    "都市": "Letterkenny",
+    "URL": "",
+    "緯度": 53.8496565,
+    "経度": -9.3050723,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Carlow College",
+    "国": "アイルランド",
+    "都市": "Carlow",
+    "URL": "",
+    "緯度": 52.838614,
+    "経度": -6.9267582,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Dublin City University",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3865964,
+    "経度": -6.2589686,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Dún Laoghaire Institute of Art, Design and Technology",
+    "国": "アイルランド",
+    "都市": "Dún Laoghaire",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Dundalk Institute of Technology",
+    "国": "アイルランド",
+    "都市": "Dundalk",
+    "URL": "",
+    "緯度": 53.9828314,
+    "経度": -6.3904702,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Institute of Public Administration",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 26.2362647,
+    "経度": 50.5327011,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Marino Institute of Education",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.37368,
+    "経度": -6.2353498,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Maynooth University",
+    "国": "アイルランド",
+    "都市": "Maynooth",
+    "URL": "",
+    "緯度": 53.3821766,
+    "経度": -6.5987338,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Munster Technological University",
+    "国": "アイルランド",
+    "都市": "Bishopstown",
+    "URL": "",
+    "緯度": 52.6760876,
+    "経度": -8.6474655,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "National College of Art and Design",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3434793,
+    "経度": -6.2785917,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "National College of Ireland",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3486219,
+    "経度": -6.2434208,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "National University of Ireland, System",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Royal College of Surgeons in Ireland",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3391564,
+    "経度": -6.2626992,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Royal Irish Academy of Music",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3423267,
+    "経度": -6.249694,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "South East Technological University",
+    "国": "アイルランド",
+    "都市": "Waterford",
+    "URL": "",
+    "緯度": 52.2514273,
+    "経度": -7.1794803,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "St Patrick's Pontifical University",
+    "国": "アイルランド",
+    "都市": "Maynooth",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Technological University Dublin",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3579326,
+    "経度": -6.287314,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Technological University of the Shannon",
+    "国": "アイルランド",
+    "都市": "Athlone",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "Trinity College Dublin, University of Dublin",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "University College Cork",
+    "国": "アイルランド",
+    "都市": "Cork",
+    "URL": "",
+    "緯度": 51.8947012,
+    "経度": -8.4903105,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "University College Dublin",
+    "国": "アイルランド",
+    "都市": "Dublin",
+    "URL": "",
+    "緯度": 53.3068763,
+    "経度": -6.2246251,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "University of Galway",
+    "国": "アイルランド",
+    "都市": "Galway",
+    "URL": "",
+    "緯度": 53.2936337,
+    "経度": -9.0750599,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "University of Limerick",
+    "国": "アイルランド",
+    "都市": "Limerick",
+    "URL": "",
+    "緯度": 52.6732581,
+    "経度": -8.5698097,
+    "通貨定義": "EUR"
+  },
+  {
+    "大学名": "ADA Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.396411,
+    "経度": 49.8497598,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Diller Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3835479,
+    "経度": 49.8430095,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Aqrar Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Ganja",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Beden Terbiyesi ve Idman Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Deniz Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Iqtisad Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Medeniyyet ve Incesenet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Neft ve Senaye Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Pedaqoji Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Dövlet Ressamliq Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Emek ve Sosial Münasibetler Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Memarliq ve Insaat Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3697519,
+    "経度": 49.8126329,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Milli Konservatoriyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3657419,
+    "経度": 49.8184057,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Texniki Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3701146,
+    "経度": 49.8154394,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Texnologiya Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Ganja",
+    "URL": "",
+    "緯度": 40.688657,
+    "経度": 46.3873352,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Tibb Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3899775,
+    "経度": 49.8380114,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Turizm ve Menecment Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Azerbaycan Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3739057,
+    "経度": 49.8110134,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Ali Neft Mektebi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Avrasiya Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.4061979,
+    "経度": 49.8595639,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Biznes Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3970995,
+    "経度": 49.8067705,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Muhendislik Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Xirdalan",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Musiqi Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3772928,
+    "経度": 49.8444536,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Qizlar Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3967295,
+    "経度": 49.8305493,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Baki Slavyan Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3836739,
+    "経度": 49.8437095,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Dövlet Idareçilik Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Gence Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Ganja",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "I.M. Seçenov adina Birinci Moskva Dövlet Tibb Universitetinin Baki",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Lenkeran Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Lankaran",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "M.V. Lomonosov adina Moskva Dövlet Universitetinin Baki",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Milli Aviasiya Akademiyasi",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.4536342,
+    "経度": 50.0677459,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Mingeçevir Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Mingachevir",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Naxcivan Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Nakhchivan",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Naxçivan Müellimler İnstitutu",
+    "国": "アゼルバイジャン",
+    "都市": "Nakhchivan",
+    "URL": "",
+    "緯度": 39.203276,
+    "経度": 45.409187,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Odlar Yurdu Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": 40.3976065,
+    "経度": 49.8581313,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Qerbi Kaspi Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Sumqayit Dövlet Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Sumqayit",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  },
+  {
+    "大学名": "Xezer Universiteti",
+    "国": "アゼルバイジャン",
+    "都市": "Baku",
+    "URL": "",
+    "緯度": null,
+    "経度": null,
+    "通貨定義": "USD"
+  }
+]
