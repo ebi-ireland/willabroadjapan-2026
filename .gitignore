@@ -37,11 +37,22 @@ env/
 GetData/CreateTable/dataset_*.json
 GetData/CreateTable/dataset_*.xlsx
 GetData/CreateTable/dataset_*.csv
+GetData/CreateTable/dataset_* - Copy*
 GetData/CreateTable/geocode_progress*.json
 GetData/CreateTable/scrape_progress*.json
+GetData/CreateTable/rankings_cache.json
+
+# University input data (local tool output — do not expose)
+GetData/CreateTable/input_data.json
 
 # Upload / document folders (PDFs etc.)
 public/document/
 
 # Backup files
 /backups/
+
+# Test coverage reports
+coverage/
+
+# Admin operations manual (contains local paths / internal procedures)
+ADMIN_MANUAL.md
