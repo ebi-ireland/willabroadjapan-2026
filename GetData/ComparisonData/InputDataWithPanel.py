@@ -545,6 +545,11 @@ HTML = r"""<!DOCTYPE html>
       <div class="ref-item"><span class="ref-tag">I1</span><div><div class="ref-name">2–9, 10–19, 20–29, 30–39, 40–49, 50–99, 100+</div><div class="ref-note">各レンジのクラス数（%）</div></div></div>
       <div class="ref-item"><span class="ref-tag">I1</span><div><div class="ref-name">Total</div></div></div>
     </div>
+
+    <div class="ref-section">
+      <div class="ref-section-title">Section J — 専攻（Major）</div>
+      <div class="ref-item"><span class="ref-tag">J1</span><div><div class="ref-name">38 カテゴリ</div><div class="ref-note">Bachelor's 8% 以上 → TRUE<br>evaluate.py で自動設定も可</div></div></div>
+    </div>
   </div>
 
   <!-- ── 右パネル（入力フォーム）── -->
@@ -746,6 +751,52 @@ HTML = r"""<!DOCTYPE html>
         </div>
       </div>
 
+      <!-- 12. 専攻 (Section J) -->
+      <div class="form-section">
+        <div class="form-section-title">Section J — 専攻（Major）<span class="cds-tag">J1</span></div>
+        <div class="field-note" style="margin-bottom:0.8rem;">Bachelor's 割合が 8% 以上のものにチェック。<br>evaluate.py でコピペ自動判定も可。</div>
+        <div class="checkbox-grid" id="f_majors">
+          <label class="cb-item"><input type="checkbox" value="Agriculture"><span>Agriculture</span></label>
+          <label class="cb-item"><input type="checkbox" value="Natural resources and conservation"><span>Natural resources and conservation</span></label>
+          <label class="cb-item"><input type="checkbox" value="Architecture"><span>Architecture</span></label>
+          <label class="cb-item"><input type="checkbox" value="Area, ethnic, and gender studies"><span>Area, ethnic, and gender studies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Communication/journalism"><span>Communication/journalism</span></label>
+          <label class="cb-item"><input type="checkbox" value="Communication technologies"><span>Communication technologies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Computer and information sciences"><span>Computer and information sciences</span></label>
+          <label class="cb-item"><input type="checkbox" value="Personal and culinary services"><span>Personal and culinary services</span></label>
+          <label class="cb-item"><input type="checkbox" value="Education"><span>Education</span></label>
+          <label class="cb-item"><input type="checkbox" value="Engineering"><span>Engineering</span></label>
+          <label class="cb-item"><input type="checkbox" value="Engineering technologies"><span>Engineering technologies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Foreign languages, literatures, and linguistics"><span>Foreign languages, literatures, and linguistics</span></label>
+          <label class="cb-item"><input type="checkbox" value="Family and consumer sciences"><span>Family and consumer sciences</span></label>
+          <label class="cb-item"><input type="checkbox" value="Law/legal studies"><span>Law/legal studies</span></label>
+          <label class="cb-item"><input type="checkbox" value="English"><span>English</span></label>
+          <label class="cb-item"><input type="checkbox" value="Liberal arts/general studies"><span>Liberal arts/general studies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Library science"><span>Library science</span></label>
+          <label class="cb-item"><input type="checkbox" value="Biological/life sciences"><span>Biological/life sciences</span></label>
+          <label class="cb-item"><input type="checkbox" value="Mathematics and statistics"><span>Mathematics and statistics</span></label>
+          <label class="cb-item"><input type="checkbox" value="Military science and military technologies"><span>Military science and military technologies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Interdisciplinary studies"><span>Interdisciplinary studies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Parks and recreation"><span>Parks and recreation</span></label>
+          <label class="cb-item"><input type="checkbox" value="Philosophy and religious studies"><span>Philosophy and religious studies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Theology and religious vocations"><span>Theology and religious vocations</span></label>
+          <label class="cb-item"><input type="checkbox" value="Physical sciences"><span>Physical sciences</span></label>
+          <label class="cb-item"><input type="checkbox" value="Science technologies"><span>Science technologies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Psychology"><span>Psychology</span></label>
+          <label class="cb-item"><input type="checkbox" value="Homeland Security, law enforcement, firefighting, and protective services"><span>Homeland Security, law enforcement, firefighting, and protective services</span></label>
+          <label class="cb-item"><input type="checkbox" value="Public administration and social services"><span>Public administration and social services</span></label>
+          <label class="cb-item"><input type="checkbox" value="Social sciences"><span>Social sciences</span></label>
+          <label class="cb-item"><input type="checkbox" value="Construction trades"><span>Construction trades</span></label>
+          <label class="cb-item"><input type="checkbox" value="Mechanic and repair technologies"><span>Mechanic and repair technologies</span></label>
+          <label class="cb-item"><input type="checkbox" value="Precision production"><span>Precision production</span></label>
+          <label class="cb-item"><input type="checkbox" value="Transportation and materials moving"><span>Transportation and materials moving</span></label>
+          <label class="cb-item"><input type="checkbox" value="Visual and performing arts"><span>Visual and performing arts</span></label>
+          <label class="cb-item"><input type="checkbox" value="Health professions and related programs"><span>Health professions and related programs</span></label>
+          <label class="cb-item"><input type="checkbox" value="Business/marketing"><span>Business/marketing</span></label>
+          <label class="cb-item"><input type="checkbox" value="History"><span>History</span></label>
+        </div>
+      </div>
+
     </div><!-- /form-scroll -->
 
     <!-- ── アクションバー ── -->
@@ -798,6 +849,21 @@ const NUM_FIELDS = [
 const TEXT_FIELDS  = ['大学名','URL']
 const BOOL_FIELDS  = ['Need available','non need available','both not available']
 const DATE_FIELDS  = ['Priority Date']
+const MAJOR_FIELDS = [
+  'Agriculture','Natural resources and conservation','Architecture',
+  'Area, ethnic, and gender studies','Communication/journalism','Communication technologies',
+  'Computer and information sciences','Personal and culinary services','Education',
+  'Engineering','Engineering technologies','Foreign languages, literatures, and linguistics',
+  'Family and consumer sciences','Law/legal studies','English',
+  'Liberal arts/general studies','Library science','Biological/life sciences',
+  'Mathematics and statistics','Military science and military technologies',
+  'Interdisciplinary studies','Parks and recreation','Philosophy and religious studies',
+  'Theology and religious vocations','Physical sciences','Science technologies',
+  'Psychology','Homeland Security, law enforcement, firefighting, and protective services',
+  'Public administration and social services','Social sciences','Construction trades',
+  'Mechanic and repair technologies','Precision production','Transportation and materials moving',
+  'Visual and performing arts','Health professions and related programs','Business/marketing','History'
+]
 
 function collectForm() {
   const data = {}
@@ -824,6 +890,12 @@ function collectForm() {
 
   DATE_FIELDS.forEach(k => {
     data[k] = (document.getElementById('f_' + k)?.value || '') || null
+  })
+
+  // 専攻（Major）チェックボックス
+  MAJOR_FIELDS.forEach(k => {
+    const cb = [...document.querySelectorAll('#f_majors input')].find(el => el.value === k)
+    data[k] = cb ? cb.checked : false
   })
 
   // Deferred Admission
@@ -860,6 +932,12 @@ function fillForm(data) {
   DATE_FIELDS.forEach(k => {
     const el = document.getElementById('f_' + k)
     if (el) el.value = data[k] || ''
+  })
+
+  // 専攻（Major）チェックボックス
+  MAJOR_FIELDS.forEach(k => {
+    const cb = [...document.querySelectorAll('#f_majors input')].find(el => el.value === k)
+    if (cb) cb.checked = !!data[k]
   })
 
   // Deferred Admission

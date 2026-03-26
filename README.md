@@ -66,6 +66,9 @@ Express.js Server (server.js)
 Admin Panel (admin-server.js — separate Express process)
   └── MySQL-backed session store (survives server restarts)
   └── Scheduled DB backup via node-cron + mysqldump (90-day retention)
+
+Offline Data Pipeline (Python · localhost only · never deployed)
+  └── Flask-based data entry utilities → JSON → master dataset (xlsx/csv)
 ```
 
 The main server and admin panel run as **separate Node.js processes** so a crash in the admin panel never affects end-users.
@@ -253,6 +256,9 @@ willabroadjapan/
 │   └── scripts/pages/      # Per-page vanilla JS
 ├── admin/                  # Admin panel HTML/CSS/JS
 ├── tests/                  # Jest test suite
+├── GetData/                # Offline data pipeline (Python, not deployed)
+│   ├── CreateTable/        #   Master dataset generation
+│   └── ...                 #   Data entry utilities (Flask, localhost only)
 └── .github/
     ├── workflows/ci.yml    # GitHub Actions CI
     └── ISSUE_TEMPLATE/     # Bug report / feature request forms

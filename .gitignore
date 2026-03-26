@@ -44,6 +44,7 @@ GetData/CreateTable/rankings_cache.json
 
 # University input data (local tool output — do not expose)
 GetData/CreateTable/input_data.json
+GetData/CreateTable/english_proficiency.json
 
 # Upload / document folders (PDFs etc.)
 public/document/
