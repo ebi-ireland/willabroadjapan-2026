@@ -538,7 +538,7 @@
     const CURRENCY_SYMBOLS = { JPY:'¥', USD:'$', GBP:'£', EUR:'€', AUD:'A$', CAD:'C$', SGD:'S$', KRW:'₩' };
 
     // デフォルト為替レート（フォールバック用）
-    const DEFAULT_RATES = { USD: 150, GBP: 190, EUR: 165, AUD: 98, CAD: 111, SGD: 112, KRW: 0.11 };
+    const DEFAULT_RATES = { USD: 150, GBP: 190, EUR: 163, AUD: 98, CAD: 111, SGD: 112, KRW: 0.11 };
 
     let rates = { ...DEFAULT_RATES };
     let displayMode = 'jpy';
@@ -559,24 +559,34 @@
 
     // 為替レート自動取得
     async function fetchRates() {
+      // 即座にデフォルト値でグリッドを構築（計算ボタンをすぐ使えるように）
+      buildRateGrid();
+
       try {
-        const res = await fetch('/api/simulator/exchange-rates');
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 8000);
+        const res = await fetch('https://open.er-api.com/v6/latest/JPY', { signal: controller.signal });
+        clearTimeout(timer);
         if (!res.ok) throw new Error('fetch failed');
         const data = await res.json();
-        // { USD: 150.5, GBP: 192.1, ... } の形式を期待
-        const fetched = data.rates || data;
+        if (data.result !== 'success') throw new Error('API error');
+
+        // data.rates は「1JPY = X外貨」なので逆数を取って「1外貨 = X円」に変換
         CURRENCIES.forEach(cur => {
-          if (fetched[cur] && typeof fetched[cur] === 'number') {
-            rates[cur] = fetched[cur];
+          const r = data.rates[cur];
+          if (r && r > 0) {
+            rates[cur] = Math.round((1 / r) * 100) / 100;
           }
         });
-        document.getElementById('rateStatus').textContent = '✓ 為替レートを自動取得しました';
+
+        const now = new Date().toLocaleTimeString('ja-JP');
+        document.getElementById('rateStatus').textContent = `✓ 為替レートを自動取得しました（${now}）`;
         document.getElementById('rateStatus').className = 'sim__rate-status sim__rate-status--ok';
+        buildRateGrid(); // 取得成功したらグリッドを更新
       } catch {
         document.getElementById('rateStatus').textContent = '※ 為替レートの自動取得に失敗しました。デフォルト値を使用しています。';
         document.getElementById('rateStatus').className = 'sim__rate-status sim__rate-status--error';
       }
-      buildRateGrid();
     }
 
     // 通貨をJPYに変換
@@ -692,6 +702,8 @@
       el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function safeNum(n) { return (isFinite(n) && !isNaN(n)) ? n : 0; }
+
     function renderSummary(result) {
       const isJPY = displayMode === 'jpy';
       const { tuitionCur, livingCur, scholCur } = lastResult || {};
@@ -699,6 +711,7 @@
       const rL = (livingCur  && livingCur  !== 'JPY') ? (rates[livingCur]  || DEFAULT_RATES[livingCur]  || 150) : 1;
       const rS = (scholCur   && scholCur   !== 'JPY') ? (rates[scholCur]   || DEFAULT_RATES[scholCur]   || 150) : 1;
       const yrs = result.breakdown.length;
+      const row0 = result.breakdown[0] || { tuition: 0, living: 0, scholarship: 0 };
 
       let cards;
       if (isJPY) {
@@ -710,17 +723,22 @@
         ];
       } else {
         // 外貨モード：学費・生活費・奨学金を各元の通貨で表示
-        const tSym = CURRENCY_SYMBOLS[tuitionCur] || tuitionCur || '¥';
-        const lSym = CURRENCY_SYMBOLS[livingCur]  || livingCur  || '¥';
-        const sSym = CURRENCY_SYMBOLS[scholCur]   || scholCur   || '¥';
-        const annualTuitionFx  = Math.round(result.breakdown[0]?.tuition     / rT);
-        const annualLivingFx   = Math.round(result.breakdown[0]?.living      / rL);
-        const annualScholFx    = Math.round(result.breakdown[0]?.scholarship / rS);
+        const tSym = CURRENCY_SYMBOLS[tuitionCur] || '¥';
+        const lSym = CURRENCY_SYMBOLS[livingCur]  || '¥';
+        const sSym = CURRENCY_SYMBOLS[scholCur]   || '¥';
+        const annualTuitionFx = safeNum(Math.round(row0.tuition     / rT));
+        const annualLivingFx  = safeNum(Math.round(row0.living      / rL));
+        const annualScholFx   = safeNum(Math.round(row0.scholarship / rS));
+        const totalNetFx      = safeNum(Math.round(result.totalNet  / rT));
+        // 3つすべて同じ通貨かどうか判定
+        const sameCur = tuitionCur === livingCur && livingCur === scholCur && tuitionCur !== 'JPY';
+        const totalLabel = sameCur ? `${yrs}年間実質負担 (${tuitionCur})` : `${yrs}年間実質負担（円）`;
+        const totalValue = sameCur ? `${tSym}${totalNetFx.toLocaleString()}` : fmt(result.totalNet, 'jpy');
         cards = [
-          { label: `年間学費 (${tuitionCur || 'JPY'})`,    value: `${tSym}${annualTuitionFx?.toLocaleString()}`, sub: `≈ ${fmt(result.breakdown[0]?.tuition, 'jpy')}` },
-          { label: `年間生活費 (${livingCur || 'JPY'})`,   value: `${lSym}${annualLivingFx?.toLocaleString()}`,  sub: `≈ ${fmt(result.breakdown[0]?.living, 'jpy')}` },
-          { label: `年間奨学金 (${scholCur || 'JPY'})`,    value: `${sSym}${annualScholFx?.toLocaleString()}`,   sub: `≈ ${fmt(result.breakdown[0]?.scholarship, 'jpy')}`, accent: true },
-          { label: `${yrs}年間実質負担（円）`,              value: fmt(result.totalNet, 'jpy'),                   sub: '奨学金控除後の総負担', accent: true },
+          { label: `年間学費 (${tuitionCur || 'JPY'})`,   value: `${tSym}${annualTuitionFx.toLocaleString()}`, sub: `≈ ${fmt(row0.tuition,     'jpy')}` },
+          { label: `年間生活費 (${livingCur || 'JPY'})`,  value: `${lSym}${annualLivingFx.toLocaleString()}`,  sub: `≈ ${fmt(row0.living,      'jpy')}` },
+          { label: `年間奨学金 (${scholCur || 'JPY'})`,   value: `${sSym}${annualScholFx.toLocaleString()}`,   sub: `≈ ${fmt(row0.scholarship, 'jpy')}`, accent: true },
+          { label: totalLabel, value: totalValue, sub: '奨学金控除後の総負担', accent: true },
         ];
       }
 
