@@ -14,6 +14,7 @@ University Dataset Automation Script v2
   例: C:/Users/user/OneDrive/Desktop/willabroadjapan/GetData/CreateTable/
 """
 
+import re
 import time
 import json
 import csv
@@ -154,6 +155,9 @@ GEOCODE_RETRY_MAX = 5     # レート制限時の最大リトライ回数
 GEOCODE_RETRY_WAIT = 60   # レート制限検知時の待機秒数（429受信 or 連続失敗）
 PROGRESS_FILE        = OUTPUT_DIR / "geocode_progress.json"   # ジオコーディング進捗（中断再開用）
 SCRAPE_PROGRESS_FILE = OUTPUT_DIR / "scrape_progress.json"    # スクレイピング進捗（国ごとに保存）
+RANKINGS_CACHE_FILE  = OUTPUT_DIR / "rankings_cache.json"     # THE/QS ランキングキャッシュ（年1回更新）
+RANKINGS_CACHE_MAX_DAYS = 330  # 約11ヶ月で自動再取得（毎年6月頃に新ランキング公開）
+DATA_LISTING_DIR     = OUTPUT_DIR / "data_listing"            # ezo_art_YYYY.pdf 等の配置フォルダ
 
 # ────────────────────────────────────────────────────────────
 # 通貨マッピング（国名 → 通貨記号）
@@ -200,6 +204,153 @@ CURRENCY_MAP = {
 def get_currency(country_name: str) -> str:
     """国名から通貨コードを返す。指定通貨リスト外はUSD。"""
     return CURRENCY_MAP.get(country_name, "USD")
+
+# ────────────────────────────────────────────────────────────
+# 気候マッピング（国名 → フィルター値）
+#   oceanic      = 西岸海洋性気候
+#   mediterranean= 地中海性気候
+#   humid_sub    = 温暖温潤気候
+#   subarctic    = 亜寒帯・冷帯
+#   steppe       = ステップ・砂漠気候
+#   tropical     = 熱帯雨林・サバナ気候
+# ────────────────────────────────────────────────────────────
+
+CLIMATE_MAP = {
+    # 亜寒帯・冷帯 ───────────────────────────────────────────
+    "アイスランド":             "subarctic",
+    "グリーンランド":           "subarctic",
+    "フィンランド":             "subarctic",
+    "スウェーデン":             "subarctic",
+    "ノルウェー":               "subarctic",
+    "カナダ":                   "subarctic",
+    "ロシア":                   "subarctic",
+    "モンゴル":                 "subarctic",
+    "キルギス":                 "subarctic",
+
+    # 西岸海洋性気候 ─────────────────────────────────────────
+    "アイルランド":             "oceanic",
+    "イギリス":                 "oceanic",
+    "オランダ":                 "oceanic",
+    "ベルギー":                 "oceanic",
+    "ルクセンブルク":           "oceanic",
+    "フランス":                 "oceanic",
+    "ドイツ":                   "oceanic",
+    "デンマーク":               "oceanic",
+    "オーストリア":             "oceanic",
+    "スイス":                   "oceanic",
+    "チェコ":                   "oceanic",
+    "スロバキア":               "oceanic",
+    "スロベニア":               "oceanic",
+    "クロアチア":               "oceanic",
+    "ポーランド":               "oceanic",
+    "ハンガリー":               "oceanic",
+    "ルーマニア":               "oceanic",
+    "ブルガリア":               "oceanic",
+    "セルビア":                 "oceanic",
+    "ボスニアヘルツェゴビナ":   "oceanic",
+    "モンテネグロ":             "oceanic",
+    "北マケドニア":             "oceanic",
+    "コソボ":                   "oceanic",
+    "アルバニア":               "oceanic",
+    "ニュージーランド":         "oceanic",
+    "アンドラ":                 "oceanic",
+
+    # 地中海性気候 ───────────────────────────────────────────
+    "スペイン":                 "mediterranean",
+    "ポルトガル":               "mediterranean",
+    "イタリア":                 "mediterranean",
+    "ギリシャ":                 "mediterranean",
+    "キプロス":                 "mediterranean",
+    "マルタ":                   "mediterranean",
+    "モナコ":                   "mediterranean",
+    "サンマリノ":               "mediterranean",
+    "クロアチア":               "mediterranean",
+    "イスラエル":               "mediterranean",
+    "レユニオン":               "mediterranean",
+    "南アフリカ":               "mediterranean",   # ケープタウン周辺
+
+    # 温暖温潤気候 ───────────────────────────────────────────
+    "アメリカ":                 "humid_sub",
+    "アメリカンバージンアイランド": "humid_sub",
+    "プエルトリコ":             "humid_sub",
+    "グアム":                   "humid_sub",
+    "日本":                     "humid_sub",
+    "韓国":                     "humid_sub",
+    "中国":                     "humid_sub",
+    "台湾":                     "humid_sub",
+    "香港":                     "humid_sub",
+    "マカオ":                   "humid_sub",
+    "アルゼンチン":             "humid_sub",
+    "ウルグアイ":               "humid_sub",
+    "ブラジル":                 "humid_sub",  # 南部は温暖温潤
+    "チリ":                     "humid_sub",
+    "パラグアイ":               "humid_sub",
+    "ジョージア":               "humid_sub",
+    "アルメニア":               "humid_sub",
+    "アゼルバイジャン":         "humid_sub",
+    "ウズベキスタン":           "humid_sub",
+    "エストニア":               "humid_sub",
+    "ラトビア":                 "humid_sub",
+    "リトアニア":               "humid_sub",
+    "モルドバ":                 "humid_sub",
+    "ウクライナ":               "humid_sub",
+    "ベラルーシ":               "humid_sub",
+
+    # ステップ・砂漠気候 ─────────────────────────────────────
+    "アラブ首長国連邦":         "steppe",
+    "サウジアラビア":           "steppe",
+    "カタール":                 "steppe",
+    "クウェート":               "steppe",
+    "バーレーン":               "steppe",
+    "オマーン":                 "steppe",
+    "ヨルダン":                 "steppe",
+    "エジプト":                 "steppe",
+    "モロッコ":                 "steppe",
+    "カザフスタン":             "steppe",
+    "モルドバ":                 "steppe",
+
+    # 熱帯雨林・サバナ気候 ───────────────────────────────────
+    "インド":                   "tropical",
+    "インドネシア":             "tropical",
+    "マレーシア":               "tropical",
+    "シンガポール":             "tropical",
+    "タイ":                     "tropical",
+    "ベトナム":                 "tropical",
+    "フィリピン":               "tropical",
+    "バングラデシュ":           "tropical",
+    "スリランカ":               "tropical",
+    "ネパール":                 "tropical",
+    "ブータン":                 "tropical",
+    "ブルネイ":                 "tropical",
+    "ラオス":                   "tropical",
+    "ミャンマー":               "tropical",
+    "カンボジア":               "tropical",
+    "フィジー":                 "tropical",
+    "サモア":                   "tropical",
+    "パプアニューギニア":       "tropical",
+    "フレンチポリネシア":       "tropical",
+    "ニューカレドニア":         "tropical",
+    "グレナダ":                 "tropical",
+    "キュラソー":               "tropical",
+    "グアドループ":             "tropical",
+    "コスタリカ":               "tropical",
+    "グアテマラ":               "tropical",
+    "パナマ":                   "tropical",
+    "キューバ":                 "tropical",
+    "ドミニカ共和国":           "tropical",
+    "コロンビア":               "tropical",
+    "エクアドル":               "tropical",
+    "ペルー":                   "tropical",
+    "ボリビア":                 "tropical",
+    "モーリシャス":             "tropical",
+    "モルディブ":               "tropical",
+    "メキシコ":                 "tropical",   # 南部は熱帯
+    "オーストラリア":           "tropical",   # 北部は熱帯（大学はシドニー等にも多いが代表値）
+}
+
+def get_climate(country_name: str) -> str:
+    """国名から気候コードを返す。未定義の場合は空文字。"""
+    return CLIMATE_MAP.get(country_name, "")
 
 # ────────────────────────────────────────────────────────────
 # チェックボックス対象カラム
@@ -297,6 +448,9 @@ COLUMNS = [
     "Duolingo Conversation", "Duolingo Production",
     # 語学条件（チェックボックス）
     "スコア提出はあるがスコア条件はなし",
+    # ランキング（THE / QS 総合・分野別・芸術分野）
+    "THE総合", "QS総合", "THE分野最高位", "QS分野最高位",
+    "THE芸術順位", "QS芸術順位",
     # 奨学金種別チェック
     "全額免除奨学金", "授業料免除奨学金", "Need-based Scholarship", "Need-Met 100%",
     "柳井正財団", "笹川平和財団", "グルーバンクロフト基金", "東進海外進学支援制度",
@@ -445,6 +599,575 @@ def fill_currency(universities: list):
     for uni in universities:
         uni["通貨定義"] = get_currency(uni.get("国", ""))
 
+def fill_climate(universities: list):
+    for uni in universities:
+        uni["気候"] = get_climate(uni.get("国", ""))
+
+# ────────────────────────────────────────────────────────────
+# THE / QS ランキング 自動取得・キャッシュ・国内1位判定
+# ────────────────────────────────────────────────────────────
+
+# 分野別 Top30 補助データ（総合ランキングには出ない大学をカバー）
+# キーワード（英語小文字・部分一致）: (THE分野最高位, QS分野最高位)
+SUBJECT_RANKING_DATA = [
+    ("karolinska",                          1,   1),   # 医学
+    ("london business school",              None,1),   # ビジネス
+    ("insead",                              None,1),   # ビジネス
+    ("hec paris",                           None,1),   # ビジネス
+    ("london school of hygiene",            1,   1),   # 公衆衛生
+    ("university of california, los angeles",1,  5),
+    ("university of california, san diego", 1,   5),
+    ("university of california, san francisco",1, None),
+    ("heidelberg university",               10,  None),
+    ("university of amsterdam",             20,  20),
+    ("university of sydney",                20,  10),
+    ("university of queensland",            20,  10),
+    ("monash university",                   25,  10),
+    ("university of manchester",            15,  10),
+    ("university of bristol",               20,  15),
+    ("university of glasgow",               25,  20),
+    ("seoul national university",           20,  10),
+    ("korea advanced institute",            None,20),
+    ("paris sciences et lettres",           15,  None),
+    ("university of cape town",             25,  None),
+    ("wageningen university",               1,   1),   # 農学
+    ("epfl",                                1,   1),   # 工学
+    ("polytechnique fédérale de lausanne",  1,   1),
+    ("university of british columbia",      20,  15),
+    ("kyoto university",                    None,20),
+]
+
+# ────────────────────────────────────────────────────────────
+# 芸術分野ランキングデータ（2025年版・閾値50位）
+#   QS  : Art & Design
+#   THE : arts and humanities – art, performing arts & design
+#   キーワード（英語小文字・部分一致）: (THE芸術順位, QS芸術順位)
+# ────────────────────────────────────────────────────────────
+
+ART_RANKING_DATA = [
+    # ── QS Art & Design Top50 ─────────────────────────────
+    ("royal college of art",                1,    1),
+    ("university of the arts london",       None, 3),
+    ("parsons",                             None, 4),
+    ("politecnico di milano",               None, 6),
+    ("pratt institute",                     None, 9),
+    ("rhode island school of design",       None, 10),
+    ("aalto university",                    None, 14),
+    ("rmit university",                     None, 16),
+    ("goldsmiths",                          None, 18),
+    ("savannah college of art",             None, 19),
+    ("arts university bournemouth",         None, 20),
+    ("glasgow school of art",               None, 23),
+    ("central saint martins",               None, 24),
+    ("monash university",                   None, 25),
+    ("emily carr university",               None, 22),
+    ("nscad university",                    None, 28),
+    ("school of the art institute",         None, 3),   # SAIC
+    ("school of visual arts",               None, 30),
+    ("art center college of design",        None, 35),
+    ("california college of the arts",      None, 40),
+    ("loughborough university",             None, 32),
+    ("konstfack",                           None, 29),
+    ("zurich university of the arts",       None, 45),
+    ("ecal",                                None, 48),
+    ("design academy eindhoven",            None, 42),
+    # ── THE Arts & Humanities (art/performing arts/design) Top50 ──
+    ("university of oxford",                1,    None),
+    ("harvard university",                  2,    5),
+    ("university of cambridge",             3,    None),
+    ("stanford university",                 4,    12),
+    ("university college london",           5,    7),
+    ("columbia university",                 6,    None),
+    ("yale university",                     7,    11),
+    ("princeton university",                8,    None),
+    ("new york university",                 9,    None),
+    ("university of chicago",               10,   None),
+    ("duke university",                     12,   None),
+    ("cornell university",                  13,   13),
+    ("university of edinburgh",             14,   None),
+    ("king's college london",               15,   None),
+    ("university of michigan",              16,   None),
+    ("university of toronto",               17,   None),
+    ("johns hopkins",                       18,   None),
+    ("northwestern university",             19,   None),
+    ("university of amsterdam",             22,   None),
+    ("leiden university",                   24,   None),
+    ("university of melbourne",             26,   None),
+    ("university of sydney",                28,   None),
+    ("australian national university",      30,   None),
+    ("university of british columbia",      33,   None),
+    ("mcgill university",                   36,   None),
+    ("university of cape town",             40,   None),
+    ("seoul national university",           42,   None),
+    ("peking university",                   44,   None),
+    ("tsinghua university",                 45,   None),
+    ("karolinska",                          None, None),
+]
+
+# ── PDF 対象校リスト読み込み ──────────────────────────────
+
+def load_ezo_art_list() -> set:
+    """
+    data_listing/ezo_art_YYYY.pdf から対象校名を読み込む。
+    最新年のファイルを自動選択（ezo_art_2026.pdf → 2027.pdf → ...）。
+    Returns: {大学名キーワード（小文字）} のセット
+    """
+    import re
+
+    # 最新年のPDFを選択
+    pdfs = sorted(DATA_LISTING_DIR.glob("ezo_art_*.pdf"), reverse=True)
+    if not pdfs:
+        # スクリプトと同じフォルダも探す
+        pdfs = sorted(OUTPUT_DIR.glob("ezo_art_*.pdf"), reverse=True)
+    if not pdfs:
+        print("  [WARN] ezo_art_*.pdf が見つかりません（data_listing/ フォルダを確認してください）")
+        return set()
+
+    pdf_path = pdfs[0]
+    print(f"  江副芸術対象校 PDF: {pdf_path.name}")
+
+    # PDF テキスト抽出
+    text = ""
+    try:
+        import pypdf
+        reader = pypdf.PdfReader(str(pdf_path))
+        for page in reader.pages:
+            text += (page.extract_text() or "") + "\n"
+    except ImportError:
+        try:
+            import PyPDF2
+            with open(pdf_path, "rb") as f:
+                reader = PyPDF2.PdfReader(f)
+                for page in reader.pages:
+                    text += (page.extract_text() or "") + "\n"
+        except ImportError:
+            print("  [WARN] PDF読み込みには pypdf が必要です: pip install pypdf")
+            return set()
+    except Exception as e:
+        print(f"  [WARN] PDF読み込みエラー: {e}")
+        return set()
+
+    # 大学名を抽出（形式: "番号 国名 大学名 URL"）
+    names = set()
+    for line in text.split("\n"):
+        line = line.strip()
+        # 番号で始まる行: 先頭の数字と国名を除き、URLの前までを大学名とする
+        m = re.match(r'^\d+\s+\S+\s+(.+?)\s+https?://\S*', line)
+        if m:
+            raw_name = m.group(1).strip()
+            # 括弧内の補足（学部名等）を除いた短縮キーワードも登録
+            short = re.sub(r'[\(（].*?[\)）]', '', raw_name).strip()
+            names.add(raw_name.lower())
+            if short != raw_name:
+                names.add(short.lower())
+        # URL なしの短い行（テキスト抽出ズレ対策）
+        elif re.match(r'^\d+\s+', line):
+            parts = re.split(r'\s{2,}', line, maxsplit=2)
+            if len(parts) >= 3:
+                names.add(parts[2].strip().lower())
+
+    print(f"  → {len(names)} 校キーワード登録完了")
+    return names
+
+def _is_ezo_art_match(university_name: str, art_list: set) -> bool:
+    """PDF対象校リストに名前が含まれるか部分一致で判定。"""
+    name_lower = university_name.lower()
+    # 完全一致
+    if name_lower in art_list:
+        return True
+    # PDF側のキーワードが大学名に含まれる（または逆）
+    for keyword in art_list:
+        if len(keyword) >= 6 and (keyword in name_lower or name_lower in keyword):
+            return True
+    return False
+
+def _parse_rank(rank_str) -> int | None:
+    """'1', '=1', '201-250' などを整数に変換。範囲は下限値（最良値）を使用。"""
+    if rank_str is None:
+        return None
+    s = str(rank_str).strip().lstrip("=").replace(",", "")
+    try:
+        return int(s)
+    except ValueError:
+        # "201-250" のような範囲 → 下限（最良値）
+        if "-" in s:
+            try:
+                return int(s.split("-")[0])
+            except ValueError:
+                pass
+    return None
+
+def _name_match(name_a: str, name_b: str) -> bool:
+    """2つの大学名が同一大学か判定（小文字・部分一致）。"""
+    a, b = name_a.lower().strip(), name_b.lower().strip()
+    return a == b or a in b or b in a
+
+def _subject_rank(university_name: str) -> tuple[int | None, int | None]:
+    """分野別補助データから (THE分野最高位, QS分野最高位) を返す。"""
+    name_lower = university_name.lower()
+
+    def _better(a, b):
+        if a is None: return b
+        if b is None: return a
+        return min(a, b)
+
+    the_s, qs_s = None, None
+    for kw, t, q in SUBJECT_RANKING_DATA:
+        if kw in name_lower:
+            the_s = _better(the_s, t)
+            qs_s  = _better(qs_s,  q)
+    return the_s, qs_s
+
+# ── QS ランキング取得 ──────────────────────────────────────
+
+def fetch_qs_rankings() -> list:
+    """
+    QS World University Rankings を topuniversities.com API から取得。
+    Returns: [{"name": str, "country": str, "rank": int}, ...]
+    """
+    import re
+    print("    QS Rankings 取得中 (topuniversities.com)...")
+
+    # ① ランキングページから nid を抽出
+    page_url = "https://www.topuniversities.com/world-university-rankings"
+    try:
+        r = requests.get(page_url, headers=HEADERS_HTTP, timeout=20)
+        r.raise_for_status()
+    except Exception as e:
+        print(f"    [WARN] QS ページ取得失敗: {e}")
+        return []
+
+    nid_match = (re.search(r'"nid"\s*:\s*"?(\d{5,})"?', r.text) or
+                 re.search(r'nid=(\d{5,})',              r.text))
+    if not nid_match:
+        print("    [WARN] QS nid が見つかりませんでした")
+        return []
+    nid = nid_match.group(1)
+
+    # ② API 呼び出し
+    api_url = "https://www.topuniversities.com/rankings/endpoint"
+    params  = {"nid": nid, "page": 0, "items_per_page": 1500,
+               "tab": "indicators", "sort_by": "rank", "order_by": "asc"}
+    headers = {**HEADERS_HTTP, "X-Requested-With": "XMLHttpRequest",
+               "Referer": page_url}
+    try:
+        r = requests.get(api_url, params=params, headers=headers, timeout=30)
+        r.raise_for_status()
+        data = r.json()
+    except Exception as e:
+        print(f"    [WARN] QS API 取得失敗: {e}")
+        return []
+
+    results = []
+    for item in data.get("scores", []):
+        rank = _parse_rank(item.get("rank_display") or item.get("overall_rank"))
+        if rank is None:
+            continue
+        results.append({
+            "name":    item.get("title", "").strip(),
+            "country": item.get("country", "").strip(),
+            "rank":    rank,
+        })
+    print(f"    → QS {len(results)} 大学取得 (nid={nid})")
+    return results
+
+# ── THE ランキング取得 ─────────────────────────────────────
+
+def fetch_the_rankings() -> list:
+    """
+    THE World University Rankings を unirank.org 経由で取得。
+    Returns: [{"name": str, "country": str, "rank": int}, ...]
+    """
+    print("    THE Rankings 取得中 (unirank.org/the/)...")
+    url = "https://www.unirank.org/the/"
+    try:
+        r = requests.get(url, headers=HEADERS_HTTP, timeout=20)
+        r.raise_for_status()
+        soup = BeautifulSoup(r.text, "html.parser")
+    except Exception as e:
+        print(f"    [WARN] THE Rankings 取得失敗: {e}")
+        return []
+
+    results = []
+    for tr in soup.find_all("tr"):
+        tds = tr.find_all("td")
+        if len(tds) < 3:
+            continue
+        rank = _parse_rank(tds[0].get_text(strip=True))
+        if rank is None:
+            continue
+        a_tag = tds[1].find("a")
+        if not a_tag:
+            continue
+        results.append({
+            "name":    a_tag.get_text(strip=True),
+            "country": tds[2].get_text(strip=True),
+            "rank":    rank,
+        })
+    print(f"    → THE {len(results)} 大学取得")
+    return results
+
+# ── キャッシュ管理 ────────────────────────────────────────
+
+def load_rankings_cache() -> dict:
+    """
+    rankings_cache.json を読み込む。
+    存在しない・期限切れの場合は再取得して保存。
+    """
+    if RANKINGS_CACHE_FILE.exists():
+        try:
+            with open(RANKINGS_CACHE_FILE, encoding="utf-8") as f:
+                cache = json.load(f)
+            updated  = datetime.fromisoformat(cache.get("updated", "2000-01-01"))
+            age_days = (datetime.now() - updated).days
+            if age_days < RANKINGS_CACHE_MAX_DAYS:
+                print(f"  ランキングキャッシュ使用中 (更新日: {cache['updated']} / {age_days}日前)")
+                return cache
+            print(f"  ランキングキャッシュが古いため再取得します ({age_days}日経過)")
+        except Exception as e:
+            print(f"  ランキングキャッシュ読み込みエラー ({e}) → 再取得します")
+
+    return _refresh_rankings_cache()
+
+def _refresh_rankings_cache() -> dict:
+    """QS・THE を取得してキャッシュファイルに保存。"""
+    qs_data  = fetch_qs_rankings()
+    the_data = fetch_the_rankings()
+    cache = {
+        "updated":     datetime.now().strftime("%Y-%m-%d"),
+        "qs_overall":  qs_data,
+        "the_overall": the_data,
+    }
+    try:
+        with open(RANKINGS_CACHE_FILE, "w", encoding="utf-8") as f:
+            json.dump(cache, f, ensure_ascii=False, indent=2)
+        print(f"  ランキングキャッシュ保存: {RANKINGS_CACHE_FILE.name}")
+    except Exception as e:
+        print(f"  [WARN] キャッシュ保存失敗: {e}")
+    return cache
+
+# ── 江副判定メイン ────────────────────────────────────────
+
+def fill_egasoe_ranking(universities: list):
+    """
+    江副リクルート記念財団 TRUE 条件:
+      ① THE / QS 総合 Top30
+      ② THE / QS 分野別（一般）Top30（補助データ）
+      ③ THE / QS 芸術分野（Art & Design / art,performing arts&design）Top50
+      ④ ezo_art_YYYY.pdf 指定校
+      ⑤ 各国の THE 国内1位 または QS 国内1位（最大2大学/国）
+    """
+    from collections import defaultdict
+
+    # ── ランキングデータ読み込み ──
+    cache    = load_rankings_cache()
+    qs_list  = cache.get("qs_overall",  [])
+    the_list = cache.get("the_overall", [])
+
+    # ── PDF 対象校リスト読み込み ──
+    art_pdf_list = load_ezo_art_list()
+
+    # ── 各大学に総合・分野・芸術順位をセット ──
+    for uni in universities:
+        name = uni.get("大学名", "")
+
+        # QS 総合
+        qs_rank = None
+        for item in qs_list:
+            if _name_match(name, item["name"]):
+                qs_rank = item["rank"]
+                break
+
+        # THE 総合
+        the_rank = None
+        for item in the_list:
+            if _name_match(name, item["name"]):
+                the_rank = item["rank"]
+                break
+
+        # 一般分野別（Top30補助）
+        the_s, qs_s = _subject_rank(name)
+
+        # 芸術分野順位
+        name_lower = name.lower()
+        the_art, qs_art = None, None
+        def _better(a, b):
+            if a is None: return b
+            if b is None: return a
+            return min(a, b)
+        for kw, ta, qa in ART_RANKING_DATA:
+            if kw in name_lower:
+                the_art = _better(the_art, ta)
+                qs_art  = _better(qs_art,  qa)
+
+        uni["THE総合"]      = the_rank
+        uni["QS総合"]       = qs_rank
+        uni["THE分野最高位"] = the_s
+        uni["QS分野最高位"]  = qs_s
+        uni["THE芸術順位"]   = the_art
+        uni["QS芸術順位"]    = qs_art
+
+    # ── 条件① ② Top30 判定 ──
+    count_top30 = 0
+    for uni in universities:
+        if any(v is not None and v <= 30
+               for v in [uni.get("THE総合"),      uni.get("QS総合"),
+                         uni.get("THE分野最高位"), uni.get("QS分野最高位")]):
+            uni["江副リクルート記念財団"] = "TRUE"
+            count_top30 += 1
+
+    # ── 条件③ 芸術分野 Top50 ──
+    count_art50 = 0
+    for uni in universities:
+        if uni.get("江副リクルート記念財団") == "TRUE":
+            continue
+        if any(v is not None and v <= 50
+               for v in [uni.get("THE芸術順位"), uni.get("QS芸術順位")]):
+            uni["江副リクルート記念財団"] = "TRUE"
+            count_art50 += 1
+            print(f"    🎨 芸術Top50: {uni['大学名'][:40]}"
+                  f"  THE芸術:{uni.get('THE芸術順位','─')}  QS芸術:{uni.get('QS芸術順位','─')}")
+
+    # ── 条件④ PDF 指定校 ──
+    count_pdf = 0
+    for uni in universities:
+        if uni.get("江副リクルート記念財団") == "TRUE":
+            continue
+        if _is_ezo_art_match(uni.get("大学名", ""), art_pdf_list):
+            uni["江副リクルート記念財団"] = "TRUE"
+            count_pdf += 1
+            print(f"    📄 PDF指定校: {uni['大学名'][:40]}")
+
+    # ── 条件⑤ 各国 THE/QS 国内1位 ──
+    by_country = defaultdict(list)
+    for uni in universities:
+        by_country[uni.get("国", "")].append(uni)
+
+    count_country1 = 0
+    for country, unis in by_country.items():
+        for source, key in [("THE", "THE総合"), ("QS", "QS総合")]:
+            candidates = [(u[key], u) for u in unis if u.get(key) is not None]
+            if not candidates:
+                continue
+            best_rank, best_uni = min(candidates, key=lambda x: x[0])
+            if best_uni.get("江副リクルート記念財団") != "TRUE":
+                best_uni["江副リクルート記念財団"] = "TRUE"
+                count_country1 += 1
+                print(f"    🌍 {source} 国内1位: {country} "
+                      f"- {best_uni['大学名'][:35]} ({source} {best_rank}位)")
+
+    total = sum(1 for u in universities if u.get("江副リクルート記念財団") == "TRUE")
+    print(f"  → 合計 {total}大学  ("
+          f"Top30: {count_top30} / 芸術Top50: {count_art50} / "
+          f"PDF指定: {count_pdf} / 国内1位: {count_country1})")
+
+# ────────────────────────────────────────────────────────────
+# 奨学金対象校リスト（柳井正財団 / 笹川平和財団）
+# ────────────────────────────────────────────────────────────
+
+# 大学名として認識するキーワード（英語機関名の判別用）
+_INST_KEYWORDS = (
+    "university", "college", "institute", "school", "academy",
+    "polytechnic", "minerva", "sciences", "technology",
+)
+
+def _parse_scholarship_txt(text: str) -> set:
+    """
+    奨学金対象校テキストから大学名キーワードセット（小文字）を抽出。
+    yanai 形式 (A / B / C) と sasakawa 形式 (1行1校) の両方に対応。
+    """
+    names = set()
+    for line in text.split("\n"):
+        line = line.strip()
+        if not line:
+            continue
+
+        # ── yanai 形式: " / " 区切りが含まれる行 ──
+        if " / " in line:
+            for part in line.split(" / "):
+                p = part.strip()
+                if p and any(kw in p.lower() for kw in _INST_KEYWORDS):
+                    names.add(p.lower())
+            continue
+
+        # ── sasakawa 形式: 英語大学名が1行に1校 ──
+        lower = line.lower()
+        if any(kw in lower for kw in _INST_KEYWORDS):
+            # 括弧内の注記 "(UCL)" 等を除去したバージョンも登録
+            clean = re.sub(r'\s*[\(（][^)）]*[\)）]', '', line).strip()
+            names.add(clean.lower())
+            if clean.lower() != lower:
+                names.add(lower)   # 括弧付き元表記も保持
+
+    return names
+
+def load_scholarship_list(prefix: str) -> set:
+    """
+    data_listing/{prefix}_YYYY.txt から最新年のファイルを読み込み、
+    大学名キーワードセットを返す。ファイルが増えても自動で最新年を選択。
+    例: yanai_2026.txt → yanai_2027.txt → ...
+    """
+    files = sorted(DATA_LISTING_DIR.glob(f"{prefix}_*.txt"), reverse=True)
+    if not files:
+        print(f"  [WARN] {prefix}_*.txt が data_listing/ に見つかりません")
+        return set()
+
+    f_path = files[0]
+    print(f"  {prefix} リスト: {f_path.name}")
+
+    try:
+        text = f_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError:
+        text = f_path.read_text(encoding="cp932")   # Shift-JIS フォールバック
+    except Exception as e:
+        print(f"  [WARN] 読み込みエラー: {e}")
+        return set()
+
+    names = _parse_scholarship_txt(text)
+    print(f"  → {len(names)} 校登録")
+    return names
+
+def _is_list_match(university_name: str, name_set: set) -> bool:
+    """
+    name_set 内のキーワードと大学名を部分一致で照合。
+    キーワード長 6 文字以上のものだけを対象にして誤マッチを防ぐ。
+    """
+    name_lower = university_name.lower()
+    if name_lower in name_set:
+        return True
+    for kw in name_set:
+        if len(kw) < 6:
+            continue
+        if kw in name_lower or name_lower in kw:
+            return True
+    return False
+
+def fill_scholarship_lists(universities: list):
+    """
+    柳井正財団・笹川平和財団・グルーバンクロフト基金の対象校リストを読み込み、
+    該当大学の各カラムを TRUE に設定する。
+    """
+    yanai_list    = load_scholarship_list("yanai")
+    sasakawa_list = load_scholarship_list("sasakawa")
+    grew_list     = load_scholarship_list("grew")
+
+    count_y = count_s = count_g = 0
+    for uni in universities:
+        name = uni.get("大学名", "")
+        if _is_list_match(name, yanai_list):
+            uni["柳井正財団"] = "TRUE"
+            count_y += 1
+        if _is_list_match(name, sasakawa_list):
+            uni["笹川平和財団"] = "TRUE"
+            count_s += 1
+        if _is_list_match(name, grew_list):
+            uni["グルーバンクロフト基金"] = "TRUE"
+            count_g += 1
+
+    print(f"  → 柳井正財団 TRUE: {count_y}大学"
+          f"  /  笹川平和財団 TRUE: {count_s}大学"
+          f"  /  グルーバンクロフト基金 TRUE: {count_g}大学")
+
 # ────────────────────────────────────────────────────────────
 # Excel 作成
 # ────────────────────────────────────────────────────────────
@@ -458,6 +1181,7 @@ SECTION_COLORS = {
     "2-9":          "404040",  # 濃灰（クラスサイズ）
     "Agriculture":  "4B0082",  # 紫（学問）
     "TOEFL 総合":   "006400",  # 濃緑（語学）
+    "THE総合":       "1A3A5C",  # 紺グレー（ランキング）
     "全額免除奨学金":"8B0000",  # 深赤（奨学金種別）
     "学部生のみ":   "00008B",  # 紺（大学特性）
 }
@@ -667,8 +1391,29 @@ def main():
         print("\n[STEP 1.5] 重複大学名チェック...")
         deduplicate_names(all_universities)
 
+    # 気候自動補完
+    print("\n[STEP 3a] 気候を自動補完...")
+    fill_climate(all_universities)
+    for uni in all_universities:
+        print(f"  {uni['国']:12s}  →  気候: {uni['気候'] or '(未定義)'}")
+
+    # 江副リクルート記念財団：THE/QS Top30 自動判定
+    print("\n[STEP 3b] 江副リクルート記念財団（THE/QS Top30）を自動判定...")
+    fill_egasoe_ranking(all_universities)
+    for uni in all_universities:
+        if uni.get("江副リクルート記念財団") == "TRUE":
+            print(f"  ✅ {uni['大学名'][:40]:40s}"
+                  f"  THE総合:{str(uni.get('THE総合','─')):>4s}"
+                  f"  QS総合:{str(uni.get('QS総合','─')):>4s}"
+                  f"  THE分野:{str(uni.get('THE分野最高位','─')):>4s}"
+                  f"  QS分野:{str(uni.get('QS分野最高位','─')):>4s}")
+
+    # 柳井正財団・笹川平和財団 対象校リスト判定
+    print("\n[STEP 3c] 柳井正財団・笹川平和財団 対象校を自動判定...")
+    fill_scholarship_lists(all_universities)
+
     # 通貨自動補完
-    print("\n[STEP 3] 通貨定義を自動補完...")
+    print("\n[STEP 3d] 通貨定義を自動補完...")
     fill_currency(all_universities)
     for uni in all_universities:
         print(f"  {uni['大学名'][:30]:30s}  →  {uni['通貨定義']}")

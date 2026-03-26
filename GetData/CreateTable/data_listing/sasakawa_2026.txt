@@ -1,0 +1,51 @@
+米国大学 25校 
+Brown University 
+California Institute of Technology 
+Carnegie Mellon University 
+Columbia University 
+Cornell University 
+Dartmouth College 
+Duke University 
+Georgetown University 
+Harvard University 
+Johns Hopkins University 
+Massachusetts Institute of Technology 
+Minerva University 
+New York University 
+Northwestern University 
+Princeton University 
+Rice University 
+Stanford University 
+The University of Chicago 
+University of California, Berkeley 
+University of California, Los Angeles 
+University of Michigan, Ann Arbor 
+University of Pennsylvania 
+Vanderbilt University 
+Washington University in St. Louis 
+Yale University 
+
+リベラルアーツカレッジ（米国） 17校 
+Amherst College 
+Barnard College 
+Bowdoin College 
+Carleton College 
+Claremont McKenna College 
+Davidson College 
+Grinnell College 
+Hamilton College 
+Harvey Mudd College 
+Middlebury College 
+Pomona College 
+Smith College 
+Swarthmore College 
+Vassar College 
+Wellesley College 
+Wesleyan University 
+Williams College 
+
+英国大学 4校 
+Imperial College London  
+University College London (UCL) 
+University of Cambridge  
+University of Oxford 
