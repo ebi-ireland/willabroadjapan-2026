@@ -45,6 +45,8 @@ GetData/CreateTable/rankings_cache.json
 # University input data (local tool output — do not expose)
 GetData/CreateTable/input_data.json
 GetData/CreateTable/english_proficiency.json
+GetData/CreateTable/other_conditions.json
+GetData/CreateTable/university_urls.json
 
 # Upload / document folders (PDFs etc.)
 public/document/
@@ -57,3 +59,6 @@ coverage/
 
 # Admin operations manual (contains local paths / internal procedures)
 ADMIN_MANUAL.md
+
+# Developer documentation (local reference only, not for public repo)
+DEVELOPER.md

@@ -156,6 +156,8 @@ GEOCODE_RETRY_WAIT = 60   # レート制限検知時の待機秒数（429受信 
 PROGRESS_FILE        = OUTPUT_DIR / "geocode_progress.json"   # ジオコーディング進捗（中断再開用）
 SCRAPE_PROGRESS_FILE = OUTPUT_DIR / "scrape_progress.json"    # スクレイピング進捗（国ごとに保存）
 RANKINGS_CACHE_FILE  = OUTPUT_DIR / "rankings_cache.json"     # THE/QS ランキングキャッシュ（年1回更新）
+INPUT_DATA_FILE      = OUTPUT_DIR / "input_data.json"         # 手動入力データ（InputDataWithPanel.py で生成）
+URL_BACKUP_FILE      = OUTPUT_DIR / "university_urls.json"    # URL バックアップ（url_checker.py で生成）
 RANKINGS_CACHE_MAX_DAYS = 330  # 約11ヶ月で自動再取得（毎年6月頃に新ランキング公開）
 DATA_LISTING_DIR     = OUTPUT_DIR / "data_listing"            # ezo_art_YYYY.pdf 等の配置フォルダ
 
@@ -1211,6 +1213,116 @@ SECTION_COLORS = {
     "学部生のみ":   "00008B",  # 紺（大学特性）
 }
 
+def apply_input_data(universities: list):
+    """
+    InputDataWithPanel.py が生成した input_data.json を読み込み、
+    大学名で照合して各フィールドを上書きする。
+
+    特殊処理:
+      - Need-Met == 100 の場合、"Need-Met 100%" 列を "TRUE" に設定する。
+      - Need-Met != 100（または未入力）の場合は "FALSE" のまま（数値は Need-Met 列に保存）。
+    """
+    if not INPUT_DATA_FILE.exists():
+        print(f"  ℹ️  input_data.json が見つかりません → スキップ ({INPUT_DATA_FILE})")
+        return
+
+    with open(INPUT_DATA_FILE, encoding="utf-8") as f:
+        records: list[dict] = json.load(f)
+
+    if not records:
+        print("  ℹ️  input_data.json は空です → スキップ")
+        return
+
+    # 大学名 → レコード のマップ
+    record_map = {r.get("大学名", "").strip(): r for r in records}
+
+    applied = 0
+    for uni in universities:
+        name = uni.get("大学名", "").strip()
+        rec  = record_map.get(name)
+        if not rec:
+            continue
+
+        # 全フィールドを上書き（大学名・国・都市・緯度経度はスクレイピング値を優先して除外）
+        SKIP_KEYS = {"大学名", "国", "都市", "緯度", "経度"}
+        for key, val in rec.items():
+            if key in SKIP_KEYS:
+                continue
+            # 種類（list型）はそのままセット
+            if key == "種類":
+                uni[key] = val
+                continue
+            # 空文字・None はスキップ（既存値を消さない）
+            if val is None or val == "" or val == []:
+                continue
+            uni[key] = val
+
+        # ── Need-Met 100% の自動判定 ──────────────────────────
+        need_met = rec.get("Need-Met")
+        try:
+            need_met_num = float(need_met) if need_met not in (None, "") else None
+        except (ValueError, TypeError):
+            need_met_num = None
+
+        if need_met_num is not None and need_met_num >= 100:
+            uni["Need-Met 100%"] = "TRUE"
+        else:
+            # 明示的にFALSEは書かない（既存値があれば保持）
+            if not uni.get("Need-Met 100%"):
+                uni["Need-Met 100%"] = "FALSE"
+
+        # ── Need-based Scholarship の自動判定 ─────────────────
+        # 条件: Need-Met > 0 の数値あり OR Need available = TRUE
+        need_available  = rec.get("Need available", False)
+        need_met_filled = need_met_num is not None and need_met_num > 0
+
+        if need_met_filled or need_available:
+            uni["Need-based Scholarship"] = "TRUE"
+
+        applied += 1
+
+    print(f"  ✅ input_data.json から {applied} 件の大学データを反映しました")
+    not_found = [r.get("大学名","") for r in records
+                 if r.get("大学名","").strip() not in {u.get("大学名","").strip() for u in universities}]
+    if not_found:
+        print(f"  ⚠️  照合できなかった大学（スクレイピング結果に存在しない）: {len(not_found)} 件")
+        for n in not_found[:10]:
+            print(f"       - {n}")
+        if len(not_found) > 10:
+            print(f"       ... 他 {len(not_found)-10} 件")
+
+
+def apply_url_backup(universities: list):
+    """
+    url_checker.py が生成した university_urls.json を読み込み、
+    URL が空の大学に URL を補完する。
+    既に URL が入っている大学は上書きしない。
+    """
+    if not URL_BACKUP_FILE.exists():
+        print(f"  ℹ️  university_urls.json が見つかりません → スキップ ({URL_BACKUP_FILE})")
+        return
+
+    with open(URL_BACKUP_FILE, encoding="utf-8") as f:
+        url_map: dict = json.load(f)
+
+    if not url_map:
+        print("  ℹ️  university_urls.json は空です → スキップ")
+        return
+
+    applied = 0
+    for uni in universities:
+        name = uni.get("大学名", "").strip()
+        if uni.get("URL", "").strip():
+            continue  # 既に URL あり → スキップ
+        url = url_map.get(name, "").strip()
+        if url:
+            uni["URL"] = url
+            applied += 1
+
+    print(f"  ✅ university_urls.json から {applied} 件の URL を補完しました"
+          f"（全 {len(url_map)} 件登録済み）")
+
+
 def get_header_color(col_name: str, col_idx: int, columns: list) -> str:
     """カラムがどのセクションに属するかで色を返す。"""
     # セクション開始カラムより後ろのカラムは同じ色を継続
@@ -1442,6 +1554,14 @@ def main():
     fill_currency(all_universities)
     for uni in all_universities:
         print(f"  {uni['大学名'][:30]:30s}  →  {uni['通貨定義']}")
+
+    # 手動入力データ（InputDataWithPanel.py）を反映
+    print("\n[STEP 3e] 手動入力データ（input_data.json）を反映...")
+    apply_input_data(all_universities)
+
+    # URL バックアップから補完（url_checker.py で生成）
+    print("\n[STEP 3f] URL バックアップ（university_urls.json）を反映...")
+    apply_url_backup(all_universities)
 
     # ファイル出力
     stem = get_output_stem()

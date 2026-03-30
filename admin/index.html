@@ -44,11 +44,50 @@
     .page-title { font-size: 1.4rem; font-weight: 700; }
     .page-sub { color: var(--muted); font-size: 0.82rem; margin-top: 4px; }
 
-    /* Stats */
+    /* Stats (他ページで使用) */
     .stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin-bottom: 36px; }
     .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
     .stat__num { font-size: 1.9rem; font-weight: 700; color: var(--accent); line-height: 1; }
     .stat__label { font-size: 0.75rem; color: var(--muted); margin-top: 6px; }
+
+    /* Dashboard cards */
+    .dash-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 18px 16px;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .dash-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--c, var(--accent));
+      border-radius: 12px 12px 0 0;
+    }
+    .dash-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--c, var(--accent));
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+    .dash-card__icon { font-size: 1.4rem; margin-bottom: 10px; }
+    .dash-card__num  { font-size: 2rem; font-weight: 800; color: var(--c, var(--accent)); line-height: 1; }
+    .dash-card__label { font-size: 0.75rem; color: var(--muted); margin-top: 5px; }
+    .dash-card__action { font-size: 0.7rem; color: var(--c, var(--accent)); margin-top: 10px; opacity: 0; transition: opacity 0.15s; }
+    .dash-card:hover .dash-card__action { opacity: 1; }
+    .dash-card--alert { border-color: var(--c, var(--accent)); background: color-mix(in srgb, var(--c) 8%, var(--surface)); }
+    .dash-alert-banner {
+      display: flex; align-items: center; gap: 10px;
+      background: color-mix(in srgb, var(--err) 12%, var(--surface));
+      border: 1px solid color-mix(in srgb, var(--err) 40%, transparent);
+      border-radius: 10px; padding: 12px 16px; margin-bottom: 20px;
+      font-size: 0.83rem; cursor: pointer;
+    }
+    .dash-alert-banner:hover { background: color-mix(in srgb, var(--err) 18%, var(--surface)); }
 
     /* Table */
     .table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: auto; }
@@ -106,6 +145,60 @@
     .text-muted { color: var(--muted); }
     .text-sm    { font-size: 0.78rem; }
     .truncate   { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ── 奨学金 Split Layout ── */
+    .sch-split { display: grid; grid-template-columns: 240px 1fr; gap: 20px; }
+    .sch-list  { background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+                 height: calc(100vh - 190px); min-height: 300px; display: flex; flex-direction: column; overflow: hidden; }
+    .sch-list__search { padding: 11px 13px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+    .sch-list__search input { width: 100%; background: var(--bg); border: 1px solid var(--border);
+      border-radius: 6px; padding: 7px 10px; color: var(--text); font-size: 0.82rem; }
+    .sch-list__search input:focus { outline: none; border-color: var(--accent); }
+    .sch-list__items { overflow-y: auto; flex: 1; }
+    .sch-list__item  { padding: 9px 13px; cursor: pointer; border-bottom: 1px solid var(--border);
+                       font-size: 0.82rem; transition: background 0.12s; line-height: 1.4; }
+    .sch-list__item:hover  { background: rgba(255,255,255,0.04); color: var(--text); }
+    .sch-list__item.active { color: var(--accent); background: rgba(255,128,64,0.08); }
+    .sch-list__count { padding: 7px 13px; font-size: 0.7rem; color: var(--muted);
+                       border-top: 1px solid var(--border); flex-shrink: 0; }
+    .sch-section-head { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em;
+                        margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+    .sch-section-head.accent { color: var(--accent); }
+    .sch-section-head.gold   { color: var(--gold); }
+    .sch-section-head.ok     { color: var(--ok); }
+    .sch-section-head.muted  { color: var(--muted); }
+    .sch-section { padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .sch-section:last-child  { border-bottom: none; margin-bottom: 0; }
+
+    /* ── Responsive (half-screen support) ── */
+    @media (max-width: 1200px) {
+      .main { padding: 28px 30px; }
+    }
+    @media (max-width: 1000px) {
+      .layout { grid-template-columns: 200px 1fr; }
+      .main   { padding: 22px 24px; }
+    }
+    @media (max-width: 880px) {
+      .layout { grid-template-columns: 178px 1fr; }
+      .main   { padding: 18px 18px; }
+      .form-row3 { grid-template-columns: 1fr 1fr; }
+      .stats { grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); }
+      .page-header { flex-direction: column; gap: 8px; }
+      .sidebar__logo { padding: 16px 14px; }
+      .nav-item { padding: 8px 14px; }
+      .sch-split { grid-template-columns: 1fr; }
+      .sch-list  { height: 240px; }
+    }
+    @media (max-width: 720px) {
+      .layout { grid-template-columns: 155px 1fr; }
+      .main   { padding: 14px 12px; }
+      .form-row, .form-row3 { grid-template-columns: 1fr; }
+      .stats { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); }
+      .sidebar__logo span { display: none; }
+      .nav-item { font-size: 0.8rem; padding: 7px 10px; }
+      .form-card { padding: 18px 16px; }
+      .stat__num { font-size: 1.5rem; }
+    }
 
     /* Detail Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 1000; align-items: center; justify-content: center; }
@@ -192,8 +285,7 @@
     <div class="nav-item" data-page="program-scholarships">🌐 プログラム</div>
 
     <div class="nav-group">留学生向け</div>
-    <div class="nav-item" data-page="intl-scholarships">🎓 留学生奨学金</div>
-    <div class="nav-item" data-page="university-scholarships">🗺️ 大学奨学金</div>
+    <div class="nav-item" data-page="intl-scholarships">🎓 財団奨学金</div>
 
     <div class="nav-group">サポーター向け</div>
     <div class="nav-item" data-page="supporter-reports">📋 報告書管理</div>
@@ -201,6 +293,7 @@
     <div class="nav-group">ツール</div>
     <div class="nav-item" data-page="analytics">📊 解析</div>
     <div class="nav-item" data-page="import-export">📤 インポート / エクスポート</div>
+    <div class="nav-item" data-page="university-scholarships">🗺️ 大学マップデータ（JP向け）</div>
     <div class="nav-item" data-page="dataset-files">📂 データセットファイル</div>
 
     <div class="nav-group">受信</div>
@@ -223,20 +316,95 @@
 
     <!-- Dashboard -->
     <div class="page active" id="page-dashboard">
-      <div class="page-header">
-        <div><div class="page-title">ダッシュボード</div><div class="page-sub">Will Abroad 管理画面</div></div>
-        <a href="http://localhost:3000" target="_blank" class="btn btn--ghost">👤 ユーザーサイトを開く →</a>
+      <!-- Hero -->
+      <div style="background:linear-gradient(135deg,#1a1d27 0%,#1e2235 60%,#232840 100%);border:1px solid var(--border);border-radius:16px;padding:32px 36px;margin-bottom:28px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:0.72rem;letter-spacing:0.14em;color:var(--accent);text-transform:uppercase;margin-bottom:6px">Will Abroad — Admin Panel</div>
+          <div style="font-size:1.7rem;font-weight:800;line-height:1.2">ダッシュボード</div>
+          <div style="color:var(--muted);font-size:0.83rem;margin-top:6px" id="d-datetime"></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a href="http://localhost:3000" target="_blank" class="btn btn--ghost" style="font-size:0.82rem">👤 ユーザーサイト →</a>
+          <button class="btn btn--accent" style="font-size:0.82rem" onclick="loadDashboard()">🔄 更新</button>
+        </div>
       </div>
-      <div class="stats">
-        <div class="stat"><div class="stat__num" id="d-notices">—</div><div class="stat__label">お知らせ</div></div>
-        <div class="stat"><div class="stat__num" id="d-articles">—</div><div class="stat__label">記事</div></div>
-        <div class="stat"><div class="stat__num" id="d-exp-pending">—</div><div class="stat__label">体験談 承認待ち</div></div>
-        <div class="stat"><div class="stat__num" id="d-threads">—</div><div class="stat__label">スレッド</div></div>
-        <div class="stat"><div class="stat__num" id="d-templates">—</div><div class="stat__label">テンプレート</div></div>
-        <div class="stat"><div class="stat__num" id="d-found">—</div><div class="stat__label">財団奨学金</div></div>
-        <div class="stat"><div class="stat__num" id="d-prog">—</div><div class="stat__label">プログラム</div></div>
-        <div class="stat"><div class="stat__num" id="d-intl">—</div><div class="stat__label">留学生奨学金</div></div>
-        <div class="stat"><div class="stat__num" id="d-contacts">—</div><div class="stat__label">お問い合わせ</div></div>
+
+      <!-- 要対応アラート（データ取得後に表示） -->
+      <div id="d-alerts"></div>
+
+      <!-- コンテンツ管理 -->
+      <div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px">コンテンツ管理</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:28px">
+        <div class="dash-card" data-page="notices"     style="--c:#4a9eff">
+          <div class="dash-card__icon">📢</div>
+          <div class="dash-card__num" id="d-notices">—</div>
+          <div class="dash-card__label">お知らせ</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+        <div class="dash-card" data-page="articles"    style="--c:#a78bfa">
+          <div class="dash-card__icon">📝</div>
+          <div class="dash-card__num" id="d-articles">—</div>
+          <div class="dash-card__label">記事</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+        <div class="dash-card" data-page="experiences" style="--c:#fb923c" id="d-card-exp">
+          <div class="dash-card__icon">✈️</div>
+          <div class="dash-card__num" id="d-exp-pending">—</div>
+          <div class="dash-card__label">体験談 承認待ち</div>
+          <div class="dash-card__action">確認する →</div>
+        </div>
+        <div class="dash-card" data-page="threads"     style="--c:#34d399">
+          <div class="dash-card__icon">💬</div>
+          <div class="dash-card__num" id="d-threads">—</div>
+          <div class="dash-card__label">スレッド</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+        <div class="dash-card" data-page="templates"   style="--c:#94a3b8">
+          <div class="dash-card__icon">📋</div>
+          <div class="dash-card__num" id="d-templates">—</div>
+          <div class="dash-card__label">テンプレート</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+      </div>
+
+      <!-- 奨学金データ -->
+      <div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px">奨学金データ</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-bottom:28px">
+        <div class="dash-card" data-page="foundation-scholarships" style="--c:#c8932a">
+          <div class="dash-card__icon">💴</div>
+          <div class="dash-card__num" id="d-found">—</div>
+          <div class="dash-card__label">財団奨学金</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+        <div class="dash-card" data-page="program-scholarships"    style="--c:#22d3ee">
+          <div class="dash-card__icon">🌐</div>
+          <div class="dash-card__num" id="d-prog">—</div>
+          <div class="dash-card__label">プログラム奨学金</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+        <div class="dash-card" data-page="intl-scholarships"       style="--c:#818cf8">
+          <div class="dash-card__icon">🎓</div>
+          <div class="dash-card__num" id="d-intl">—</div>
+          <div class="dash-card__label">留学生奨学金</div>
+          <div class="dash-card__action">管理する →</div>
+        </div>
+      </div>
+
+      <!-- 受信 -->
+      <div style="font-size:0.7rem;letter-spacing:0.12em;color:var(--muted);text-transform:uppercase;margin-bottom:10px">受信</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">
+        <div class="dash-card" data-page="contacts" style="--c:#f87171" id="d-card-contacts">
+          <div class="dash-card__icon">📩</div>
+          <div class="dash-card__num" id="d-contacts">—</div>
+          <div class="dash-card__label">お問い合わせ</div>
+          <div class="dash-card__action">確認する →</div>
+        </div>
+        <div class="dash-card" data-page="supporter-contacts" style="--c:#fbbf24">
+          <div class="dash-card__icon">💛</div>
+          <div class="dash-card__num" id="d-sup-contacts">—</div>
+          <div class="dash-card__label">サポーター連絡</div>
+          <div class="dash-card__action">確認する →</div>
+        </div>
       </div>
     </div>
 
@@ -266,7 +434,41 @@
         <h3>新規記事を作成</h3>
         <div class="form-field"><label>タイトル *</label><input id="aTitle" type="text" placeholder="記事タイトル"></div>
         <div class="form-field"><label>概要 *</label><input id="aSummary" type="text" placeholder="記事の概要（一覧に表示）"></div>
-        <div class="form-field"><label>本文 *</label><textarea id="aBody" style="min-height:140px" placeholder="記事の本文（Markdown可）"></textarea></div>
+        <div class="form-field">
+          <label>本文 * <span style="color:var(--muted);font-size:0.75rem;font-weight:400">Markdown対応</span></label>
+          <!-- ツールバー -->
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="mdWrap('**','**','太字')">B</button>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px;font-style:italic" onclick="mdWrap('*','*','斜体')">I</button>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="mdInsertHeading()">H2</button>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="mdWrap('\n- ','\n','リスト')">≡</button>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="mdWrap('`','`','コード')">{ }</button>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="mdInsertLink()">🔗</button>
+            <span style="width:1px;background:var(--border);margin:0 2px"></span>
+            <!-- 画像アップロード -->
+            <label class="btn" style="font-size:0.78rem;padding:5px 10px;cursor:pointer" title="画像をアップロードしてMarkdownに挿入">
+              🖼 画像
+              <input type="file" id="aImgInput" accept="image/*" style="display:none" onchange="uploadArticleMedia('image')">
+            </label>
+            <!-- ファイルアップロード -->
+            <label class="btn" style="font-size:0.78rem;padding:5px 10px;cursor:pointer" title="ファイルをアップロードしてMarkdownに挿入">
+              📎 ファイル
+              <input type="file" id="aFileInput" accept=".pdf,.docx,.xlsx,.pptx,.zip,.txt,.csv" style="display:none" onchange="uploadArticleMedia('file')">
+            </label>
+            <button type="button" class="btn" style="font-size:0.78rem;padding:5px 10px" onclick="toggleMediaGallery()" title="アップロード済みメディア一覧">📁 ギャラリー</button>
+          </div>
+          <!-- アップロード進捗 -->
+          <div id="aUploadProgress" style="display:none;font-size:0.78rem;color:var(--muted);margin-bottom:4px">⏳ アップロード中...</div>
+          <textarea id="aBody" style="min-height:260px;font-family:monospace;font-size:0.85rem" placeholder="記事の本文（Markdown可）"></textarea>
+        </div>
+        <!-- メディアギャラリー -->
+        <div id="aMediaGallery" style="display:none;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <span style="font-size:0.85rem;font-weight:600">アップロード済みメディア</span>
+            <button class="btn btn--danger" style="font-size:0.75rem;padding:4px 8px" onclick="toggleMediaGallery()">✕ 閉じる</button>
+          </div>
+          <div id="aMediaList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px"></div>
+        </div>
         <div class="form-row">
           <div class="form-field"><label>ステータス</label><select id="aStatus"><option value="draft">下書き</option><option value="published">公開</option></select></div>
         </div>
@@ -387,7 +589,7 @@
 
     <!-- 留学生奨学金 -->
     <div class="page" id="page-intl-scholarships">
-      <div class="page-header"><div><div class="page-title">🎓 留学生向け奨学金</div><div class="page-sub">日本の大学・財団が留学生に提供する奨学金</div></div></div>
+      <div class="page-header"><div><div class="page-title">🎓 財団奨学金（留学生向け）</div><div class="page-sub">日本の大学・財団が留学生に提供する奨学金</div></div></div>
       <div class="form-card">
         <h3>新規追加</h3>
         <div class="form-row">
@@ -517,36 +719,117 @@
       </div>
     </div>
 
-    <!-- 大学独自奨学金 -->
+    <!-- 大学独自奨学金（海外大学のMerit/Need/Full-ride） -->
     <div class="page" id="page-university-own-scholarships">
-      <div class="page-header"><div><div class="page-title">🏫 大学独自奨学金</div><div class="page-sub">日本の大学が自校学生に提供する海外留学支援奨学金</div></div></div>
-      <div class="form-card">
-        <h3>新規追加</h3>
-        <div class="form-row">
-          <div class="form-field"><label>提供大学名 *</label><input id="uosUniv" type="text" placeholder="例: 早稲田大学"></div>
-          <div class="form-field"><label>奨学金名 *</label><input id="uosName" type="text" placeholder="例: グローバル教育センター奨学金"></div>
+      <div class="page-header">
+        <div>
+          <div class="page-title">🏛️ 大学独自奨学金</div>
+          <div class="page-sub">海外大学が独自に提供する奨学金・フィナンシャルエイド（Merit / Need-based / 全額免除）— input_data.json に保存</div>
         </div>
-        <div class="form-row">
-          <div class="form-field"><label>公式URL</label><input id="uosUrl" type="url" placeholder="https://..."></div>
-          <div class="form-field"><label>締切</label><input id="uosDeadline" type="text" placeholder="例: 毎年4月上旬"></div>
-        </div>
-        <div class="form-row3">
-          <div class="form-field"><label>支給額</label><input id="uosAmount" type="text" placeholder="例: 月額10万円"></div>
-          <div class="form-field"><label>採用人数</label><input id="uosRecipients" type="text" placeholder="例: 若干名"></div>
-          <div class="form-field"><label>期間</label><input id="uosDuration" type="text" placeholder="例: 1年以内"></div>
-        </div>
-        <div class="form-row">
-          <div class="form-field"><label>対象国・地域</label><input id="uosCountry" type="text" placeholder="例: 英語圏全般"></div>
-          <div class="form-field"><label>対象（学年等）</label><input id="uosTarget" type="text" placeholder="例: 学部2〜4年生"></div>
-        </div>
-        <div class="form-field"><label>応募条件・備考</label><textarea id="uosConditions" placeholder="例: GPA3.0以上、語学スコア要件あり"></textarea></div>
-        <button class="btn btn--accent" onclick="postUos()">追加する</button>
-        <div class="msg" id="uosMsg"></div>
+        <button class="btn btn--ghost" onclick="loadUniScholarships()">🔄 更新</button>
       </div>
-      <div class="table-wrap"><table>
-        <thead><tr><th>ID</th><th>提供大学</th><th>奨学金名</th><th>締切</th><th>支給額</th><th>対象</th><th>状態</th><th></th></tr></thead>
-        <tbody id="uosList"></tbody>
-      </table></div>
+      <div class="sch-split">
+        <!-- 左：大学リスト -->
+        <div class="sch-list">
+          <div class="sch-list__search">
+            <input type="text" id="uniSchSearch" placeholder="大学名で検索..." oninput="filterUniSchList()">
+          </div>
+          <div class="sch-list__items" id="uniSchList">
+            <div style="padding:20px;color:var(--muted);font-size:0.82rem;text-align:center">読み込み中...</div>
+          </div>
+          <div class="sch-list__count" id="uniSchCount">—</div>
+        </div>
+        <!-- 右：入力フォーム -->
+        <div>
+          <div class="form-card">
+            <h3 id="uniSchFormTitle" style="margin-bottom:6px">← 左から大学を選択、または新規入力</h3>
+            <div class="form-field" style="margin-bottom:16px">
+              <label>大学名 *</label>
+              <input id="uniSchName" type="text" placeholder="例: Harvard University" style="font-weight:600">
+            </div>
+            <!-- 全額免除 -->
+            <div class="sch-section">
+              <div class="sch-section-head accent">🎓 全額免除奨学金（Full-ride）</div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Full-ride Scholarship あり</label>
+                  <select id="uniSchFullride">
+                    <option value="">未設定</option>
+                    <option value="TRUE">TRUE</option>
+                    <option value="FALSE">FALSE</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>全額免除奨学金率 (%)</label>
+                  <input id="uniSchFullrideRate" type="number" min="0" max="100" step="0.1" placeholder="例: 5.2">
+                </div>
+              </div>
+            </div>
+            <!-- Merit-based -->
+            <div class="sch-section">
+              <div class="sch-section-head gold">⭐ Merit-based 奨学金（成績型）</div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Merit-based Scholarship あり</label>
+                  <select id="uniSchMerit">
+                    <option value="">未設定</option>
+                    <option value="TRUE">TRUE</option>
+                    <option value="FALSE">FALSE</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>成績型奨学金率 (%)</label>
+                  <input id="uniSchMeritRate" type="number" min="0" max="100" step="0.1" placeholder="例: 12.0">
+                </div>
+              </div>
+            </div>
+            <!-- Need-based -->
+            <div class="sch-section">
+              <div class="sch-section-head ok">💚 Need-based 奨学金（経済支援型）</div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Need available（申請可）</label>
+                  <select id="uniSchNeedAvail">
+                    <option value="">未設定</option>
+                    <option value="TRUE">TRUE</option>
+                    <option value="FALSE">FALSE</option>
+                  </select>
+                </div>
+                <div class="form-field">
+                  <label>Need-Met (%)</label>
+                  <input id="uniSchNeedMet" type="number" min="0" max="200" step="1" placeholder="例: 100">
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>Need-based Scholarship あり <span class="text-muted text-sm">（Need-Met&gt;0 or Need available=TRUE で自動）</span></label>
+                  <select id="uniSchNeedBased">
+                    <option value="">未設定（自動）</option>
+                    <option value="TRUE">TRUE</option>
+                    <option value="FALSE">FALSE</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <!-- 特定奨学金 -->
+            <div class="sch-section">
+              <div class="sch-section-head muted">🏅 特定奨学金</div>
+              <div class="form-row">
+                <div class="form-field">
+                  <label>柳井正財団 対象大学</label>
+                  <select id="uniSchYanai">
+                    <option value="">未設定</option>
+                    <option value="TRUE">TRUE</option>
+                    <option value="FALSE">FALSE</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <button class="btn btn--accent" onclick="saveUniScholarship()">保存する</button>
+            <div class="msg" id="uniSchMsg"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 診断設定 -->
@@ -964,18 +1247,137 @@
           </div>
         </div>
 
-        <!-- 使い方ガイド -->
-        <div class="form-card" style="border-left:3px solid var(--accent);background:rgba(255,128,64,0.05);margin-bottom:20px">
-          <h3 style="font-size:0.85rem;margin-bottom:10px;color:var(--accent)">📖 使い方ガイド</h3>
-          <ul style="color:var(--muted);font-size:0.8rem;line-height:2;padding-left:1.2em">
-            <li><strong style="color:var(--text)">ページパス</strong>：URLパスを入力します（例: <code style="background:var(--bg);padding:1px 5px;border-radius:3px">/student-japan.html</code>）</li>
-            <li><strong style="color:var(--text)">タイトル</strong>：ブラウザのタブに表示されるタイトル（60文字以内推奨）</li>
-            <li><strong style="color:var(--text)">ディスクリプション</strong>：Google検索結果に表示される説明文（120文字以内推奨）</li>
-            <li><strong style="color:var(--text)">OG設定</strong>：LINE・X（旧Twitter）・FacebookでシェアされたときのSNSカード表示</li>
-            <li><strong style="color:var(--text)">Robots</strong>：<code style="background:var(--bg);padding:1px 5px;border-radius:3px">index, follow</code>が標準。非公開ページは<code style="background:var(--bg);padding:1px 5px;border-radius:3px">noindex</code>に変更</li>
-            <li><strong style="color:var(--text)">反映タイミング</strong>：保存後に各ページのHTMLが動的にMETAタグを読み込むことで反映されます</li>
-          </ul>
-        </div>
+        <!-- 使い方ガイド（初心者向け） -->
+        <details style="margin-bottom:20px" open>
+          <summary style="cursor:pointer;font-weight:700;font-size:0.92rem;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:10px;list-style:none;display:flex;align-items:center;gap:8px">
+            <span>📖</span> SEO管理 — 使い方ガイド（クリックで開閉）
+            <span style="margin-left:auto;color:var(--muted);font-size:0.75rem;font-weight:400">初めての方はここから読んでください</span>
+          </summary>
+          <div style="border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:24px;background:var(--surface)">
+
+            <!-- そもそもSEOとは -->
+            <div style="background:rgba(255,128,64,0.07);border-left:3px solid var(--accent);border-radius:0 8px 8px 0;padding:12px 16px;margin-bottom:24px;font-size:0.83rem;line-height:1.7">
+              <strong style="color:var(--accent)">💡 SEOとは？</strong><br>
+              Googleなどの検索エンジンで「<em>ウィルアブロード</em>」と検索したときに、サイトが上位に表示されるようにするための設定です。<br>
+              ここでページごとに「タイトル・説明文・SNSシェア画像」を設定することで、検索結果の見た目を管理できます。
+            </div>
+
+            <!-- ステップ説明 -->
+            <div style="font-size:0.82rem;font-weight:700;color:var(--muted);letter-spacing:0.08em;margin-bottom:12px">STEP 1 — Google検索結果に表示される部分</div>
+            <!-- Google検索プレビュー モックアップ -->
+            <div style="background:#fff;border-radius:10px;padding:18px 22px;margin-bottom:8px;font-family:'Arial',sans-serif;max-width:600px">
+              <div style="font-size:0.72rem;color:#006621;margin-bottom:2px">willabroadjapan.com › student-japan</div>
+              <div style="font-size:1.05rem;color:#1a0dab;font-weight:400;margin-bottom:4px;text-decoration:underline;cursor:pointer">
+                Will Abroad Japan — 日本人学生の留学奨学金情報
+                <span style="background:#ff8040;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:4px;text-decoration:none;vertical-align:middle">← タイトル</span>
+              </div>
+              <div style="font-size:0.83rem;color:#545454;line-height:1.5">
+                奨学金・費用・体験談など、日本人学生が海外大学へ進学するための情報をまとめています。財団奨学金・大学独自奨学金も網羅。
+                <span style="background:#4a9eff;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle">← ディスクリプション</span>
+              </div>
+            </div>
+            <div style="font-size:0.76rem;color:var(--muted);margin-bottom:24px;padding-left:4px">
+              ↑ これがGoogleに表示される検索結果のプレビューです。タイトルは<strong style="color:var(--text)">60文字以内</strong>、ディスクリプションは<strong style="color:var(--text)">120文字以内</strong>が推奨です。
+            </div>
+
+            <div style="font-size:0.82rem;font-weight:700;color:var(--muted);letter-spacing:0.08em;margin-bottom:12px">STEP 2 — SNSでシェアされたときの見た目（OG設定）</div>
+            <!-- SNSカード モックアップ -->
+            <div style="max-width:480px;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;margin-bottom:8px;font-family:'Arial',sans-serif">
+              <div style="background:#d0d5dd;height:120px;display:flex;align-items:center;justify-content:center;color:#667085;font-size:0.8rem">
+                🖼 OG画像URL に設定した画像がここに表示されます
+              </div>
+              <div style="background:#fff;padding:10px 14px">
+                <div style="font-size:0.68rem;color:#667085;text-transform:uppercase;margin-bottom:2px">willabroadjapan.com</div>
+                <div style="font-size:0.88rem;font-weight:700;color:#101828;margin-bottom:2px">
+                  Will Abroad — 奨学金で海外大学へ
+                  <span style="background:#22d3ee;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle">← OGタイトル</span>
+                </div>
+                <div style="font-size:0.78rem;color:#667085">
+                  日本人学生向けの留学・奨学金情報サイト
+                  <span style="background:#a78bfa;color:#fff;font-size:0.6rem;padding:1px 5px;border-radius:3px;margin-left:4px;vertical-align:middle">← OGディスクリプション</span>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:0.76rem;color:var(--muted);margin-bottom:24px;padding-left:4px">
+              ↑ LINE・X（旧Twitter）・Facebookでリンクをシェアすると、このようなカードが表示されます。OG設定を空欄にするとタイトル・ディスクリプションがそのまま使われます。
+            </div>
+
+            <!-- 各フィールドの説明テーブル -->
+            <div style="font-size:0.82rem;font-weight:700;color:var(--muted);letter-spacing:0.08em;margin-bottom:12px">STEP 3 — 各フィールドの意味</div>
+            <div style="overflow-x:auto;margin-bottom:24px">
+              <table style="width:100%;border-collapse:collapse;font-size:0.8rem;min-width:400px">
+                <thead>
+                  <tr style="background:var(--bg)">
+                    <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:0.72rem;border-bottom:1px solid var(--border)">フィールド</th>
+                    <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:0.72rem;border-bottom:1px solid var(--border)">何のこと？</th>
+                    <th style="padding:8px 12px;text-align:left;color:var(--muted);font-size:0.72rem;border-bottom:1px solid var(--border)">入力例</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>ページパス</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">設定したいページのURL（ドメイン以降）</td>
+                    <td style="padding:9px 12px"><code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-size:0.77rem">/student-japan.html</code></td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>タイトル</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">ブラウザのタブ＋Google検索結果の青い見出し</td>
+                    <td style="padding:9px 12px"><code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-size:0.77rem">Will Abroad — 日本人学生向け留学情報</code></td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>ディスクリプション</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">Google検索結果の概要文（クリック率に影響）</td>
+                    <td style="padding:9px 12px"><code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-size:0.77rem">奨学金・費用・体験談を掲載しています。</code></td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>OGタイトル / OGディスクリプション</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">SNSでシェアされたときのカード表示。空欄ならタイトル・ディスクリプションが使われる</td>
+                    <td style="padding:9px 12px;color:var(--muted)">空欄でも可</td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>OG画像URL</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">SNSカードに表示するサムネイル画像。1200×630px 推奨</td>
+                    <td style="padding:9px 12px"><code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-size:0.77rem">https://willabroadjapan.com/images/ogp.png</code></td>
+                  </tr>
+                  <tr style="border-bottom:1px solid var(--border)">
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>Canonical URL</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">同じ内容のページが複数ある場合だけ使う。通常は<strong>空欄でOK</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">基本は空欄</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:9px 12px;white-space:nowrap"><strong>Robots</strong></td>
+                    <td style="padding:9px 12px;color:var(--muted)">Googleに「このページを検索結果に載せていいか」を伝える設定</td>
+                    <td style="padding:9px 12px">
+                      <code style="background:var(--bg);padding:2px 6px;border-radius:3px;font-size:0.77rem">index, follow</code>
+                      <span style="color:var(--ok);font-size:0.72rem;margin-left:4px">← 通常はこのまま</span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Robots の詳細説明 -->
+            <div style="font-size:0.82rem;font-weight:700;color:var(--muted);letter-spacing:0.08em;margin-bottom:10px">STEP 4 — Robots の使い分け（迷ったら触らなくてOK）</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;font-size:0.8rem">
+              <div style="background:rgba(61,186,110,0.08);border:1px solid rgba(61,186,110,0.3);border-radius:8px;padding:12px 14px">
+                <div style="font-weight:700;color:var(--ok);margin-bottom:6px">✅ index, follow（標準）</div>
+                <div style="color:var(--muted);line-height:1.6">Googleに「このページを検索結果に載せて、リンクもたどってください」と伝えます。<br>ほとんどのページはこれでOKです。</div>
+              </div>
+              <div style="background:rgba(224,68,68,0.08);border:1px solid rgba(224,68,68,0.3);border-radius:8px;padding:12px 14px">
+                <div style="font-weight:700;color:var(--err);margin-bottom:6px">🚫 noindex, nofollow（非公開ページ用）</div>
+                <div style="color:var(--muted);line-height:1.6">「このページを検索結果に載せないでください」という設定。<br>管理画面・テスト中のページ・一時的な非公開ページに使います。</div>
+              </div>
+            </div>
+
+            <!-- 反映タイミング -->
+            <div style="background:rgba(74,158,255,0.08);border:1px solid rgba(74,158,255,0.25);border-radius:8px;padding:12px 16px;font-size:0.8rem;line-height:1.7">
+              <strong style="color:#4a9eff">⏱ 反映タイミングについて</strong><br>
+              「💾 保存」を押した瞬間から各ページに反映されます（ページリロードで確認できます）。<br>
+              Googleの検索結果に反映されるまでは<strong style="color:var(--text)">数日〜数週間</strong>かかることがあります。これはGoogleの都合のため、こちら側ではコントロールできません。
+            </div>
+
+          </div>
+        </details>
 
         <div class="form-card">
           <h3 style="margin-bottom:16px">新規 / 更新</h3>
@@ -1311,7 +1713,7 @@ const pageLoaders = {
   'supporter-reports': () => loadReports('all'),
   'import-export': () => {},
   'dataset-files': loadDatasetFilesPage,
-  'university-own-scholarships': loadUos,
+  'university-own-scholarships': loadUniScholarships,
   'diagnosis-settings': () => loadDiagColleges(),
   analytics: loadAnalytics,
   users: loadUsers,
@@ -1344,20 +1746,57 @@ async function loadDatasetFilesPage() {
 
 // ── Dashboard ─────────────────────────────────────────────
 async function loadDashboard() {
-  const [n, a, ep, th, tm, fs, ps, is, c] = await Promise.all([
+  // 時刻表示
+  const dt = document.getElementById('d-datetime')
+  if (dt) {
+    const now = new Date()
+    dt.textContent = now.toLocaleDateString('ja-JP', { year:'numeric', month:'long', day:'numeric', weekday:'short' })
+      + '  ' + now.toLocaleTimeString('ja-JP', { hour:'2-digit', minute:'2-digit' })
+  }
+
+  const [n, a, ep, th, tm, fs, ps, is, c, sc] = await Promise.all([
     api('/admin/api/notices'), api('/admin/api/articles'), api('/admin/api/experiences?status=pending'),
     api('/admin/api/threads'), api('/admin/api/templates'), api('/admin/api/foundation-scholarships'),
-    api('/admin/api/program-scholarships'), api('/admin/api/intl-scholarships'), api('/admin/api/contacts')
+    api('/admin/api/program-scholarships'), api('/admin/api/intl-scholarships'),
+    api('/admin/api/contacts'), api('/admin/api/supporter-contacts')
   ])
-  document.getElementById('d-notices').textContent    = n.length
-  document.getElementById('d-articles').textContent   = a.length
-  document.getElementById('d-exp-pending').textContent = ep.length
-  document.getElementById('d-threads').textContent    = th.length
-  document.getElementById('d-templates').textContent  = tm.length
-  document.getElementById('d-found').textContent      = fs.length
-  document.getElementById('d-prog').textContent       = ps.length
-  document.getElementById('d-intl').textContent       = is.length
-  document.getElementById('d-contacts').textContent   = c.length
+
+  document.getElementById('d-notices').textContent      = n.length
+  document.getElementById('d-articles').textContent     = a.length
+  document.getElementById('d-exp-pending').textContent  = ep.length
+  document.getElementById('d-threads').textContent      = th.length
+  document.getElementById('d-templates').textContent    = tm.length
+  document.getElementById('d-found').textContent        = fs.length
+  document.getElementById('d-prog').textContent         = ps.length
+  document.getElementById('d-intl').textContent         = is.length
+  document.getElementById('d-contacts').textContent     = c.length
+  document.getElementById('d-sup-contacts').textContent = Array.isArray(sc) ? sc.length : '—'
+
+  // 要対応カードをハイライト
+  if (ep.length > 0) document.getElementById('d-card-exp')?.classList.add('dash-card--alert')
+  else               document.getElementById('d-card-exp')?.classList.remove('dash-card--alert')
+  if (c.length > 0)  document.getElementById('d-card-contacts')?.classList.add('dash-card--alert')
+  else               document.getElementById('d-card-contacts')?.classList.remove('dash-card--alert')
+
+  // アラートバナー
+  const alerts = []
+  if (ep.length > 0) alerts.push({ label: `体験談の承認待ちが ${ep.length} 件あります`, page: 'experiences' })
+  if (c.length  > 0) alerts.push({ label: `お問い合わせが ${c.length} 件あります`, page: 'contacts' })
+  document.getElementById('d-alerts').innerHTML = alerts.map(al => `
+    <div class="dash-alert-banner" onclick="navigateTo('${al.page}')">
+      <span style="font-size:1.1rem">🔔</span>
+      <span style="flex:1">${al.label}</span>
+      <span style="color:var(--err);font-size:0.75rem">確認する →</span>
+    </div>`).join('')
+
+  // カードクリックでページ遷移
+  document.querySelectorAll('.dash-card[data-page]').forEach(card => {
+    card.onclick = () => navigateTo(card.dataset.page)
+  })
+}
+function navigateTo(page) {
+  const item = document.querySelector(`.nav-item[data-page="${page}"]`)
+  if (item) item.click()
 }
 
 // ── Notices ───────────────────────────────────────────────
@@ -1399,7 +1838,7 @@ async function postArticle() {
   const msg = document.getElementById('articleMsg')
   const title = v('aTitle'), summary = v('aSummary'), body = v('aBody'), status = v('aStatus')
   if (!title || !summary || !body) return showMsg(msg, 'タイトル・概要・本文は必須です', false)
-  const res = await post('/admin/api/articles', { title, summary, body, status })
+  const res = await post('/admin/api/articles', { title, summary, body, status })  // サーバー側で body → content に変換済み
   if (res.ok) { showMsg(msg, '保存しました ✓', true); clear('aTitle','aSummary','aBody'); loadArticles() }
   else showMsg(msg, 'エラー: ' + (await res.json()).error, false)
 }
@@ -1407,6 +1846,103 @@ async function togglePublish(id, current) {
   const newStatus = current === 'published' ? 'draft' : 'published'
   await fetch(`/admin/api/articles/${id}/publish`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) })
   loadArticles()
+}
+
+// ── 記事エディタ ツールバー ────────────────────────────────
+function mdInsert(before, after, placeholder) {
+  const ta  = document.getElementById('aBody')
+  const s   = ta.selectionStart, e = ta.selectionEnd
+  const sel = ta.value.slice(s, e) || placeholder
+  ta.value  = ta.value.slice(0, s) + before + sel + after + ta.value.slice(e)
+  ta.selectionStart = s + before.length
+  ta.selectionEnd   = s + before.length + sel.length
+  ta.focus()
+}
+function mdWrap(before, after, placeholder) { mdInsert(before, after, placeholder) }
+function mdInsertHeading() {
+  const ta  = document.getElementById('aBody')
+  const pos = ta.value.lastIndexOf('\n', ta.selectionStart - 1) + 1
+  ta.value  = ta.value.slice(0, pos) + '## ' + ta.value.slice(pos)
+  ta.focus()
+}
+function mdInsertLink() {
+  const url  = prompt('URLを入力:')
+  if (!url) return
+  const text = prompt('リンクテキスト:', 'リンク') || 'リンク'
+  mdInsert(`[${text}](`, ')', url)
+}
+
+// 画像 / ファイルアップロード → Markdownに挿入
+async function uploadArticleMedia(type) {
+  const input   = document.getElementById(type === 'image' ? 'aImgInput' : 'aFileInput')
+  const file    = input.files[0]
+  if (!file) return
+  const prog    = document.getElementById('aUploadProgress')
+  prog.style.display = 'block'
+  const fd      = new FormData()
+  fd.append('file', file)
+  try {
+    const res  = await fetch(`/admin/api/articles/upload/${type}`, { method: 'POST', body: fd })
+    const data = await res.json()
+    if (!res.ok) throw new Error(data.error)
+    const md   = type === 'image'
+      ? `![${data.name}](${data.url})`
+      : `[📎 ${data.name}](${data.url})`
+    const ta   = document.getElementById('aBody')
+    const pos  = ta.selectionStart
+    ta.value   = ta.value.slice(0, pos) + '\n' + md + '\n' + ta.value.slice(pos)
+    ta.focus()
+    if (_mediaGalleryOpen) loadMediaGallery()
+  } catch (err) {
+    alert('アップロードエラー: ' + err.message)
+  } finally {
+    prog.style.display = 'none'
+    input.value = ''
+  }
+}
+
+// ギャラリー（アップロード済みメディア一覧）
+let _mediaGalleryOpen = false
+async function toggleMediaGallery() {
+  const panel = document.getElementById('aMediaGallery')
+  _mediaGalleryOpen = !_mediaGalleryOpen
+  panel.style.display = _mediaGalleryOpen ? 'block' : 'none'
+  if (_mediaGalleryOpen) loadMediaGallery()
+}
+async function loadMediaGallery() {
+  const list = document.getElementById('aMediaList')
+  list.innerHTML = '<span style="color:var(--muted);font-size:0.8rem">読み込み中...</span>'
+  const data = await api('/admin/api/articles/uploads')
+  if (!data.length) { list.innerHTML = '<span style="color:var(--muted);font-size:0.8rem">アップロード済みファイルなし</span>'; return }
+  list.innerHTML = data.map(f => `
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:6px;overflow:hidden;font-size:0.75rem">
+      ${f.isImage
+        ? `<img src="${f.url}" style="width:100%;height:90px;object-fit:cover;display:block" loading="lazy">`
+        : `<div style="height:90px;display:flex;align-items:center;justify-content:center;font-size:2rem">📄</div>`}
+      <div style="padding:6px 8px">
+        <div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${f.filename}">${f.filename.slice(14)}</div>
+        <div style="color:var(--muted);margin-top:2px">${(f.size/1024).toFixed(0)} KB</div>
+        <div style="display:flex;gap:4px;margin-top:6px">
+          <button class="btn" style="flex:1;font-size:0.7rem;padding:3px 0"
+            onclick="insertMediaFromGallery('${f.url}','${f.filename.replace(/'/g,"\\'")}',${f.isImage})">挿入</button>
+          <button class="btn btn--danger" style="font-size:0.7rem;padding:3px 6px"
+            onclick="deleteMedia('${f.filename}')">✕</button>
+        </div>
+      </div>
+    </div>`).join('')
+}
+function insertMediaFromGallery(url, filename, isImage) {
+  const md = isImage ? `![${filename}](${url})` : `[📎 ${filename}](${url})`
+  const ta = document.getElementById('aBody')
+  const pos = ta.selectionStart
+  ta.value  = ta.value.slice(0, pos) + '\n' + md + '\n' + ta.value.slice(pos)
+  ta.focus()
+}
+async function deleteMedia(filename) {
+  if (!confirm(`「${filename.slice(14)}」を削除しますか？`)) return
+  const res = await fetch(`/admin/api/articles/uploads/${encodeURIComponent(filename)}`, { method: 'DELETE' })
+  if (res.ok) loadMediaGallery()
+  else alert('削除に失敗しました')
 }
 
 // ── Experiences ───────────────────────────────────────────
@@ -1841,6 +2377,99 @@ async function postUos() {
 async function toggleUos(id) {
   await fetch(`/admin/api/university-own-scholarships/${id}/toggle`, { method: 'PATCH' })
   loadUos()
+}
+
+// ── 海外大学独自奨学金 (input_data.json) ──────────────────────
+let _uniSchAll = []
+let _uniSchSelected = null
+
+async function loadUniScholarships() {
+  try {
+    _uniSchAll = await api('/admin/api/input-data')
+  } catch(e) {
+    _uniSchAll = []
+  }
+  filterUniSchList()
+}
+
+function filterUniSchList() {
+  const q = (document.getElementById('uniSchSearch')?.value || '').toLowerCase()
+  const filtered = q
+    ? _uniSchAll.filter(u => (u['大学名'] || '').toLowerCase().includes(q))
+    : [..._uniSchAll]
+  const el = document.getElementById('uniSchList')
+  const countEl = document.getElementById('uniSchCount')
+  if (!el) return
+  el.innerHTML = filtered.length
+    ? filtered.map(u => {
+        const name = u['大学名'] || ''
+        const isActive = _uniSchSelected === name
+        const hasMerit = u['Merit-based scholarship'] === 'TRUE'
+        const hasNeed  = u['Need-based Scholarship'] === 'TRUE' || u['Need available'] === 'TRUE'
+        const hasFull  = u['Full-ride scholarship'] === 'TRUE'
+        const badges   = [hasFull ? '🎓' : '', hasMerit ? '⭐' : '', hasNeed ? '💚' : ''].filter(Boolean).join('')
+        return `<div class="sch-list__item${isActive ? ' active' : ''}" onclick="selectUniScholarship(${JSON.stringify(name)})">`
+          + `<span style="font-size:0.82rem">${esc(name)}</span>`
+          + (badges ? `<span style="margin-left:6px;font-size:0.75rem">${badges}</span>` : '')
+          + `</div>`
+      }).join('')
+    : '<div style="padding:20px;color:var(--muted);font-size:0.82rem;text-align:center">データなし</div>'
+  if (countEl) countEl.textContent = `${filtered.length} 件 / 全 ${_uniSchAll.length} 件`
+}
+
+function selectUniScholarship(name) {
+  _uniSchSelected = name
+  const u = _uniSchAll.find(x => x['大学名'] === name) || {}
+  const titleEl = document.getElementById('uniSchFormTitle')
+  if (titleEl) titleEl.textContent = name || '新規入力'
+  setSchVal('uniSchName',       name)
+  setSchVal('uniSchFullride',   u['Full-ride scholarship']  || '')
+  setSchVal('uniSchFullrideRate', u['全額免除奨学金率'] != null ? u['全額免除奨学金率'] : '')
+  setSchVal('uniSchMerit',      u['Merit-based scholarship'] || '')
+  setSchVal('uniSchMeritRate',  u['成績型奨学金率'] != null ? u['成績型奨学金率'] : '')
+  setSchVal('uniSchNeedAvail',  u['Need available']          || '')
+  setSchVal('uniSchNeedMet',    u['Need-Met'] != null ? u['Need-Met'] : '')
+  setSchVal('uniSchNeedBased',  u['Need-based Scholarship']  || '')
+  setSchVal('uniSchYanai',      u['柳井正財団']               || '')
+  filterUniSchList()
+}
+
+function setSchVal(id, val) {
+  const el = document.getElementById(id)
+  if (el) el.value = (val != null ? val : '')
+}
+
+async function saveUniScholarship() {
+  const msg = document.getElementById('uniSchMsg')
+  const name = (document.getElementById('uniSchName')?.value || '').trim()
+  if (!name) return showMsg(msg, '大学名を入力してください', false)
+  const payload = { '大学名': name }
+  const fullride     = document.getElementById('uniSchFullride')?.value     || ''
+  const fullrideRate = document.getElementById('uniSchFullrideRate')?.value
+  const merit        = document.getElementById('uniSchMerit')?.value        || ''
+  const meritRate    = document.getElementById('uniSchMeritRate')?.value
+  const needAvail    = document.getElementById('uniSchNeedAvail')?.value    || ''
+  const needMet      = document.getElementById('uniSchNeedMet')?.value
+  const needBased    = document.getElementById('uniSchNeedBased')?.value    || ''
+  const yanai        = document.getElementById('uniSchYanai')?.value        || ''
+  if (fullride)               payload['Full-ride scholarship']  = fullride
+  if (fullrideRate !== '' && fullrideRate != null) payload['全額免除奨学金率']  = Number(fullrideRate)
+  if (merit)                  payload['Merit-based scholarship'] = merit
+  if (meritRate  !== '' && meritRate  != null) payload['成績型奨学金率']      = Number(meritRate)
+  if (needAvail)              payload['Need available']          = needAvail
+  if (needMet    !== '' && needMet    != null) payload['Need-Met']            = Number(needMet)
+  if (needBased)              payload['Need-based Scholarship']  = needBased
+  if (yanai)                  payload['柳井正財団']               = yanai
+  const res = await post('/admin/api/input-data', payload)
+  if (res.ok) {
+    showMsg(msg, '保存しました ✓', true)
+    _uniSchSelected = name
+    await loadUniScholarships()
+    selectUniScholarship(name)
+  } else {
+    const j = await res.json().catch(() => ({}))
+    showMsg(msg, 'エラー: ' + (j.error || '不明'), false)
+  }
 }
 
 // ── Diagnosis Settings ─────────────────────────────────────

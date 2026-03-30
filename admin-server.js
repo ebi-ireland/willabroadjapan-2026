@@ -152,6 +152,73 @@ app.delete('/admin/api/notices/:id', requireAuth, (req, res) => {
     (err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true }) })
 })
 
+// ── 記事メディアアップロード ───────────────────────────────
+const ARTICLE_UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', 'articles')
+if (!fs.existsSync(ARTICLE_UPLOAD_DIR)) fs.mkdirSync(ARTICLE_UPLOAD_DIR, { recursive: true })
+
+const ALLOWED_IMAGE_EXT = new Set(['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg'])
+const ALLOWED_FILE_EXT  = new Set(['.pdf', '.docx', '.xlsx', '.pptx', '.zip', '.txt', '.csv'])
+const MAX_UPLOAD_MB = 20
+
+const articleUpload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => cb(null, ARTICLE_UPLOAD_DIR),
+    filename: (req, file, cb) => {
+      const ext  = path.extname(file.originalname).toLowerCase()
+      const base = path.basename(file.originalname, ext)
+        .replace(/[^a-zA-Z0-9\u3000-\u9fff_-]/g, '_').slice(0, 60)
+      cb(null, `${Date.now()}_${base}${ext}`)
+    }
+  }),
+  limits: { fileSize: MAX_UPLOAD_MB * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const ext = path.extname(file.originalname).toLowerCase()
+    if (ALLOWED_IMAGE_EXT.has(ext) || ALLOWED_FILE_EXT.has(ext)) return cb(null, true)
+    cb(new Error(`許可されていない拡張子: ${ext}`))
+  }
+})
+
+// 画像アップロード → Markdown用URL返却
+app.post('/admin/api/articles/upload/image', requireAuth, articleUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'ファイルが見つかりません' })
+  const ext = path.extname(req.file.originalname).toLowerCase()
+  if (!ALLOWED_IMAGE_EXT.has(ext)) {
+    fs.unlinkSync(req.file.path)
+    return res.status(400).json({ error: '画像ファイルのみアップロードできます' })
+  }
+  res.json({ url: `/uploads/articles/${req.file.filename}`, name: req.file.originalname })
+})
+
+// ファイルアップロード → Markdown用URL返却
+app.post('/admin/api/articles/upload/file', requireAuth, articleUpload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'ファイルが見つかりません' })
+  res.json({ url: `/uploads/articles/${req.file.filename}`, name: req.file.originalname })
+})
+
+// アップロード済みメディア一覧
+app.get('/admin/api/articles/uploads', requireAuth, (req, res) => {
+  fs.readdir(ARTICLE_UPLOAD_DIR, (err, files) => {
+    if (err) return res.status(500).json({ error: err.message })
+    const list = files.map(f => {
+      const ext  = path.extname(f).toLowerCase()
+      const stat = fs.statSync(path.join(ARTICLE_UPLOAD_DIR, f))
+      return { filename: f, url: `/uploads/articles/${f}`, isImage: ALLOWED_IMAGE_EXT.has(ext), size: stat.size, mtime: stat.mtime }
+    }).sort((a, b) => b.mtime - a.mtime)
+    res.json(list)
+  })
+})
+
+// アップロード済みメディア削除
+app.delete('/admin/api/articles/uploads/:filename', requireAuth, (req, res) => {
+  const filename = path.basename(req.params.filename)   // パストラバーサル防止
+  const filepath = path.join(ARTICLE_UPLOAD_DIR, filename)
+  if (!fs.existsSync(filepath)) return res.status(404).json({ error: 'ファイルが見つかりません' })
+  fs.unlink(filepath, err => {
+    if (err) return res.status(500).json({ error: err.message })
+    res.json({ ok: true })
+  })
+})
+
 // ── 記事 ──────────────────────────────────────────────────
 app.get('/admin/api/articles', requireAuth, (req, res) => {
   db.query('SELECT id, title, summary, status, updated_at FROM articles ORDER BY updated_at DESC', (err, rows) => {
@@ -161,7 +228,7 @@ app.get('/admin/api/articles', requireAuth, (req, res) => {
 })
 app.post('/admin/api/articles', requireAuth, (req, res) => {
   const { title, summary, body, status } = req.body
-  db.query('INSERT INTO articles (title, summary, body, status) VALUES (?,?,?,?)',
+  db.query('INSERT INTO articles (title, summary, content, status) VALUES (?,?,?,?)',
     [title, summary, body, status || 'draft'],
     (err, r) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true, id: r.insertId }) })
 })
@@ -487,6 +554,39 @@ app.delete('/admin/api/university-own-scholarships/:id', requireAuth, (req, res)
     db.query('DELETE FROM university_own_scholarships WHERE id = ?', [id],
       (err) => { if (err) return res.status(500).json({ error: err.message }); res.json({ ok: true }) })
   } catch(e) { return handleErr(res, e) }
+})
+
+// ── 海外大学独自奨学金 (input_data.json 読み書き) ─────────────
+const INPUT_DATA_PATH = path.join(__dirname, 'GetData', 'CreateTable', 'input_data.json')
+
+app.get('/admin/api/input-data', requireAuth, (req, res) => {
+  try {
+    const data = fs.existsSync(INPUT_DATA_PATH)
+      ? JSON.parse(fs.readFileSync(INPUT_DATA_PATH, 'utf8'))
+      : []
+    res.json(Array.isArray(data) ? data : [])
+  } catch(e) { handleErr(res, e) }
+})
+
+app.post('/admin/api/input-data', requireAuth, (req, res) => {
+  try {
+    const incoming = req.body
+    const name = incoming && String(incoming['大学名'] || '').trim()
+    if (!name) return res.status(400).json({ error: '大学名は必須です' })
+    let data = []
+    if (fs.existsSync(INPUT_DATA_PATH)) {
+      data = JSON.parse(fs.readFileSync(INPUT_DATA_PATH, 'utf8'))
+      if (!Array.isArray(data)) data = []
+    }
+    const idx = data.findIndex(u => u['大学名'] === name)
+    if (idx >= 0) {
+      data[idx] = { ...data[idx], ...incoming }
+    } else {
+      data.push(incoming)
+    }
+    fs.writeFileSync(INPUT_DATA_PATH, JSON.stringify(data, null, 2), 'utf8')
+    res.json({ ok: true })
+  } catch(e) { handleErr(res, e) }
 })
 
 // ── 診断 大学設定 ──────────────────────────────────────────

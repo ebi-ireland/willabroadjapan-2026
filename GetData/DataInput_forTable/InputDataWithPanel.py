@@ -24,8 +24,14 @@ from flask import Flask, request, jsonify, render_template_string
 
 app = Flask(__name__)
 
-HERE        = Path(__file__).parent                       # .../ComparisonData/
+HERE        = Path(__file__).parent                       # .../DataInput_forTable/
 OUTPUT_JSON = HERE.parent / "CreateTable" / "input_data.json"
+
+# 他の2パネルのJSON（新規追加時に空エントリを同期）
+OTHER_JSONS = [
+    HERE.parent / "CreateTable" / "english_proficiency.json",
+    HERE.parent / "CreateTable" / "other_conditions.json",
+]
 
 
 # ─────────────────────────────────────────────
@@ -68,6 +74,24 @@ def api_load(name):
     return jsonify({}), 404
 
 
+def sync_name_to_others(name: str):
+    """新規大学名を他の2つのJSONにも空エントリとして追加する。"""
+    for path in OTHER_JSONS:
+        try:
+            records = []
+            if path.exists():
+                with open(path, encoding="utf-8") as f:
+                    records = json.load(f)
+            if any(r.get("大学名") == name for r in records):
+                continue  # 既に存在する場合はスキップ
+            records.append({"大学名": name})
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w", encoding="utf-8") as f:
+                json.dump(records, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"  [sync] {path.name} への同期失敗: {e}")
+
+
 @app.route("/api/save", methods=["POST"])
 def api_save():
     body = request.get_json(silent=True) or {}
@@ -77,6 +101,7 @@ def api_save():
 
     records = load_data()
     idx = next((i for i, r in enumerate(records) if r.get("大学名") == name), None)
+    is_new = idx is None
 
     if idx is not None:
         records[idx] = body
@@ -86,6 +111,11 @@ def api_save():
         msg = f"「{name}」を追加しました（合計 {len(records)} 件）"
 
     save_data(records)
+
+    if is_new:
+        sync_name_to_others(name)
+        msg += " ／ 他2パネルにも空エントリを追加しました"
+
     return jsonify({"message": msg, "count": len(records)})
 
 
@@ -716,7 +746,22 @@ HTML = r"""<!DOCTYPE html>
         <div class="form-section-title">Section H — 経済支援（Need / Merit）<span class="cds-tag">H1 / H2</span></div>
         <div class="field-grid cols-3">
           <div class="field"><label>Need 総数</label><input type="number" id="f_Need総数" placeholder="0"></div>
-          <div class="field"><label>Need-Met (%)</label><input type="number" id="f_Need-Met" placeholder="100" step="0.1"></div>
+          <div class="field">
+            <label>Need-Met (%)
+              <span id="need-met-badge" style="
+                display:none;
+                margin-left:0.4rem;
+                font-size:0.65rem;
+                font-family:'Syne',sans-serif;
+                font-weight:700;
+                padding:0.1rem 0.4rem;
+                border-radius:4px;
+                vertical-align:middle;
+              "></span>
+            </label>
+            <input type="number" id="f_Need-Met" placeholder="100" step="0.1"
+              oninput="updateNeedMetBadge(this.value)">
+          </div>
           <div class="field"><label>Need 全体平均額 ($)</label><input type="number" id="f_Need全体平均額" placeholder="0"></div>
           <div class="field"><label>Merit 全体数</label><input type="number" id="f_Merit全体数" placeholder="0"></div>
           <div class="field"><label>Merit 平均額 ($)</label><input type="number" id="f_Merit平均額" placeholder="0"></div>
@@ -945,6 +990,9 @@ function fillForm(data) {
   const parts = da.split(' ')
   document.getElementById('f_deferred_value').value = parts[0] || ''
   document.getElementById('f_deferred_unit').value  = parts[1] || ''
+
+  // Need-Met バッジ更新
+  updateNeedMetBadge(data['Need-Met'])
 }
 
 function clearForm() {
@@ -953,6 +1001,30 @@ function clearForm() {
       if (el.type === 'checkbox') el.checked = false
       else el.value = ''
     })
+  updateNeedMetBadge('')
+}
+
+// ─── Need-Met バッジ ─────────────────────────────────────────
+function updateNeedMetBadge(val) {
+  const badge = document.getElementById('need-met-badge')
+  if (!badge) return
+  const n = parseFloat(val)
+  if (isNaN(n) || val === '' || val == null) {
+    badge.style.display = 'none'
+    return
+  }
+  badge.style.display = 'inline'
+  if (n >= 100) {
+    badge.textContent = '→ TRUE'
+    badge.style.background = 'rgba(91,255,200,0.15)'
+    badge.style.color       = '#5bffc8'
+    badge.style.border      = '1px solid rgba(91,255,200,0.4)'
+  } else {
+    badge.textContent = '→ 数値保存'
+    badge.style.background = 'rgba(107,114,128,0.15)'
+    badge.style.color       = '#6b7280'
+    badge.style.border      = '1px solid rgba(107,114,128,0.3)'
+  }
 }
 
 // ─── API 操作 ────────────────────────────────────────────────
