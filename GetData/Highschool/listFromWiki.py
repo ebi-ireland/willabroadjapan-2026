@@ -29,8 +29,9 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 WIKI_BASE     = "https://ja.wikipedia.org"
 MAIN_PAGE_URL = WIKI_BASE + "/wiki/%E6%97%A5%E6%9C%AC%E3%81%AE%E9%AB%98%E7%AD%89%E5%AD%A6%E6%A0%A1%E4%B8%80%E8%A6%A7"
 OUTPUT_DIR    = Path(__file__).parent / "listData"
-SNAPSHOT_FILE  = Path(__file__).parent / "last_snapshot.json"
-PREF_URLS_FILE = Path(__file__).parent / "pref_urls.json"
+SNAPSHOT_FILE   = Path(__file__).parent / "last_snapshot.json"
+PREF_URLS_FILE  = Path(__file__).parent / "pref_urls.json"
+MANUAL_DATA_FILE = Path(__file__).parent / "manual_data.json"
 
 DISCORD_WEBHOOK = os.getenv("DISCORD_HIGHSCHOOL_NAME_CHANGE_WEBHOOK")
 
@@ -265,58 +266,168 @@ def detect_changes(current: list[dict], prev_names: set[str]) -> list[dict]:
                       for n in prev_names if n not in current_names]
     return new_schools + closed_schools
 
+# ── 手動データ 読み込み / 保存 ──────────────────────────────
+def load_manual_data() -> dict:
+    """manual_data.json を読み込む。
+    形式: { "高校名": {"url": "...", "confirmed": True/False, "overseas": True/False} }
+    """
+    if not MANUAL_DATA_FILE.exists():
+        return {}
+    try:
+        return json.loads(MANUAL_DATA_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+def extract_manual_from_excel(excel_path: Path) -> dict:
+    """既存の Excel ファイルから手動入力列（C・D・E）を読み取る。"""
+    from openpyxl import load_workbook
+    manual = {}
+    try:
+        wb = load_workbook(excel_path, read_only=True, data_only=True)
+        ws = wb.active
+        for row in ws.iter_rows(min_row=2, values_only=True):
+            if not row or not row[0]:
+                continue
+            name      = str(row[0]).strip()
+            url       = str(row[2]).strip() if len(row) > 2 and row[2] else ""
+            confirmed = row[3] if len(row) > 3 else False
+            overseas  = row[4] if len(row) > 4 else False
+            # TRUE/FALSE 文字列 → bool
+            if isinstance(confirmed, str):
+                confirmed = confirmed.upper() == "TRUE"
+            if isinstance(overseas, str):
+                overseas = overseas.upper() == "TRUE"
+            if url or confirmed or overseas:
+                manual[name] = {
+                    "url":       url,
+                    "confirmed": bool(confirmed),
+                    "overseas":  bool(overseas),
+                }
+        wb.close()
+    except Exception as e:
+        print(f"[WARN] 既存Excelの読み取りスキップ: {e}")
+    return manual
+
+def merge_and_save_manual(new_entries: dict) -> dict:
+    """既存の manual_data.json と new_entries をマージして保存する。
+    新しい値が空でない場合のみ上書き。
+    """
+    existing = load_manual_data()
+    for name, data in new_entries.items():
+        if name not in existing:
+            existing[name] = data
+        else:
+            # URL: 新しい値があれば上書き
+            if data.get("url"):
+                existing[name]["url"] = data["url"]
+            # チェック: True になったら上書き（False への上書きはしない）
+            if data.get("confirmed"):
+                existing[name]["confirmed"] = True
+            if data.get("overseas"):
+                existing[name]["overseas"] = True
+    MANUAL_DATA_FILE.write_text(
+        json.dumps(existing, ensure_ascii=False, indent=2),
+        encoding="utf-8"
+    )
+    return existing
+
 # ── Excel 出力 ────────────────────────────────────────────
-def save_excel(schools: list[dict], output_path: Path) -> None:
+def save_excel(schools: list[dict], output_path: Path, manual: dict) -> None:
+    from openpyxl.worksheet.datavalidation import DataValidation
+    from collections import Counter
+
+    year = datetime.now().year
     wb = Workbook()
     ws = wb.active
     ws.title = "高校一覧"
 
-    # ヘッダー
+    # ── ヘッダー ──
     header_fill = PatternFill(fill_type="solid", fgColor="2A2D3E")
     header_font = Font(bold=True, color="E8E8F0", size=11)
-    headers = ["高校名", "都道府県", "Wikipedia URL"]
-    col_widths = [40, 14, 60]
+    headers    = ["高校名", "都道府県", "公式サイトURL", f"{year}年度確認済", "海外大輩出"]
+    col_widths = [40,        14,          52,              16,               12]
 
     for col, (h, w) in enumerate(zip(headers, col_widths), start=1):
         cell = ws.cell(row=1, column=col, value=h)
-        cell.font   = header_font
-        cell.fill   = header_fill
+        cell.font      = header_font
+        cell.fill      = header_fill
         cell.alignment = Alignment(horizontal="center", vertical="center")
         ws.column_dimensions[cell.column_letter].width = w
 
     ws.row_dimensions[1].height = 20
 
-    # データ
+    # ── チェックボックス用データバリデーション（D・E 列）──
+    dv_check = DataValidation(type="list", formula1='"TRUE,FALSE"', allow_blank=False, showDropDown=False)
+    dv_check.sqref = f"D2:E{len(schools) + 1}"
+    ws.add_data_validation(dv_check)
+
+    # ── データ行 ──
+    confirmed_fill = PatternFill(fill_type="solid", fgColor="1E3A2A")  # 確認済：緑みがかった背景
+    overseas_fill  = PatternFill(fill_type="solid", fgColor="1A2A3E")  # 海外大輩出：青みがかった背景
+    even_fill      = PatternFill(fill_type="solid", fgColor="1A1D27")
+    true_font      = Font(bold=True, color="3DBA6E")
+    false_font     = Font(color="4A4D5E")
+
     for row_idx, s in enumerate(schools, start=2):
-        ws.cell(row=row_idx, column=1, value=s["name"])
+        name = s["name"]
+        m    = manual.get(name, {})
+
+        url       = m.get("url", "")
+        confirmed = m.get("confirmed", False)
+        overseas  = m.get("overseas",  False)
+
+        # A: 高校名
+        ws.cell(row=row_idx, column=1, value=name)
+        # B: 都道府県
         ws.cell(row=row_idx, column=2, value=s["pref"])
-        url_cell = ws.cell(row=row_idx, column=3, value=s["url"])
-        if s["url"]:
-            url_cell.hyperlink = s["url"]
-            url_cell.font = Font(color="4A90D9", underline="single")
-        # 偶数行に薄い背景
-        if row_idx % 2 == 0:
-            fill = PatternFill(fill_type="solid", fgColor="1A1D27")
-            for col in range(1, 4):
-                ws.cell(row=row_idx, column=col).fill = fill
+        # C: 公式URL
+        c_cell = ws.cell(row=row_idx, column=3, value=url)
+        if url:
+            c_cell.hyperlink = url
+            c_cell.font = Font(color="4A90D9", underline="single")
+        # D: 確認済
+        d_cell = ws.cell(row=row_idx, column=4, value="TRUE" if confirmed else "FALSE")
+        d_cell.font      = true_font if confirmed else false_font
+        d_cell.alignment = Alignment(horizontal="center")
+        # E: 海外大輩出
+        e_cell = ws.cell(row=row_idx, column=5, value="TRUE" if overseas else "FALSE")
+        e_cell.font      = true_font if overseas else false_font
+        e_cell.alignment = Alignment(horizontal="center")
+
+        # 行の背景（優先順: 確認済 > 海外 > 偶数行）
+        if confirmed:
+            row_fill = confirmed_fill
+        elif overseas:
+            row_fill = overseas_fill
+        elif row_idx % 2 == 0:
+            row_fill = even_fill
+        else:
+            row_fill = None
+
+        if row_fill:
+            for col in range(1, 6):
+                ws.cell(row=row_idx, column=col).fill = row_fill
 
     # ウィンドウ枠固定
     ws.freeze_panes = "A2"
 
-    # 統計シート
+    # ── 統計シート ──
     ws2 = wb.create_sheet("都道府県別")
     ws2.cell(row=1, column=1, value="都道府県").font = Font(bold=True)
-    ws2.cell(row=1, column=2, value="高校数").font  = Font(bold=True)
+    ws2.cell(row=1, column=2, value="高校数").font   = Font(bold=True)
     ws2.column_dimensions["A"].width = 16
     ws2.column_dimensions["B"].width = 10
-    from collections import Counter
     pref_counts = Counter(s["pref"] for s in schools)
     for row_idx, (pref, count) in enumerate(sorted(pref_counts.items()), start=2):
         ws2.cell(row=row_idx, column=1, value=pref)
         ws2.cell(row=row_idx, column=2, value=count)
 
     wb.save(output_path)
-    print(f"[保存] {output_path}  ({len(schools):,} 校)")
+    confirmed_count = sum(1 for s in schools if manual.get(s["name"], {}).get("confirmed"))
+    overseas_count  = sum(1 for s in schools if manual.get(s["name"], {}).get("overseas"))
+    url_count       = sum(1 for s in schools if manual.get(s["name"], {}).get("url"))
+    print(f"[保存] {output_path}")
+    print(f"       {len(schools):,} 校  |  URL入力済: {url_count}  |  確認済: {confirmed_count}  |  海外大輩出: {overseas_count}")
 
 # ── メイン ────────────────────────────────────────────────
 def main():
@@ -372,10 +483,25 @@ def main():
     current_names = {s["name"] for s in all_schools}
     save_snapshot(current_names)
 
+    # 手動データ復元
+    print("\n[4] 手動入力データを読み込み中...")
+    # まず既存の Excel から C・D・E 列を抽出
+    existing_excels = sorted(OUTPUT_DIR.glob("*.xlsx"))
+    excel_manual: dict = {}
+    if existing_excels:
+        latest_excel = existing_excels[-1]
+        print(f"    既存Excel: {latest_excel.name} から手動データを抽出")
+        excel_manual = extract_manual_from_excel(latest_excel)
+        print(f"    → {len(excel_manual)} 件のデータを検出")
+    # JSON バックアップとマージ（Excel > JSON で上書き）
+    manual = merge_and_save_manual(excel_manual)
+    filled = sum(1 for v in manual.values() if v.get("url") or v.get("confirmed") or v.get("overseas"))
+    print(f"    manual_data.json に {filled} 件の手動データを保持")
+
     # Excel 出力
-    print("\n[4] Excel ファイルを出力中...")
+    print("\n[5] Excel ファイルを出力中...")
     output_path = make_output_path()
-    save_excel(all_schools, output_path)
+    save_excel(all_schools, output_path, manual)
 
     print("\n完了！")
     print(f"出力ファイル: {output_path}")
