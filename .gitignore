@@ -42,6 +42,12 @@ GetData/CreateTable/geocode_progress*.json
 GetData/CreateTable/scrape_progress*.json
 GetData/CreateTable/rankings_cache.json
 
+# Highschool data (generated output — do not expose)
+GetData/Highschool/listData/
+GetData/Highschool/last_snapshot.json
+GetData/Highschool/pref_urls.json
+GetData/Highschool/manual_data.json
+
 # University input data (local tool output — do not expose)
 GetData/CreateTable/input_data.json
 GetData/CreateTable/english_proficiency.json
