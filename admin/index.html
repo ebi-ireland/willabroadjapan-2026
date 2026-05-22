@@ -1630,6 +1630,14 @@ function showLoginScreen() {
 
 // リロード時にセッションを確認し、ログイン済みなら管理画面をそのまま表示
 async function checkAuth() {
+  // ⚠️ 開発中のためログインをスキップして直接管理画面を表示
+  // 本番環境に戻すときは下の showAdminApp/loadDashboard を削除し、
+  // 元の認証チェック処理（コメントアウト部分）を復活させてください
+  showAdminApp()
+  loadDashboard()
+  return
+
+  /* ── 本番用認証チェック（開発完了後に有効化） ──
   try {
     const res = await fetch('/admin/api/auth-check')
     if (res.ok) {
@@ -1642,6 +1650,7 @@ async function checkAuth() {
     }
   } catch {}
   showLoginScreen()
+  */
 }
 
 // ログイン

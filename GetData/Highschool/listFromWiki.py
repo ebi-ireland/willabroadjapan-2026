@@ -362,11 +362,13 @@ def save_excel(schools: list[dict], output_path: Path, manual: dict) -> None:
     ws.add_data_validation(dv_check)
 
     # ── データ行 ──
-    confirmed_fill = PatternFill(fill_type="solid", fgColor="1E3A2A")  # 確認済：緑みがかった背景
-    overseas_fill  = PatternFill(fill_type="solid", fgColor="1A2A3E")  # 海外大輩出：青みがかった背景
-    even_fill      = PatternFill(fill_type="solid", fgColor="1A1D27")
-    true_font      = Font(bold=True, color="3DBA6E")
-    false_font     = Font(color="4A4D5E")
+    white_fill     = PatternFill(fill_type="solid", fgColor="FFFFFF")   # 奇数行：白
+    yellow_fill    = PatternFill(fill_type="solid", fgColor="FFFDE7")   # 偶数行：薄い黄色
+    confirmed_fill = PatternFill(fill_type="solid", fgColor="C8F0D8")   # 確認済：薄緑
+    overseas_fill  = PatternFill(fill_type="solid", fgColor="C8E4F8")   # 海外大輩出：薄青
+    black_font     = Font(color="000000")
+    true_font      = Font(bold=True, color="1A7A3C")
+    url_font       = Font(color="1155CC", underline="single")
 
     for row_idx, s in enumerate(schools, start=2):
         name = s["name"]
@@ -376,6 +378,20 @@ def save_excel(schools: list[dict], output_path: Path, manual: dict) -> None:
         confirmed = m.get("confirmed", False)
         overseas  = m.get("overseas",  False)
 
+        # 行の背景（優先順: 確認済 > 海外大輩出 > 偶数行黄 > 奇数行白）
+        if confirmed:
+            row_fill = confirmed_fill
+        elif overseas:
+            row_fill = overseas_fill
+        elif row_idx % 2 == 0:
+            row_fill = yellow_fill
+        else:
+            row_fill = white_fill
+
+        for col in range(1, 6):
+            ws.cell(row=row_idx, column=col).fill = row_fill
+            ws.cell(row=row_idx, column=col).font = black_font
+
         # A: 高校名
         ws.cell(row=row_idx, column=1, value=name)
         # B: 都道府県
@@ -384,29 +400,17 @@ def save_excel(schools: list[dict], output_path: Path, manual: dict) -> None:
         c_cell = ws.cell(row=row_idx, column=3, value=url)
         if url:
             c_cell.hyperlink = url
-            c_cell.font = Font(color="4A90D9", underline="single")
+            c_cell.font = url_font
         # D: 確認済
         d_cell = ws.cell(row=row_idx, column=4, value="TRUE" if confirmed else "FALSE")
-        d_cell.font      = true_font if confirmed else false_font
+        if confirmed:
+            d_cell.font = true_font
         d_cell.alignment = Alignment(horizontal="center")
         # E: 海外大輩出
         e_cell = ws.cell(row=row_idx, column=5, value="TRUE" if overseas else "FALSE")
-        e_cell.font      = true_font if overseas else false_font
+        if overseas:
+            e_cell.font = true_font
         e_cell.alignment = Alignment(horizontal="center")
-
-        # 行の背景（優先順: 確認済 > 海外 > 偶数行）
-        if confirmed:
-            row_fill = confirmed_fill
-        elif overseas:
-            row_fill = overseas_fill
-        elif row_idx % 2 == 0:
-            row_fill = even_fill
-        else:
-            row_fill = None
-
-        if row_fill:
-            for col in range(1, 6):
-                ws.cell(row=row_idx, column=col).fill = row_fill
 
     # ウィンドウ枠固定
     ws.freeze_panes = "A2"
